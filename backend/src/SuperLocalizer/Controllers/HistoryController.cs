@@ -8,10 +8,10 @@ namespace SuperLocalizer.Controllers
     {
         public HistoryController()
         {
-            // PUT api/history/{propertyId}
-            // GET api/history/{propertyId}
-            // POST api/history/rollback/{propertyId}
+            // POST api/history/{propertyId}/action
+            // POST api/history/{propertyId}/undo
+            // POST api/history/{propertyId}/redo
+            // GET api/history/{propertyId}/actions
         }
-
     }
 }

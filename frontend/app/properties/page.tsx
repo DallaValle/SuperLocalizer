@@ -68,7 +68,7 @@ export default function PropertiesPage() {
             setTotalPages(response.totalPages)
             setTotalItems(response.totalItems)
         } catch (err) {
-            setError('Errore nel caricamento delle proprietà')
+            setError('Error loading properties')
             console.error('Error loading properties:', err)
         } finally {
             setLoading(false)
@@ -81,12 +81,12 @@ export default function PropertiesPage() {
 
     const handlePageSizeChange = (size: number) => {
         setPageSize(size)
-        setCurrentPage(1) // Reset alla prima pagina
+        setCurrentPage(1) // Reset to first page
     }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        setCurrentPage(1) // Reset alla prima pagina
+        setCurrentPage(1) // Reset to first page
         loadProperties()
     }
 
@@ -102,7 +102,7 @@ export default function PropertiesPage() {
     }
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('it-IT', {
+        return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -162,7 +162,7 @@ export default function PropertiesPage() {
 
         } catch (err) {
             console.error('Error updating property value:', err)
-            setError('Errore durante il salvataggio')
+            setError('Error during save')
         } finally {
             setSavingValues(prev => {
                 const newState = { ...prev }
@@ -263,7 +263,7 @@ export default function PropertiesPage() {
     return (
         <div className="properties-container">
             <header className="properties-header">
-                <h1>Gestione Traduzioni</h1>
+                <h1>Translation Management</h1>
                 <div className="header-actions">
                     <button onClick={() => window.location.href = '/home'} className="back-btn">
                         ← Dashboard
@@ -281,13 +281,13 @@ export default function PropertiesPage() {
                         <div className="search-group">
                             <input
                                 type="text"
-                                placeholder="Cerca per chiave..."
+                                placeholder="Search by key..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="search-input"
                             />
                             <button type="submit" className="search-btn">
-                                🔍 Cerca
+                                🔍 Search
                             </button>
                         </div>
 
@@ -297,7 +297,7 @@ export default function PropertiesPage() {
                                 onChange={(e) => setSelectedLanguage(e.target.value)}
                                 className="language-select"
                             >
-                                <option value="">Tutte le lingue</option>
+                                <option value="">All languages</option>
                                 {availableLanguages.map(lang => (
                                     <option key={lang} value={lang}>
                                         {getLanguageFlag(lang)} {lang}
@@ -310,10 +310,10 @@ export default function PropertiesPage() {
                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                                 className="pagesize-select"
                             >
-                                <option value={10}>10 per pagina</option>
-                                <option value={25}>25 per pagina</option>
-                                <option value={50}>50 per pagina</option>
-                                <option value={100}>100 per pagina</option>
+                                <option value={10}>10 per page</option>
+                                <option value={25}>25 per page</option>
+                                <option value={50}>50 per page</option>
+                                <option value={100}>100 per page</option>
                             </select>
                         </div>
                     </form>
@@ -322,15 +322,15 @@ export default function PropertiesPage() {
                 {/* Statistiche */}
                 <div className="stats-section">
                     <div className="stats-item">
-                        <span className="stats-label">Totale elementi:</span>
+                        <span className="stats-label">Total items:</span>
                         <span className="stats-value">{totalItems.toLocaleString()}</span>
                     </div>
                     <div className="stats-item">
-                        <span className="stats-label">Pagina:</span>
-                        <span className="stats-value">{currentPage} di {totalPages}</span>
+                        <span className="stats-label">Page:</span>
+                        <span className="stats-value">{currentPage} of {totalPages}</span>
                     </div>
                     <div className="stats-item">
-                        <span className="stats-label">Elementi visualizzati:</span>
+                        <span className="stats-label">Items displayed:</span>
                         <span className="stats-value">{properties.length}</span>
                     </div>
                 </div>
@@ -339,7 +339,7 @@ export default function PropertiesPage() {
                 {loading && (
                     <div className="loading-section">
                         <div className="loading-spinner"></div>
-                        <p>Caricamento proprietà...</p>
+                        <p>Loading properties...</p>
                     </div>
                 )}
 
@@ -348,7 +348,7 @@ export default function PropertiesPage() {
                     <div className="error-section">
                         <p>{error}</p>
                         <button onClick={loadProperties} className="retry-btn">
-                            Riprova
+                            Retry
                         </button>
                     </div>
                 )}
@@ -362,10 +362,10 @@ export default function PropertiesPage() {
                                     <h3 className="property-key">{property.key}</h3>
                                     <div className="property-dates">
                                         <span className="date-info">
-                                            Creato: {formatDate(property.insertDate)}
+                                            Created: {formatDate(property.insertDate)}
                                         </span>
                                         <span className="date-info">
-                                            Aggiornato: {formatDate(property.updateDate)}
+                                            Updated: {formatDate(property.updateDate)}
                                         </span>
                                     </div>
                                 </div>
@@ -405,7 +405,7 @@ export default function PropertiesPage() {
                                                                     onChange={(e) => updateEditingValue(property.key, value.language, 'isVerified', e.target.checked)}
                                                                     disabled={isSaving}
                                                                 />
-                                                                <span>✓ Verificato</span>
+                                                                <span>✓ Verified</span>
                                                             </label>
 
                                                             <label className="flag-checkbox">
@@ -415,7 +415,7 @@ export default function PropertiesPage() {
                                                                     onChange={(e) => updateEditingValue(property.key, value.language, 'isReviewed', e.target.checked)}
                                                                     disabled={isSaving}
                                                                 />
-                                                                <span>👁 Revisionato</span>
+                                                                <span>👁 Reviewed</span>
                                                             </label>
                                                         </div>
 
@@ -423,16 +423,16 @@ export default function PropertiesPage() {
                                                             <button
                                                                 onClick={() => openCommentsModal(property.key, value.language, editingValue.comments || [])}
                                                                 className="comments-btn"
-                                                                title={`Commenti (${(editingValue.comments || []).length})`}
+                                                                title={`Comments (${(editingValue.comments || []).length})`}
                                                             >
-                                                                💬 Commenti ({(editingValue.comments || []).length})
+                                                                💬 Comments ({(editingValue.comments || []).length})
                                                             </button>
                                                             <button
                                                                 onClick={() => commitChanges(property.key, value.language)}
                                                                 disabled={isSaving}
                                                                 className="commit-btn"
                                                             >
-                                                                {isSaving ? '💾 Salvando...' : '💾 Commit'}
+                                                                {isSaving ? '💾 Saving...' : '💾 Commit'}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -451,7 +451,7 @@ export default function PropertiesPage() {
                     <div className="pagination-section">
                         {renderPagination()}
                         <div className="pagination-info">
-                            Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} di {totalItems.toLocaleString()} elementi
+                            Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} of {totalItems.toLocaleString()} items
                         </div>
                     </div>
                 )}

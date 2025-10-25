@@ -60,7 +60,7 @@ export default function CommentsModal({
     }
 
     const handleDeleteComment = (index: number) => {
-        if (confirm('Sei sicuro di voler eliminare questo commento?')) {
+        if (confirm('Are you sure you want to delete this comment?')) {
             const updatedComments = comments.filter((_, i) => i !== index)
             onUpdateComments(updatedComments)
         }
@@ -79,7 +79,7 @@ export default function CommentsModal({
         <div className="comments-modal-overlay" onClick={onClose}>
             <div className="comments-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="comments-modal-header">
-                    <h3>Commenti per {propertyKey} ({language})</h3>
+                    <h3>Comments for {propertyKey} ({language})</h3>
                     <button className="close-btn" onClick={onClose}>×</button>
                 </div>
 
@@ -87,7 +87,7 @@ export default function CommentsModal({
                     {/* Lista commenti esistenti */}
                     <div className="comments-list">
                         {comments.length === 0 ? (
-                            <p className="no-comments">Nessun commento presente</p>
+                            <p className="no-comments">No comments available</p>
                         ) : (
                             comments.map((comment, index) => (
                                 <div key={index} className="comment-item">
@@ -105,13 +105,13 @@ export default function CommentsModal({
                                                     onClick={handleSaveEdit}
                                                     className="save-comment-btn"
                                                 >
-                                                    💾 Salva
+                                                    💾 Save
                                                 </button>
                                                 <button
                                                     onClick={handleCancelEdit}
                                                     className="cancel-comment-btn"
                                                 >
-                                                    ❌ Annulla
+                                                    ❌ Cancel
                                                 </button>
                                             </div>
                                         </div>
@@ -123,13 +123,13 @@ export default function CommentsModal({
                                                     onClick={() => handleEditComment(index)}
                                                     className="edit-comment-btn"
                                                 >
-                                                    ✏️ Modifica
+                                                    ✏️ Edit
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteComment(index)}
                                                     className="delete-comment-btn"
                                                 >
-                                                    🗑️ Elimina
+                                                    🗑️ Delete
                                                 </button>
                                             </div>
                                         </div>
@@ -141,11 +141,11 @@ export default function CommentsModal({
 
                     {/* Form per nuovo commento */}
                     <div className="add-comment-section">
-                        <h4>Aggiungi nuovo commento</h4>
+                        <h4>Add new comment</h4>
                         <textarea
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="Scrivi il tuo commento qui..."
+                            placeholder="Write your comment here..."
                             className="new-comment-input"
                             rows={3}
                             onKeyDown={(e) => handleKeyDown(e, handleAddComment)}
@@ -156,10 +156,10 @@ export default function CommentsModal({
                                 disabled={!newComment.trim()}
                                 className="add-comment-btn"
                             >
-                                ➕ Aggiungi Commento
+                                ➕ Add Comment
                             </button>
                         </div>
-                        <p className="keyboard-hint">💡 Suggerimento: Premi Ctrl+Enter (o Cmd+Enter su Mac) per salvare rapidamente</p>
+                        <p className="keyboard-hint">💡 Tip: Press Ctrl+Enter (or Cmd+Enter on Mac) to save quickly</p>
                     </div>
                 </div>
             </div>

@@ -12,6 +12,5 @@ namespace SuperLocalizer.Controllers
             // DELETE api/comment/{id}
             // PATCH api/comment/{id}
         }
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SuperLocalizer.Controllers
 {
@@ -11,6 +12,11 @@ namespace SuperLocalizer.Controllers
             // POST api/sync/export
             // POST api/sync/import
         }
+    }
 
+    public class SyncRequest
+    {
+        public string MainLanguage { get; set; }
+        public List<byte[]> JsonFiles { get; set; }
     }
 }

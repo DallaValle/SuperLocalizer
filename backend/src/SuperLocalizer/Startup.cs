@@ -43,7 +43,7 @@ namespace SuperLocalizer
             services.AddSingleton<List<Property>>(_ =>
             {
                 var propertyLists = new List<List<SuperLocalizer.Model.Property>>();
-                foreach (string fileName in Directory.GetFiles("/Users/sergiodallavalle/Documents/code/SuperLocaliser/backend/test/SuperLocalizer.Tests/SupertextLocalisation-main", "localization_*.json", SearchOption.AllDirectories))
+                foreach (string fileName in Directory.GetFiles("/Users/sergiodallavalle/Documents/code/SuperLocaliser/backend/test/SuperLocalizer.Tests/SupertextLocalisation", "localization_*.json", SearchOption.AllDirectories))
                 {
                     var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
                     var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));

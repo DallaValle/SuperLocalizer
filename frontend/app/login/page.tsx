@@ -43,7 +43,7 @@ export default function LoginPage() {
                     login(mockToken)
                     router.push(redirectPath)
                 } else {
-                    setError('Credenziali non valide')
+                    setError('Invalid credentials')
                 }
             }
         } catch (err) {
@@ -53,7 +53,7 @@ export default function LoginPage() {
                 login(mockToken)
                 router.push(redirectPath)
             } else {
-                setError('Errore durante il login')
+                setError('Login error')
             }
         } finally {
             setLoading(false)
@@ -74,7 +74,7 @@ export default function LoginPage() {
                             onChange={(e) => setUsername(e.target.value)}
                             required
                             disabled={loading}
-                            placeholder="Inserisci admin"
+                            placeholder="Enter admin"
                         />
                     </div>
                     <div className="form-group">
@@ -86,16 +86,16 @@ export default function LoginPage() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             disabled={loading}
-                            placeholder="Inserisci password"
+                            placeholder="Enter password"
                         />
                     </div>
                     {error && <div className="error-message">{error}</div>}
                     <button type="submit" disabled={loading}>
-                        {loading ? 'Login in corso...' : 'Login'}
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
                 <p className="test-credentials">
-                    Credenziali di test: <strong>admin / password</strong>
+                    Test credentials: <strong>admin / password</strong>
                 </p>
             </div>
         </div>
