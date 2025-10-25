@@ -1,0 +1,18 @@
+POST http://localhost:5000/api/Property/search
+accept: text/plain
+Content-Type: application/json
+
+{
+  "page": 1,
+  "size": 10
+}
+###
+PATCH http://localhost:5000/api/Property/connectivityAlerts.offline/it
+accept: */*
+Content-Type: application/json
+
+{
+  "text": "PIPPOOOOO",
+  "isVerified": true,
+  "isReviewed": true
+}
