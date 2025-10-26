@@ -1,68 +1,142 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Comment, CommentService, CreateCommentRequest, UpdateCommentRequest } from '../services/CommentService'
 import './CommentsModal.css'
-
-export interface Comment {
-    id: string
-    text: string
-    createdAt: string
-    author?: string
-}
 
 interface CommentsModalProps {
     isOpen: boolean
     onClose: () => void
-    comments: string[]
-    onUpdateComments: (comments: string[]) => void
+    valueId: string
     propertyKey: string
     language: string
+    onCommentsUpdated?: () => void
 }
 
 export default function CommentsModal({
     isOpen,
     onClose,
-    comments,
-    onUpdateComments,
+    valueId,
     propertyKey,
-    language
+    language,
+    onCommentsUpdated
 }: CommentsModalProps) {
+    const [comments, setComments] = useState<Comment[]>([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const [newComment, setNewComment] = useState('')
-    const [editingIndex, setEditingIndex] = useState<number | null>(null)
+    const [newAuthor, setNewAuthor] = useState('')
+    const [editingComment, setEditingComment] = useState<Comment | null>(null)
     const [editingText, setEditingText] = useState('')
+    const [editingAuthor, setEditingAuthor] = useState('')
 
-    const handleAddComment = () => {
-        if (newComment.trim()) {
-            const updatedComments = [...comments, newComment.trim()]
-            onUpdateComments(updatedComments)
-            setNewComment('')
+    // Load comments when modal opens
+    useEffect(() => {
+        if (isOpen && valueId) {
+            loadComments()
+        }
+    }, [isOpen, valueId])
+
+    const loadComments = async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const commentsData = await CommentService.getCommentsByValueId(valueId)
+            setComments(commentsData)
+        } catch (err) {
+            setError('Failed to load comments')
+            console.error('Error loading comments:', err)
+        } finally {
+            setLoading(false)
         }
     }
 
-    const handleEditComment = (index: number) => {
-        setEditingIndex(index)
-        setEditingText(comments[index])
+    const handleAddComment = async () => {
+        if (!newComment.trim() || !newAuthor.trim()) {
+            setError('Both comment text and author are required')
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+        try {
+            const request: CreateCommentRequest = {
+                valueId,
+                author: newAuthor.trim(),
+                text: newComment.trim()
+            }
+
+            const createdComment = await CommentService.createComment(request)
+            setComments(prev => [...prev, createdComment])
+            setNewComment('')
+            setNewAuthor('')
+            onCommentsUpdated?.()
+        } catch (err) {
+            setError('Failed to create comment')
+            console.error('Error creating comment:', err)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const handleSaveEdit = () => {
-        if (editingIndex !== null && editingText.trim()) {
-            const updatedComments = [...comments]
-            updatedComments[editingIndex] = editingText.trim()
-            onUpdateComments(updatedComments)
-            setEditingIndex(null)
+    const handleEditComment = (comment: Comment) => {
+        setEditingComment(comment)
+        setEditingText(comment.text)
+        setEditingAuthor(comment.author)
+    }
+
+    const handleSaveEdit = async () => {
+        if (!editingComment || !editingText.trim() || !editingAuthor.trim()) {
+            setError('Comment text and author are required')
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+        try {
+            const request: UpdateCommentRequest = {
+                id: editingComment.id,
+                valueId: editingComment.valueId,
+                author: editingAuthor.trim(),
+                text: editingText.trim()
+            }
+
+            const updatedComment = await CommentService.updateComment(editingComment.id, request)
+            setComments(prev => prev.map(c => c.id === updatedComment.id ? updatedComment : c))
+            setEditingComment(null)
             setEditingText('')
+            setEditingAuthor('')
+            onCommentsUpdated?.()
+        } catch (err) {
+            setError('Failed to update comment')
+            console.error('Error updating comment:', err)
+        } finally {
+            setLoading(false)
         }
     }
 
     const handleCancelEdit = () => {
-        setEditingIndex(null)
+        setEditingComment(null)
         setEditingText('')
+        setEditingAuthor('')
     }
 
-    const handleDeleteComment = (index: number) => {
-        if (confirm('Are you sure you want to delete this comment?')) {
-            const updatedComments = comments.filter((_, i) => i !== index)
-            onUpdateComments(updatedComments)
+    const handleDeleteComment = async (comment: Comment) => {
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+        try {
+            await CommentService.deleteComment(comment.id)
+            setComments(prev => prev.filter(c => c.id !== comment.id))
+            onCommentsUpdated?.()
+        } catch (err) {
+            setError('Failed to delete comment')
+            console.error('Error deleting comment:', err)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -71,6 +145,10 @@ export default function CommentsModal({
             e.preventDefault()
             action()
         }
+    }
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleString()
     }
 
     if (!isOpen) return null
@@ -84,32 +162,55 @@ export default function CommentsModal({
                 </div>
 
                 <div className="comments-modal-content">
+                    {error && (
+                        <div className="error-message">
+                            {error}
+                            <button onClick={() => setError(null)}>×</button>
+                        </div>
+                    )}
+
+                    {loading && <div className="loading-message">Loading...</div>}
+
                     {/* Lista commenti esistenti */}
                     <div className="comments-list">
-                        {comments.length === 0 ? (
+                        {comments.length === 0 && !loading ? (
                             <p className="no-comments">No comments available</p>
                         ) : (
-                            comments.map((comment, index) => (
-                                <div key={index} className="comment-item">
-                                    {editingIndex === index ? (
+                            comments.map((comment) => (
+                                <div key={comment.id} className="comment-item">
+                                    {editingComment?.id === comment.id ? (
                                         <div className="comment-edit">
-                                            <textarea
-                                                value={editingText}
-                                                onChange={(e) => setEditingText(e.target.value)}
-                                                className="comment-edit-input"
-                                                rows={3}
-                                                onKeyDown={(e) => handleKeyDown(e, handleSaveEdit)}
-                                            />
+                                            <div className="comment-edit-field">
+                                                <label>Author:</label>
+                                                <input
+                                                    type="text"
+                                                    value={editingAuthor}
+                                                    onChange={(e) => setEditingAuthor(e.target.value)}
+                                                    className="comment-edit-author"
+                                                />
+                                            </div>
+                                            <div className="comment-edit-field">
+                                                <label>Comment:</label>
+                                                <textarea
+                                                    value={editingText}
+                                                    onChange={(e) => setEditingText(e.target.value)}
+                                                    className="comment-edit-input"
+                                                    rows={3}
+                                                    onKeyDown={(e) => handleKeyDown(e, handleSaveEdit)}
+                                                />
+                                            </div>
                                             <div className="comment-edit-actions">
                                                 <button
                                                     onClick={handleSaveEdit}
                                                     className="save-comment-btn"
+                                                    disabled={loading}
                                                 >
                                                     💾 Save
                                                 </button>
                                                 <button
                                                     onClick={handleCancelEdit}
                                                     className="cancel-comment-btn"
+                                                    disabled={loading}
                                                 >
                                                     ❌ Cancel
                                                 </button>
@@ -117,17 +218,26 @@ export default function CommentsModal({
                                         </div>
                                     ) : (
                                         <div className="comment-display">
-                                            <p className="comment-text">{comment}</p>
+                                            <div className="comment-header">
+                                                <span className="comment-author">{comment.author}</span>
+                                                <span className="comment-date">{formatDate(comment.insertDate)}</span>
+                                                {comment.updateDate !== comment.insertDate && (
+                                                    <span className="comment-updated">(edited {formatDate(comment.updateDate)})</span>
+                                                )}
+                                            </div>
+                                            <p className="comment-text">{comment.text}</p>
                                             <div className="comment-actions">
                                                 <button
-                                                    onClick={() => handleEditComment(index)}
+                                                    onClick={() => handleEditComment(comment)}
                                                     className="edit-comment-btn"
+                                                    disabled={loading}
                                                 >
                                                     ✏️ Edit
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteComment(index)}
+                                                    onClick={() => handleDeleteComment(comment)}
                                                     className="delete-comment-btn"
+                                                    disabled={loading}
                                                 >
                                                     🗑️ Delete
                                                 </button>
@@ -142,18 +252,31 @@ export default function CommentsModal({
                     {/* Form per nuovo commento */}
                     <div className="add-comment-section">
                         <h4>Add new comment</h4>
-                        <textarea
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="Write your comment here..."
-                            className="new-comment-input"
-                            rows={3}
-                            onKeyDown={(e) => handleKeyDown(e, handleAddComment)}
-                        />
+                        <div className="add-comment-field">
+                            <label>Author:</label>
+                            <input
+                                type="text"
+                                value={newAuthor}
+                                onChange={(e) => setNewAuthor(e.target.value)}
+                                placeholder="Your name"
+                                className="new-comment-author"
+                            />
+                        </div>
+                        <div className="add-comment-field">
+                            <label>Comment:</label>
+                            <textarea
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Write your comment here..."
+                                className="new-comment-input"
+                                rows={3}
+                                onKeyDown={(e) => handleKeyDown(e, handleAddComment)}
+                            />
+                        </div>
                         <div className="add-comment-actions">
                             <button
                                 onClick={handleAddComment}
-                                disabled={!newComment.trim()}
+                                disabled={!newComment.trim() || !newAuthor.trim() || loading}
                                 className="add-comment-btn"
                             >
                                 ➕ Add Comment

@@ -23,12 +23,12 @@ export default function PropertiesPage() {
         isOpen: boolean
         propertyKey: string
         language: string
-        comments: string[]
+        valueId: string
     }>({
         isOpen: false,
         propertyKey: '',
         language: '',
-        comments: []
+        valueId: ''
     })
 
     // Lingue disponibili (dall'esempio API)
@@ -172,12 +172,12 @@ export default function PropertiesPage() {
         }
     }
 
-    const openCommentsModal = (propertyKey: string, language: string, comments: string[]) => {
+    const openCommentsModal = (propertyKey: string, language: string, valueId: string) => {
         setCommentsModal({
             isOpen: true,
             propertyKey,
             language,
-            comments: [...comments]
+            valueId
         })
     }
 
@@ -186,28 +186,13 @@ export default function PropertiesPage() {
             isOpen: false,
             propertyKey: '',
             language: '',
-            comments: []
+            valueId: ''
         })
     }
 
-    const updateComments = (comments: string[]) => {
-        const { propertyKey, language } = commentsModal
-
-        // Aggiorna i commenti nell'editing value
-        const editKey = getEditKey(propertyKey, language)
-        setEditingValues(prev => ({
-            ...prev,
-            [editKey]: {
-                ...prev[editKey],
-                comments: [...comments]
-            }
-        }))
-
-        // Aggiorna anche la modal
-        setCommentsModal(prev => ({
-            ...prev,
-            comments: [...comments]
-        }))
+    const handleCommentsUpdated = () => {
+        // Reload properties to get updated comment counts
+        loadProperties()
     }
 
     const renderPagination = () => {
@@ -421,7 +406,7 @@ export default function PropertiesPage() {
 
                                                         <div className="edit-actions">
                                                             <button
-                                                                onClick={() => openCommentsModal(property.key, value.language, editingValue.comments || [])}
+                                                                onClick={() => openCommentsModal(property.key, value.language, value.id)}
                                                                 className="comments-btn"
                                                                 title={`Comments (${(editingValue.comments || []).length})`}
                                                             >
@@ -461,10 +446,10 @@ export default function PropertiesPage() {
             <CommentsModal
                 isOpen={commentsModal.isOpen}
                 onClose={closeCommentsModal}
-                comments={commentsModal.comments}
-                onUpdateComments={updateComments}
+                valueId={commentsModal.valueId}
                 propertyKey={commentsModal.propertyKey}
                 language={commentsModal.language}
+                onCommentsUpdated={handleCommentsUpdated}
             />
         </div>
     )

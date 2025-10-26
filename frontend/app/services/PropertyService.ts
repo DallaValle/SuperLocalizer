@@ -1,12 +1,17 @@
+import { Comment } from './CommentService'
+
 export interface PropertyValue {
+    id: string
+    propertyId: string
     language: string
     text: string
     isVerified: boolean
     isReviewed: boolean
-    comments: string[]
+    comments: Comment[]
 }
 
 export interface Property {
+    id: string
     key: string
     values: PropertyValue[]
     insertDate: string

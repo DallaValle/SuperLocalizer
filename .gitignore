@@ -12,7 +12,6 @@ Thumbs.db
 *~
 
 # IDE and Editor files
-.vscode/
 .vs/
 .idea/
 *.swp
@@ -378,11 +377,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # VS Code files for those working on multiple tools
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 *.code-workspace
 
 # Local History for Visual Studio Code
@@ -569,10 +563,6 @@ secrets.json
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
-
-# IDE specific files
-.vscode/launch.json
-.vscode/settings.json
 
 # OS specific
 .DS_Store
