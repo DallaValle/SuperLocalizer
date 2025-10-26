@@ -17,7 +17,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Controllo se c'è un token salvato al mount del componente
         const savedToken = localStorage.getItem('auth-token')
         if (savedToken) {
             setToken(savedToken)
@@ -28,16 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = (newToken: string) => {
         setToken(newToken)
         localStorage.setItem('auth-token', newToken)
-        // Imposta anche un cookie per il middleware
-        document.cookie = `auth-token=${newToken}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 giorni
+        document.cookie = `auth-token=${newToken}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
     }
 
     const logout = () => {
         setToken(null)
         localStorage.removeItem('auth-token')
-        // Rimuovi il cookie
         document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-        // Redirect al login
         window.location.href = '/login'
     }
 

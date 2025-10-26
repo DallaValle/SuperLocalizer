@@ -49,14 +49,8 @@ export default function HomePage() {
 
                 <div className="dashboard-grid">
                     <div className="dashboard-card">
-                        <h3>Active Projects</h3>
-                        <p className="card-number">12</p>
-                        <p className="card-description">Localization projects in progress</p>
-                    </div>
-
-                    <div className="dashboard-card">
                         <h3>Supported Languages</h3>
-                        <p className="card-number">24</p>
+                        <p className="card-number">5</p>
                         <p className="card-description">Available languages for translation</p>
                     </div>
 

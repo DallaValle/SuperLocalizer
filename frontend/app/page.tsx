@@ -27,7 +27,7 @@ export default function HomePage() {
                 height: '100vh',
                 fontSize: '1.2rem'
             }}>
-                Caricamento...
+                Loading...
             </div>
         )
     }

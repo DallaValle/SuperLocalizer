@@ -1,4 +1,3 @@
-// Types per l'API delle proprietà
 export interface PropertyValue {
     language: string
     text: string
@@ -35,7 +34,6 @@ export interface PropertyValueUpdateRequest {
     isReviewed: boolean
 }
 
-// Service per le chiamate API
 export class PropertyService {
     private static readonly BASE_URL = 'http://localhost:5000/api'
 

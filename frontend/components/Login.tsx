@@ -24,6 +24,7 @@ const Login = () => {
         if (formData.username && formData.password) {
             // Store auth state in localStorage for demo purposes
             localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('username', formData.username);
             router.push('/home');
         } else {
             alert('Please enter both username and password');
