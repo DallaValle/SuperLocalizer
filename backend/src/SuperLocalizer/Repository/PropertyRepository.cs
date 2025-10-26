@@ -62,33 +62,26 @@ public class PropertyRepositoryMemory : IPropertyRepository
         }
 
         // Apply ordering
-        if (!string.IsNullOrEmpty(request.OrderBy))
+        switch (request.OrderBy)
         {
-            switch (request.OrderBy.ToLower())
-            {
-                case "key":
-                    query = request.OrderDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(p => p.Key)
-                        : query.OrderBy(p => p.Key);
-                    break;
-                case "insertdate":
-                    query = request.OrderDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(p => p.InsertDate)
-                        : query.OrderBy(p => p.InsertDate);
-                    break;
-                case "updatedate":
-                    query = request.OrderDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(p => p.UpdateDate)
-                        : query.OrderBy(p => p.UpdateDate);
-                    break;
-                default:
-                    query = query.OrderBy(p => p.Key); // Default ordering
-                    break;
-            }
-        }
-        else
-        {
-            query = query.OrderBy(p => p.Key); // Default ordering
+            case SearchOrder.Key:
+                query = request.OrderDirection == SearchOrderDirection.desc
+                    ? query.OrderByDescending(p => p.Key)
+                    : query.OrderBy(p => p.Key);
+                break;
+            case SearchOrder.InsertDate:
+                query = request.OrderDirection == SearchOrderDirection.desc
+                    ? query.OrderByDescending(p => p.InsertDate)
+                    : query.OrderBy(p => p.InsertDate);
+                break;
+            case SearchOrder.UpdateDate:
+                query = request.OrderDirection == SearchOrderDirection.desc
+                    ? query.OrderByDescending(p => p.UpdateDate)
+                    : query.OrderBy(p => p.UpdateDate);
+                break;
+            default:
+                query = query.OrderBy(p => p.Key); // Default ordering
+                break;
         }
 
         // Get total count before pagination

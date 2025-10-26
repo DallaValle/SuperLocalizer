@@ -6,11 +6,12 @@ public class SearchRequest
 {
     public string SearchTerm { get; set; }
     public string Language { get; set; }
+    // Not used yet
     public string Text { get; set; }
     public bool? IsVerified { get; set; }
     public bool? IsReviewed { get; set; }
-    public string OrderBy { get; set; } = "Key";
-    public string OrderDirection { get; set; } = "asc";
+    public SearchOrder OrderBy { get; set; } = SearchOrder.Key;
+    public SearchOrderDirection OrderDirection { get; set; } = SearchOrderDirection.asc;
     public int? Page { get; set; } = 1;
     public int? Size { get; set; } = 10;
 }
@@ -29,4 +30,17 @@ public class UpdateValueRequest
     public string Text { get; set; }
     public bool? IsVerified { get; set; }
     public bool? IsReviewed { get; set; }
+}
+
+public enum SearchOrder
+{
+    Key,
+    InsertDate,
+    UpdateDate,
+}
+
+public enum SearchOrderDirection
+{
+    asc,
+    desc,
 }

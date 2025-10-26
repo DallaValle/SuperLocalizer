@@ -17,8 +17,11 @@ export default function PropertiesPage() {
     const [pageSize, setPageSize] = useState(10)
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedLanguage, setSelectedLanguage] = useState('')
+    const [verifiedFilter, setVerifiedFilter] = useState<boolean | null>(null)
+    const [reviewedFilter, setReviewedFilter] = useState<boolean | null>(null)
     const [editingValues, setEditingValues] = useState<{ [key: string]: PropertyValue }>({})
     const [savingValues, setSavingValues] = useState<{ [key: string]: boolean }>({})
+    const [activeEditFields, setActiveEditFields] = useState<{ [key: string]: boolean }>({})
     const [commentsModal, setCommentsModal] = useState<{
         isOpen: boolean
         propertyKey: string
@@ -31,15 +34,48 @@ export default function PropertiesPage() {
         valueId: ''
     })
 
-    // Lingue disponibili (dall'esempio API)
     const availableLanguages = ['de-DE', 'it', 'fr', 'en', 'de-CH']
+
+    // Function to auto-resize textarea based on content
+    const autoResizeTextarea = (element: HTMLTextAreaElement) => {
+        const textLength = element.value.length;
+        const lineWidth = 80; // approximate characters per line
+        const minRows = 1;
+        const maxRows = 10;
+
+        // Calculate rows based on text length and line breaks
+        const textLines = element.value.split('\n').length;
+        const wrappedLines = Math.ceil(textLength / lineWidth);
+        const calculatedRows = Math.max(textLines, wrappedLines);
+
+        const finalRows = Math.max(minRows, Math.min(maxRows, calculatedRows));
+        element.rows = finalRows;
+    };
+
+    // Function to toggle edit mode for a specific field
+    const toggleEditMode = (propertyKey: string, language: string, isActive: boolean) => {
+        const fieldKey = `${propertyKey}-${language}`;
+        setActiveEditFields(prev => ({
+            ...prev,
+            [fieldKey]: isActive
+        }));
+    };
+
+    // Function to check if text should show ellipsis
+    const shouldShowEllipsis = (text: string, maxLength: number = 100) => {
+        return text.length > maxLength;
+    };
+
+    // Function to get truncated text
+    const getTruncatedText = (text: string, maxLength: number = 100) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
 
     useEffect(() => {
         loadProperties()
-    }, [currentPage, pageSize, searchTerm, selectedLanguage])
+    }, [currentPage, pageSize, searchTerm, selectedLanguage, verifiedFilter, reviewedFilter])
 
     useEffect(() => {
-        // Inizializza i valori di editing per tutte le proprietà
         const newEditingValues: { [key: string]: PropertyValue } = {}
         properties.forEach(property => {
             property.values.forEach(value => {
@@ -59,7 +95,9 @@ export default function PropertiesPage() {
                 page: currentPage,
                 size: pageSize,
                 ...(searchTerm && { searchTerm }),
-                ...(selectedLanguage && { language: selectedLanguage })
+                ...(selectedLanguage && { language: selectedLanguage }),
+                ...(verifiedFilter !== null && { isVerified: verifiedFilter }),
+                ...(reviewedFilter !== null && { isReviewed: reviewedFilter })
             }
 
             const response: PropertySearchResponse = await PropertyService.searchProperties(request)
@@ -88,6 +126,14 @@ export default function PropertiesPage() {
         e.preventDefault()
         setCurrentPage(1) // Reset to first page
         loadProperties()
+    }
+
+    const clearFilters = () => {
+        setSearchTerm('')
+        setSelectedLanguage('')
+        setVerifiedFilter(null)
+        setReviewedFilter(null)
+        setCurrentPage(1)
     }
 
     const getLanguageFlag = (language: string) => {
@@ -143,7 +189,6 @@ export default function PropertiesPage() {
 
             await PropertyService.updatePropertyValue(propertyKey, language, updateRequest)
 
-            // Aggiorna i dati locali
             setProperties(prev => prev.map(property => {
                 if (property.key === propertyKey) {
                     return {
@@ -274,6 +319,9 @@ export default function PropertiesPage() {
                             <button type="submit" className="search-btn">
                                 🔍 Search
                             </button>
+                            <button type="button" onClick={clearFilters} className="clear-btn">
+                                🗑 Clear Filters
+                            </button>
                         </div>
 
                         <div className="filter-group">
@@ -291,6 +339,26 @@ export default function PropertiesPage() {
                             </select>
 
                             <select
+                                value={verifiedFilter === null ? '' : verifiedFilter.toString()}
+                                onChange={(e) => setVerifiedFilter(e.target.value === '' ? null : e.target.value === 'true')}
+                                className="status-select"
+                            >
+                                <option value="">All verification status</option>
+                                <option value="true">✓ Verified only</option>
+                                <option value="false">⚠ Unverified only</option>
+                            </select>
+
+                            <select
+                                value={reviewedFilter === null ? '' : reviewedFilter.toString()}
+                                onChange={(e) => setReviewedFilter(e.target.value === '' ? null : e.target.value === 'true')}
+                                className="status-select"
+                            >
+                                <option value="">All review status</option>
+                                <option value="true">👁 Reviewed only</option>
+                                <option value="false">📝 Unreviewed only</option>
+                            </select>
+
+                            <select
                                 value={pageSize}
                                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                                 className="pagesize-select"
@@ -302,21 +370,21 @@ export default function PropertiesPage() {
                             </select>
                         </div>
                     </form>
-                </div>
 
-                {/* Statistiche */}
-                <div className="stats-section">
-                    <div className="stats-item">
-                        <span className="stats-label">Total items:</span>
-                        <span className="stats-value">{totalItems.toLocaleString()}</span>
-                    </div>
-                    <div className="stats-item">
-                        <span className="stats-label">Page:</span>
-                        <span className="stats-value">{currentPage} of {totalPages}</span>
-                    </div>
-                    <div className="stats-item">
-                        <span className="stats-label">Items displayed:</span>
-                        <span className="stats-value">{properties.length}</span>
+                    {/* Stats */}
+                    <div className="stats-section">
+                        <div className="stats-item">
+                            <span className="stats-label">Total items:</span>
+                            <span className="stats-value">{totalItems.toLocaleString()}</span>
+                        </div>
+                        <div className="stats-item">
+                            <span className="stats-label">Page:</span>
+                            <span className="stats-value">{currentPage} of {totalPages}</span>
+                        </div>
+                        <div className="stats-item">
+                            <span className="stats-label">Items displayed:</span>
+                            <span className="stats-value">{properties.length}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -363,65 +431,49 @@ export default function PropertiesPage() {
 
                                         return (
                                             <div key={index} className="value-row">
-                                                <div className="language-info">
-                                                    <span className="language-flag">
-                                                        {getLanguageFlag(value.language)}
-                                                    </span>
-                                                    <span className="language-code">
-                                                        {value.language}
-                                                    </span>
-                                                </div>
-
-                                                <div className="translation-content">
-                                                    <div className="editing-form">
-                                                        <textarea
-                                                            value={editingValue.text}
-                                                            onChange={(e) => updateEditingValue(property.key, value.language, 'text', e.target.value)}
-                                                            className="edit-text-input"
-                                                            rows={2}
-                                                            disabled={isSaving}
-                                                        />
-
-                                                        <div className="flags-container">
-                                                            <label className="flag-checkbox">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={editingValue.isVerified}
-                                                                    onChange={(e) => updateEditingValue(property.key, value.language, 'isVerified', e.target.checked)}
-                                                                    disabled={isSaving}
-                                                                />
-                                                                <span>✓ Verified</span>
-                                                            </label>
-
-                                                            <label className="flag-checkbox">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={editingValue.isReviewed}
-                                                                    onChange={(e) => updateEditingValue(property.key, value.language, 'isReviewed', e.target.checked)}
-                                                                    disabled={isSaving}
-                                                                />
-                                                                <span>👁 Reviewed</span>
-                                                            </label>
-                                                        </div>
-
-                                                        <div className="edit-actions">
-                                                            <button
-                                                                onClick={() => openCommentsModal(property.key, value.language, value.id)}
-                                                                className="comments-btn"
-                                                                title={`Comments (${(editingValue.comments || []).length})`}
-                                                            >
-                                                                💬 Comments ({(editingValue.comments || []).length})
-                                                            </button>
-                                                            <button
-                                                                onClick={() => commitChanges(property.key, value.language)}
-                                                                disabled={isSaving}
-                                                                className="commit-btn"
-                                                            >
-                                                                {isSaving ? '💾 Saving...' : '💾 Commit'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <span className="language-flag">{getLanguageFlag(value.language)}</span>
+                                                <span className="language-code">{value.language}</span>
+                                                <textarea
+                                                    value={editingValue.text}
+                                                    onChange={(e) => updateEditingValue(property.key, value.language, 'text', e.target.value)}
+                                                    onClick={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
+                                                    onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
+                                                    className="edit-text-input"
+                                                    rows={1}
+                                                    disabled={isSaving}
+                                                />
+                                                <label className="flag-checkbox">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={editingValue.isVerified}
+                                                        onChange={(e) => updateEditingValue(property.key, value.language, 'isVerified', e.target.checked)}
+                                                        disabled={isSaving}
+                                                    />
+                                                    <span>✓</span>
+                                                </label>
+                                                <label className="flag-checkbox">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={editingValue.isReviewed}
+                                                        onChange={(e) => updateEditingValue(property.key, value.language, 'isReviewed', e.target.checked)}
+                                                        disabled={isSaving}
+                                                    />
+                                                    <span>👁</span>
+                                                </label>
+                                                <button
+                                                    onClick={() => openCommentsModal(property.key, value.language, value.id)}
+                                                    className="comments-btn"
+                                                    title={`Comments (${(editingValue.comments || []).length})`}
+                                                >
+                                                    💬 ({(editingValue.comments || []).length})
+                                                </button>
+                                                <button
+                                                    onClick={() => commitChanges(property.key, value.language)}
+                                                    disabled={isSaving}
+                                                    className="commit-btn"
+                                                >
+                                                    {isSaving ? '💾' : '💾'}
+                                                </button>
                                             </div>
                                         )
                                     })}

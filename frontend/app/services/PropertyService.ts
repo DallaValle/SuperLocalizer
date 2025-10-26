@@ -23,6 +23,8 @@ export interface PropertySearchRequest {
     size: number
     searchTerm?: string
     language?: string
+    isVerified?: boolean
+    isReviewed?: boolean
 }
 
 export interface PropertySearchResponse {
