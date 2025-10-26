@@ -1,0 +1,38 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = lf
+
+[*.xml]
+indent_size = 2
+
+[*.cs]
+
+indent_size = 4
+tab_width = 4
+
+# Analyzer rules conventions from .NET code style
+# https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/
+
+dotnet_diagnostic.IDE0046.severity = none # Use conditional expression for return
+dotnet_diagnostic.IDE0003.severity = none # Remove this or Me qualification
+dotnet_diagnostic.IDE0005.severity = warning # Remove unnecessary import
+dotnet_diagnostic.IDE0001.severity = warning # Simplify name
+
+# Analyzer rules conventions from StyleCop.Analyzers
+# https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/DOCUMENTATION.md
+
+dotnet_diagnostic.SA1633.severity = none # FileMustHaveHeader
+dotnet_diagnostic.SA1502.severity = none # ElementMustNotBeOnSingleLine
+dotnet_diagnostic.SA1600.severity = none # ElementsMustBeDocumented
+dotnet_diagnostic.SA1516.severity = none # ElementsMustBeSeparatedByBlankLine
+dotnet_diagnostic.SA1313.severity = none # ParameterNamesMustBeginWithLowerCaseLetter
+dotnet_diagnostic.SA1602.severity = none # EnumerationItemsMustBeDocumented
+dotnet_diagnostic.SA0001.severity = none # XmlCommentAnalysisDisabled
+dotnet_diagnostic.SA1009.severity = none # ClosingParenthesisMustBeSpacedCorrectly
+dotnet_diagnostic.SA1011.severity = none # ClosingSquareBracketsMustBeSpacedCorrectly
+dotnet_diagnostic.SA1402.severity = suggestion # FileMayOnlyContainASingleType
+dotnet_diagnostic.SA1300.severity = suggestion # ElementMustBeginWithUpperCaseLetter
+dotnet_diagnostic.SA1515.severity = suggestion # SingleLineCommentMustBePrecededByBlankLine
+dotnet_diagnostic.SA1314.severity = suggestion # TypeParameterNamesMustBeginWithT
