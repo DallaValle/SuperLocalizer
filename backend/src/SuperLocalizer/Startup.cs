@@ -10,8 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
+using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace SuperLocalizer
 {
@@ -40,18 +43,6 @@ namespace SuperLocalizer
                     });
             });
 
-            services.AddSingleton<List<Property>>(_ =>
-            {
-                var propertyLists = new List<List<SuperLocalizer.Model.Property>>();
-                foreach (string fileName in Directory.GetFiles("/Users/sergiodallavalle/Documents/code/SuperLocaliser/backend/test/SuperLocalizer.Tests/SupertextLocalisation", "localization_*.json", SearchOption.AllDirectories))
-                {
-                    var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
-                    var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));
-                    var properties = new PropertyReader().Load(json, lang);
-                    propertyLists.Add(properties);
-                }
-                return new PropertyReader().Merge(propertyLists).Values.ToList();
-            });
             services.AddControllers();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
@@ -62,11 +53,23 @@ namespace SuperLocalizer
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            services.AddFusionCache()
+                .WithDefaultEntryOptions(options =>
+                {
+                    options.Duration = TimeSpan.FromMinutes(3000);
+                });
+            services.AddSingleton<IPropertyRepository, PropertyRepositoryMemory>();
+            services.AddSingleton<ICommentRepository, CommentRepositoryMemory>();
         }
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Initialize the database/cache with localization data
+            InitializeDb(app.ApplicationServices);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -88,6 +91,22 @@ namespace SuperLocalizer
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private static void InitializeDb(IServiceProvider serviceProvider)
+        {
+            var cache = serviceProvider.GetRequiredService<IFusionCache>();
+            var propertyLists = new List<List<Property>>();
+            PropertyReader propertyReader = new();
+            foreach (string fileName in Directory.GetFiles("/Users/sergiodallavalle/Documents/code/SuperLocaliser/backend/test/SuperLocalizer.Tests/SupertextLocalisation", "localization_*.json", SearchOption.AllDirectories))
+            {
+                var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
+                var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));
+                var properties = propertyReader.Load(json, lang);
+                propertyLists.Add(properties);
+            }
+            var propertiesDictionary = propertyReader.Merge(propertyLists);
+            cache.Set(CacheKeys.AllProperties, propertiesDictionary.Values.ToList());
         }
     }
 }

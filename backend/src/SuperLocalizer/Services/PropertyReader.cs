@@ -58,6 +58,8 @@ public class PropertyReader : IPropertyReader
             {
                 if (mergedProperties.ContainsKey(property.Key))
                 {
+                    // Update PropertyId for each value before merging
+                    property.Values = property.Values.ConvertAll(_ => { _.PropertyId = mergedProperties[property.Key].Id; return _; });
                     // Merge values
                     mergedProperties[property.Key].Values.AddRange(property.Values);
                     mergedProperties[property.Key].UpdateDate = DateTime.UtcNow;

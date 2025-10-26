@@ -4,7 +4,7 @@ namespace SuperLocalizer.Model;
 
 public class SearchRequest
 {
-    public string Key { get; set; }
+    public string SearchTerm { get; set; }
     public string Language { get; set; }
     public string Text { get; set; }
     public bool? IsVerified { get; set; }
