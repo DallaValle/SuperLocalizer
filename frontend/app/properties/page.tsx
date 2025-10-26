@@ -422,7 +422,9 @@ export default function PropertiesPage() {
     return (
         <div className="properties-container">
             <header className="properties-header">
-                <h1>Translation Management</h1>
+                <div className="header-title">
+                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
+                </div>
                 <div className="header-actions">
                     <button onClick={() => window.location.href = '/home'} className="back-btn">
                         ← Dashboard

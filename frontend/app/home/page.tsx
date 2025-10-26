@@ -40,7 +40,9 @@ export default function HomePage() {
     return (
         <div className="home-container">
             <header className="home-header">
-                <h1>SuperLocalizer Dashboard</h1>
+                <div className="header-title">
+                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
+                </div>
                 <div className="user-info">
                     <span>Welcome!</span>
                     <button onClick={handleLogout} className="logout-btn">

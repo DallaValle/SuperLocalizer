@@ -3,7 +3,7 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #003230;
     padding: 20px;
 }
 
@@ -47,7 +47,7 @@
 
 .form-group input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #003230;
 }
 
 .form-group input:disabled {
@@ -58,7 +58,7 @@
 button {
     width: 100%;
     padding: 0.75rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #003230;
     color: white;
     border: none;
     border-radius: 5px;

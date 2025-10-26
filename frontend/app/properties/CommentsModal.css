@@ -265,7 +265,7 @@
 
 .comment-edit-author:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #003230;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
 }
 
@@ -282,7 +282,7 @@
 
 .comment-edit-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #003230;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
 }
 
@@ -328,7 +328,7 @@
 
 .new-comment-author:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #003230;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
 }
 
@@ -345,7 +345,7 @@
 
 .new-comment-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #003230;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
 }
 
@@ -363,7 +363,7 @@
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s ease;
-    background: #667eea;
+    background: #003230;
     color: white;
 }
 

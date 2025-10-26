@@ -3,7 +3,7 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #003230;
 }
 
 .login-form {
@@ -53,7 +53,7 @@
 
 .form-group input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #003230;
 }
 
 .form-group input::placeholder {
@@ -63,7 +63,7 @@
 .login-button {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #003230;
     color: white;
     border: none;
     border-radius: 6px;

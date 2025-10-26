@@ -4,7 +4,7 @@
 }
 
 .home-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #003230;
     color: white;
     padding: 1.5rem 2rem;
     display: flex;
@@ -19,6 +19,17 @@
     font-weight: 600;
 }
 
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-logo {
+    height: 40px;
+    width: auto;
+}
+
 .user-info {
     display: flex;
     align-items: center;
@@ -26,8 +37,8 @@
 }
 
 .logout-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: #78FFAF;
+    color: #003230;
     border: 1px solid rgba(255, 255, 255, 0.3);
     padding: 0.5rem 1rem;
     border-radius: 5px;
@@ -82,7 +93,7 @@
 .nav-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-    border-color: #667eea;
+    border-color: #003230;
 }
 
 .nav-card-icon {
@@ -135,7 +146,7 @@
 .card-number {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #667eea;
+    color: #003230;
     margin: 0.5rem 0;
 }
 
@@ -173,12 +184,12 @@
     padding: 0.75rem;
     background-color: #f8f9fa;
     border-radius: 5px;
-    border-left: 3px solid #667eea;
+    border-left: 3px solid #003230;
 }
 
 .activity-time {
     font-weight: 600;
-    color: #667eea;
+    color: #003230;
     min-width: 60px;
 }
 
