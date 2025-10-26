@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -43,7 +43,11 @@ namespace SuperLocalizer
                     });
             });
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
@@ -61,6 +65,8 @@ namespace SuperLocalizer
                 });
             services.AddSingleton<IPropertyRepository, PropertyRepositoryMemory>();
             services.AddSingleton<ICommentRepository, CommentRepositoryMemory>();
+            services.AddSingleton<IPropertyReader, PropertyReader>();
+            services.AddSingleton<ISyncService, SyncService>();
         }
 
 
@@ -68,7 +74,10 @@ namespace SuperLocalizer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Initialize the database/cache with localization data
-            InitializeDb(app.ApplicationServices);
+            if (env.IsDevelopment())
+            {
+                InitializeDb(app.ApplicationServices, Configuration);
+            }
 
             if (env.IsDevelopment())
             {
@@ -93,20 +102,23 @@ namespace SuperLocalizer
             });
         }
 
-        private static void InitializeDb(IServiceProvider serviceProvider)
+        private static void InitializeDb(IServiceProvider serviceProvider, IConfiguration configuration)
         {
-            var cache = serviceProvider.GetRequiredService<IFusionCache>();
             var propertyLists = new List<List<Property>>();
             PropertyReader propertyReader = new();
-            foreach (string fileName in Directory.GetFiles("/Users/sergiodallavalle/Documents/code/SuperLocaliser/backend/test/SuperLocalizer.Tests/SupertextLocalisation", "localization_*.json", SearchOption.AllDirectories))
+            foreach (string fileName in Directory.GetFiles(
+                configuration["Localization:DirectoryPath"],
+                configuration["Localization:FilePattern"],
+                SearchOption.AllDirectories))
             {
                 var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
                 var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));
                 var properties = propertyReader.Load(json, lang);
                 propertyLists.Add(properties);
             }
-            var propertiesDictionary = propertyReader.Merge(propertyLists);
-            cache.Set(CacheKeys.AllProperties, propertiesDictionary.Values.ToList());
+            var propertiesDictionary = propertyReader.MergeValues(propertyLists);
+            var cache = serviceProvider.GetRequiredService<IFusionCache>();
+            cache.Set(CacheKeys.AllProperties, propertiesDictionary);
         }
     }
 }

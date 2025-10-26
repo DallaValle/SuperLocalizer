@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using SuperLocalizer.Model;
 
@@ -8,11 +9,17 @@ namespace SuperLocalizer.Services;
 public interface IPropertyReader
 {
     List<Property> Load(JObject json, string language);
-    Dictionary<string, Property> Merge(List<List<Property>> propertyLists);
+    List<Property> MergeValues(List<List<Property>> propertyLists);
 }
 
 public class PropertyReader : IPropertyReader
 {
+    private readonly string mainLanguage = "de-CH";
+    private readonly List<string> supportedLanguages = new List<string>
+    {
+        "de-CH", "de-DE", "fr", "it", "en"
+    };
+
     public List<Property> Load(JObject json, string language)
     {
         var properties = new List<Property>();
@@ -48,7 +55,7 @@ public class PropertyReader : IPropertyReader
         return properties;
     }
 
-    public Dictionary<string, Property> Merge(List<List<Property>> propertyLists)
+    public List<Property> MergeValues(List<List<Property>> propertyLists)
     {
         // the result list should contains all unique properties based on their keys and merge their values
         var mergedProperties = new Dictionary<string, Property>();
@@ -70,7 +77,7 @@ public class PropertyReader : IPropertyReader
                 }
             }
         }
-        return mergedProperties;
+        return mergedProperties.Values.ToList();
     }
 
     private void FlattenJson(JToken token, string prefix, Dictionary<string, string> result)

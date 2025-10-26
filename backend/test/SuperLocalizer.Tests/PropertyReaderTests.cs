@@ -30,7 +30,7 @@ public class PropertyReaderTests
             var properties = _sut.Load(json, lang);
             propertyLists.Add(properties);
         }
-        var merged = _sut.Merge(propertyLists);
+        var merged = _sut.MergeValues(propertyLists);
         Assert.That(merged.Count, Is.EqualTo(2950));
     }
 }

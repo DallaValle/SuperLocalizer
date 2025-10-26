@@ -25,7 +25,7 @@ public class PropertyRepositoryMemory : IPropertyRepository
 
     public SearchResponse GetProperties(SearchRequest request)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => GetValueFromDatabase());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
 
         var query = allProperties.AsQueryable();
 
@@ -111,13 +111,13 @@ public class PropertyRepositoryMemory : IPropertyRepository
 
     public Property GetPropertyByKey(string key)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => GetValueFromDatabase());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
         return allProperties.FirstOrDefault(p => p.Key.Equals(key, System.StringComparison.OrdinalIgnoreCase));
     }
 
     public void UpdateProperty(Property property)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => GetValueFromDatabase());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
         var existingProperty = allProperties.FirstOrDefault(p => p.Key.Equals(property.Key, System.StringComparison.OrdinalIgnoreCase));
         if (existingProperty != null)
         {
@@ -127,8 +127,59 @@ public class PropertyRepositoryMemory : IPropertyRepository
         _fusionCache.Set(CacheKeys.AllProperties, allProperties);
     }
 
-    private List<Property> GetValueFromDatabase()
+    public bool MergeProperties(List<Property> newProperties)
     {
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
+        var updated = false;
+
+        foreach (var newProp in newProperties)
+        {
+            var existingProp = allProperties.FirstOrDefault(p => p.Key.Equals(newProp.Key, System.StringComparison.OrdinalIgnoreCase));
+            if (existingProp == null)
+            {
+                allProperties.Add(newProp);
+                updated = true;
+            }
+            else
+            {
+                // Merge values
+                foreach (var newValue in newProp.Values)
+                {
+                    var existingValue = existingProp.Values.FirstOrDefault(v => v.Language.Equals(newValue.Language, System.StringComparison.OrdinalIgnoreCase));
+                    if (existingValue == null)
+                    {
+                        existingProp.Values.Add(newValue);
+                        updated = true;
+                    }
+                    else
+                    {
+                        // Update existing value if different
+                        if (existingValue.Text != newValue.Text ||
+                            existingValue.IsVerified != newValue.IsVerified ||
+                            existingValue.IsReviewed != newValue.IsReviewed)
+                        {
+                            existingValue.Text = newValue.Text;
+                            existingValue.IsVerified = newValue.IsVerified;
+                            existingValue.IsReviewed = newValue.IsReviewed;
+                            updated = true;
+                        }
+                    }
+                }
+                existingProp.UpdateDate = DateTime.UtcNow;
+            }
+        }
+
+        if (updated)
+        {
+            _fusionCache.Set(CacheKeys.AllProperties, allProperties);
+        }
+
+        return updated;
+    }
+
+    private List<Property> ReadFilesFromSnapshot()
+    {
+        // For simplicity, returning an empty list now.
         return new List<Property>();
     }
 }

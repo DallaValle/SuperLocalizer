@@ -1,6 +1,6 @@
-using System.Collections.Generic;
-
 namespace SuperLocalizer.Model;
+
+using System.Collections.Generic;
 
 public class SearchRequest
 {
