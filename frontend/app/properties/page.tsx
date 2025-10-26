@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import { PropertyService, type Property, type PropertySearchRequest, type PropertySearchResponse, type PropertyValue, type PropertyValueUpdateRequest } from '../services/PropertyService'
 import CommentsModal from './CommentsModal'
@@ -8,6 +9,8 @@ import './Properties.css'
 
 export default function PropertiesPage() {
     const { logout } = useAuth()
+    const router = useRouter()
+    const searchParams = useSearchParams()
     const [properties, setProperties] = useState<Property[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -19,6 +22,9 @@ export default function PropertiesPage() {
     const [selectedLanguage, setSelectedLanguage] = useState('')
     const [verifiedFilter, setVerifiedFilter] = useState<boolean | null>(null)
     const [reviewedFilter, setReviewedFilter] = useState<boolean | null>(null)
+    const [orderBy, setOrderBy] = useState<'Key' | 'InsertDate' | 'UpdateDate'>('Key')
+    const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('asc')
+    const [isInitialized, setIsInitialized] = useState(false)
     const [editingValues, setEditingValues] = useState<{ [key: string]: PropertyValue }>({})
     const [savingValues, setSavingValues] = useState<{ [key: string]: boolean }>({})
     const [activeEditFields, setActiveEditFields] = useState<{ [key: string]: boolean }>({})
@@ -35,6 +41,48 @@ export default function PropertiesPage() {
     })
 
     const availableLanguages = ['de-DE', 'it', 'fr', 'en', 'de-CH']
+
+    // Helper function
+    const getEditKey = (propertyKey: string, language: string) => {
+        return `${propertyKey}|${language}`
+    }
+
+    // Auto-save functionality
+    const autoSaveTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
+    const editingValuesRef = useRef<{ [key: string]: PropertyValue }>({})
+
+    // Update ref whenever editingValues changes
+    useEffect(() => {
+        editingValuesRef.current = editingValues
+    }, [editingValues])
+
+    const debouncedAutoSave = useCallback((propertyKey: string, language: string, delay: number = 1000) => {
+        const editKey = getEditKey(propertyKey, language)
+
+        // Clear existing timeout for this field
+        if (autoSaveTimeoutRef.current[editKey]) {
+            clearTimeout(autoSaveTimeoutRef.current[editKey])
+        }
+
+        // Set new timeout
+        autoSaveTimeoutRef.current[editKey] = setTimeout(() => {
+            commitChanges(propertyKey, language)
+            delete autoSaveTimeoutRef.current[editKey]
+        }, delay)
+    }, [])
+
+    const immediateAutoSave = useCallback((propertyKey: string, language: string) => {
+        const editKey = getEditKey(propertyKey, language)
+
+        // Clear any pending debounced save
+        if (autoSaveTimeoutRef.current[editKey]) {
+            clearTimeout(autoSaveTimeoutRef.current[editKey])
+            delete autoSaveTimeoutRef.current[editKey]
+        }
+
+        // Save immediately
+        setTimeout(() => commitChanges(propertyKey, language), 100)
+    }, [])
 
     // Function to auto-resize textarea based on content
     const autoResizeTextarea = (element: HTMLTextAreaElement) => {
@@ -71,9 +119,74 @@ export default function PropertiesPage() {
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     };
 
+    // Function to update URL with current filters
+    const updateUrlWithFilters = () => {
+        const params = new URLSearchParams()
+
+        if (currentPage > 1) params.set('page', currentPage.toString())
+        if (pageSize !== 10) params.set('size', pageSize.toString())
+        if (searchTerm) params.set('search', searchTerm)
+        if (selectedLanguage) params.set('language', selectedLanguage)
+        if (verifiedFilter !== null) params.set('verified', verifiedFilter.toString())
+        if (reviewedFilter !== null) params.set('reviewed', reviewedFilter.toString())
+        if (orderBy !== 'Key') params.set('orderBy', orderBy)
+        if (orderDirection !== 'asc') params.set('orderDirection', orderDirection)
+
+        const queryString = params.toString()
+        const newUrl = queryString ? `/properties?${queryString}` : '/properties'
+
+        router.push(newUrl, { scroll: false })
+    }
+
+    // Initialize filters from URL parameters
     useEffect(() => {
-        loadProperties()
-    }, [currentPage, pageSize, searchTerm, selectedLanguage, verifiedFilter, reviewedFilter])
+        const page = searchParams.get('page')
+        const size = searchParams.get('size')
+        const search = searchParams.get('search')
+        const language = searchParams.get('language')
+        const verified = searchParams.get('verified')
+        const reviewed = searchParams.get('reviewed')
+        const orderByParam = searchParams.get('orderBy')
+        const orderDirectionParam = searchParams.get('orderDirection')
+
+        if (page) setCurrentPage(parseInt(page, 10))
+        if (size) setPageSize(parseInt(size, 10))
+        if (search) setSearchTerm(search)
+        if (language) setSelectedLanguage(language)
+        if (verified) setVerifiedFilter(verified === 'true')
+        if (reviewed) setReviewedFilter(reviewed === 'true')
+        if (orderByParam && ['Key', 'InsertDate', 'UpdateDate'].includes(orderByParam)) {
+            setOrderBy(orderByParam as 'Key' | 'InsertDate' | 'UpdateDate')
+        }
+        if (orderDirectionParam && ['asc', 'desc'].includes(orderDirectionParam)) {
+            setOrderDirection(orderDirectionParam as 'asc' | 'desc')
+        }
+
+        setIsInitialized(true)
+    }, [searchParams])
+
+    useEffect(() => {
+        if (isInitialized) {
+            loadProperties()
+        }
+    }, [currentPage, pageSize, searchTerm, selectedLanguage, verifiedFilter, reviewedFilter, orderBy, orderDirection, isInitialized])
+
+    // Update URL when filters change (but not during initialization)
+    useEffect(() => {
+        if (isInitialized) {
+            updateUrlWithFilters()
+        }
+    }, [currentPage, pageSize, searchTerm, selectedLanguage, verifiedFilter, reviewedFilter, orderBy, orderDirection, isInitialized, router])
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            Object.values(autoSaveTimeoutRef.current).forEach(timeout => {
+                clearTimeout(timeout)
+            })
+            autoSaveTimeoutRef.current = {}
+        }
+    }, [])
 
     useEffect(() => {
         const newEditingValues: { [key: string]: PropertyValue } = {}
@@ -97,7 +210,9 @@ export default function PropertiesPage() {
                 ...(searchTerm && { searchTerm }),
                 ...(selectedLanguage && { language: selectedLanguage }),
                 ...(verifiedFilter !== null && { isVerified: verifiedFilter }),
-                ...(reviewedFilter !== null && { isReviewed: reviewedFilter })
+                ...(reviewedFilter !== null && { isReviewed: reviewedFilter }),
+                orderBy,
+                orderDirection
             }
 
             const response: PropertySearchResponse = await PropertyService.searchProperties(request)
@@ -133,6 +248,8 @@ export default function PropertiesPage() {
         setSelectedLanguage('')
         setVerifiedFilter(null)
         setReviewedFilter(null)
+        setOrderBy('Key')
+        setOrderDirection('asc')
         setCurrentPage(1)
     }
 
@@ -157,10 +274,6 @@ export default function PropertiesPage() {
         })
     }
 
-    const getEditKey = (propertyKey: string, language: string) => {
-        return `${propertyKey}|${language}`
-    }
-
     const updateEditingValue = (propertyKey: string, language: string, field: keyof PropertyValue, value: any) => {
         const editKey = getEditKey(propertyKey, language)
         setEditingValues(prev => ({
@@ -170,13 +283,29 @@ export default function PropertiesPage() {
                 [field]: value
             }
         }))
+
+        // Auto-save logic
+        if (field === 'text') {
+            // Debounced auto-save for text changes
+            console.log('Scheduling debounced auto-save for', propertyKey, language)
+            debouncedAutoSave(propertyKey, language, 1000)
+        } else if (field === 'isVerified' || field === 'isReviewed') {
+            // Immediate auto-save for checkbox changes
+            console.log('Scheduling immediate auto-save for', propertyKey, language, field)
+            immediateAutoSave(propertyKey, language)
+        }
     }
 
     const commitChanges = async (propertyKey: string, language: string) => {
         const editKey = getEditKey(propertyKey, language)
-        const editingValue = editingValues[editKey]
+        const editingValue = editingValuesRef.current[editKey]
 
-        if (!editingValue) return
+        console.log('commitChanges called for', propertyKey, language, editingValue)
+
+        if (!editingValue) {
+            console.log('No editing value found for', editKey)
+            return
+        }
 
         setSavingValues(prev => ({ ...prev, [editKey]: true }))
 
@@ -316,28 +445,9 @@ export default function PropertiesPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="search-input"
                             />
-                            <button type="submit" className="search-btn">
-                                🔍 Search
-                            </button>
-                            <button type="button" onClick={clearFilters} className="clear-btn">
-                                🗑 Clear Filters
-                            </button>
                         </div>
 
                         <div className="filter-group">
-                            <select
-                                value={selectedLanguage}
-                                onChange={(e) => setSelectedLanguage(e.target.value)}
-                                className="language-select"
-                            >
-                                <option value="">All languages</option>
-                                {availableLanguages.map(lang => (
-                                    <option key={lang} value={lang}>
-                                        {getLanguageFlag(lang)} {lang}
-                                    </option>
-                                ))}
-                            </select>
-
                             <select
                                 value={verifiedFilter === null ? '' : verifiedFilter.toString()}
                                 onChange={(e) => setVerifiedFilter(e.target.value === '' ? null : e.target.value === 'true')}
@@ -356,6 +466,25 @@ export default function PropertiesPage() {
                                 <option value="">All review status</option>
                                 <option value="true">👁 Reviewed only</option>
                                 <option value="false">📝 Unreviewed only</option>
+                            </select>
+
+                            <select
+                                value={orderBy}
+                                onChange={(e) => setOrderBy(e.target.value as 'Key' | 'InsertDate' | 'UpdateDate')}
+                                className="sort-select"
+                            >
+                                <option value="Key">Sort by Key</option>
+                                <option value="InsertDate">Sort by Insert Date</option>
+                                <option value="UpdateDate">Sort by Update Date</option>
+                            </select>
+
+                            <select
+                                value={orderDirection}
+                                onChange={(e) => setOrderDirection(e.target.value as 'asc' | 'desc')}
+                                className="sort-select"
+                            >
+                                <option value="asc">↑ Ascending</option>
+                                <option value="desc">↓ Descending</option>
                             </select>
 
                             <select
@@ -442,6 +571,7 @@ export default function PropertiesPage() {
                                                     rows={1}
                                                     disabled={isSaving}
                                                 />
+                                                {isSaving && <span className="saving-indicator">💾 Saving...</span>}
                                                 <label className="flag-checkbox">
                                                     <input
                                                         type="checkbox"
@@ -466,13 +596,6 @@ export default function PropertiesPage() {
                                                     title={`Comments (${(editingValue.comments || []).length})`}
                                                 >
                                                     💬 ({(editingValue.comments || []).length})
-                                                </button>
-                                                <button
-                                                    onClick={() => commitChanges(property.key, value.language)}
-                                                    disabled={isSaving}
-                                                    className="commit-btn"
-                                                >
-                                                    {isSaving ? '💾' : '💾'}
                                                 </button>
                                             </div>
                                         )

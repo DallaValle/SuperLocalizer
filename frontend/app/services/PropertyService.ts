@@ -25,6 +25,8 @@ export interface PropertySearchRequest {
     language?: string
     isVerified?: boolean
     isReviewed?: boolean
+    orderBy?: 'Key' | 'InsertDate' | 'UpdateDate'
+    orderDirection?: 'asc' | 'desc'
 }
 
 export interface PropertySearchResponse {

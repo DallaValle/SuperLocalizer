@@ -1,14 +1,41 @@
 'use client'
 
 import { useAuth } from '../contexts/AuthContext'
+import { PropertyService, PropertySearchRequest } from '../services/PropertyService'
+import { useEffect, useState } from 'react'
 import './Home.css'
 
 export default function HomePage() {
     const { logout, token } = useAuth()
+    const [pendingReviews, setPendingReviews] = useState<number>(0)
+    const [isLoading, setIsLoading] = useState<boolean>(true)
 
     const handleLogout = () => {
         logout()
     }
+
+    const fetchPendingReviews = async () => {
+        try {
+            setIsLoading(true)
+            const searchRequest: PropertySearchRequest = {
+                page: 1,
+                size: 1, // We only need the count, so minimal page size
+                isReviewed: false // Filter for not reviewed items
+            }
+
+            const response = await PropertyService.searchProperties(searchRequest)
+            setPendingReviews(response.totalItems)
+        } catch (error) {
+            console.error('Error fetching pending reviews:', error)
+            setPendingReviews(0)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchPendingReviews()
+    }, [])
 
     return (
         <div className="home-container">
@@ -62,7 +89,9 @@ export default function HomePage() {
 
                     <div className="dashboard-card">
                         <h3>Pending Reviews</h3>
-                        <p className="card-number">43</p>
+                        <p className="card-number">
+                            {isLoading ? '...' : pendingReviews.toLocaleString()}
+                        </p>
                         <p className="card-description">Translations awaiting review</p>
                     </div>
                 </div>

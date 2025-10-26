@@ -125,7 +125,8 @@
 
 .language-select,
 .pagesize-select,
-.status-select {
+.status-select,
+.sort-select {
     padding: 0.5rem;
     border: 2px solid #e1e5e9;
     border-radius: 5px;
@@ -137,7 +138,8 @@
 
 .language-select:focus,
 .pagesize-select:focus,
-.status-select:focus {
+.status-select:focus,
+.sort-select:focus {
     outline: none;
     border-color: #667eea;
 }
@@ -321,8 +323,28 @@
     font-size: 0.9rem;
     resize: none;
     line-height: 1.4;
-    overflow: hidden;
+    overflow-y: auto;
     transition: height 0.1s ease;
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.edit-text-input::-webkit-scrollbar {
+    width: 8px;
+}
+
+.edit-text-input::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.edit-text-input::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.edit-text-input::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 .edit-text-input:focus {
