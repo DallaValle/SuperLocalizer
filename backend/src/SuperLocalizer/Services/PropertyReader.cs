@@ -8,7 +8,7 @@ namespace SuperLocalizer.Services;
 
 public interface IPropertyReader
 {
-    List<Property> Load(JObject json, string language);
+    List<Property> Load(JObject json, string language, bool defaultIsVerified = true, bool defaultIsReviewed = true);
     List<Property> MergeValues(List<List<Property>> propertyLists);
 }
 
@@ -20,7 +20,7 @@ public class PropertyReader : IPropertyReader
         "de-CH", "de-DE", "fr", "it", "en"
     };
 
-    public List<Property> Load(JObject json, string language)
+    public List<Property> Load(JObject json, string language, bool defaultIsVerified = true, bool defaultIsReviewed = true)
     {
         var properties = new List<Property>();
         var flattenedProperties = new Dictionary<string, string>();
@@ -40,8 +40,8 @@ public class PropertyReader : IPropertyReader
                     {
                         Language = language,
                         Text = kvp.Value,
-                        IsVerified = false,
-                        IsReviewed = false,
+                        IsVerified = defaultIsVerified,
+                        IsReviewed = defaultIsReviewed,
                         Comments = new List<Comment>()
                     }
                 },
@@ -74,6 +74,25 @@ public class PropertyReader : IPropertyReader
                 else
                 {
                     mergedProperties[property.Key] = property;
+                }
+            }
+        }
+        // Controls that each property has values for all supported languages
+        foreach (var prop in mergedProperties.Values)
+        {
+            foreach (var lang in supportedLanguages)
+            {
+                if (!prop.Values.Any(v => v.Language.Equals(lang, StringComparison.OrdinalIgnoreCase)))
+                {
+                    prop.Values.Add(new Value
+                    {
+                        Language = lang,
+                        Text = string.Empty,
+                        IsVerified = false,
+                        IsReviewed = false,
+                        Comments = new List<Comment>(),
+                        PropertyId = prop.Id
+                    });
                 }
             }
         }

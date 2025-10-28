@@ -2,7 +2,6 @@
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace SuperLocalizer.Controllers
 {
@@ -65,7 +64,29 @@ namespace SuperLocalizer.Controllers
                 return NotFound($"Value for language '{language}' not found in property '{id}'");
             }
 
-            _historyRepository.SaveHistory(value.Id, value.Text, request.Text);
+            // Capture previous values for history
+            var previousText = value.Text;
+            var previousIsVerified = value.IsVerified;
+            var previousIsReviewed = value.IsReviewed;
+
+            // Determine what's changing
+            var textChanged = !string.IsNullOrEmpty(request.Text) && request.Text != previousText;
+            var verifiedChanged = request.IsVerified.HasValue && request.IsVerified.Value != previousIsVerified;
+            var reviewedChanged = request.IsReviewed.HasValue && request.IsReviewed.Value != previousIsReviewed;
+
+            // Save history if any relevant changes are made
+            if (textChanged || verifiedChanged || reviewedChanged)
+            {
+                _historyRepository.SaveHistory(
+                    value.Id,
+                    previousText,
+                    textChanged ? request.Text : previousText,
+                    verifiedChanged ? previousIsVerified : null,
+                    verifiedChanged ? request.IsVerified.Value : null,
+                    reviewedChanged ? previousIsReviewed : null,
+                    reviewedChanged ? request.IsReviewed.Value : null
+                );
+            }
 
             // Update the value properties
             if (!string.IsNullOrEmpty(request.Text))

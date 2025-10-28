@@ -51,6 +51,7 @@ export default function PropertiesPage() {
         language: '',
         valueId: ''
     })
+    const [toastMessage, setToastMessage] = useState<string | null>(null)
 
     const availableLanguages = ['de-DE', 'it', 'fr', 'en', 'de-CH']
 
@@ -94,6 +95,12 @@ export default function PropertiesPage() {
 
         // Save immediately
         setTimeout(() => commitChanges(propertyKey, language), 100)
+    }, [])
+
+    // Toast notification function
+    const showToast = useCallback((message: string) => {
+        setToastMessage(message)
+        setTimeout(() => setToastMessage(null), 3000) // Auto-hide after 3 seconds
     }, [])
 
     // Function to auto-resize textarea based on content
@@ -345,6 +352,9 @@ export default function PropertiesPage() {
                 }
                 return property
             }))
+
+            // Show success toast
+            showToast('Saved')
 
         } catch (err) {
             console.error('Error updating property value:', err)
@@ -603,7 +613,6 @@ export default function PropertiesPage() {
                                                     rows={1}
                                                     disabled={isSaving}
                                                 />
-                                                {isSaving && <span className="saving-indicator">💾 Saving...</span>}
                                                 <label className="flag-checkbox">
                                                     <input
                                                         type="checkbox"
@@ -674,6 +683,13 @@ export default function PropertiesPage() {
                 propertyKey={historyModal.propertyKey}
                 language={historyModal.language}
             />
+
+            {/* Toast Notification */}
+            {toastMessage && (
+                <div className="toast-notification">
+                    {toastMessage}
+                </div>
+            )}
         </div>
     )
 }

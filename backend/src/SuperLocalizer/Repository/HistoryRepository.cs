@@ -7,7 +7,7 @@ namespace SuperLocalizer.Repository;
 
 public interface IHistoryRepository
 {
-    void SaveHistory(Guid valueId, string previousText, string newText);
+    void SaveHistory(Guid valueId, string previousText, string newText, bool? previousIsVerified = null, bool? newIsVerified = null, bool? previousIsReviewed = null, bool? newIsReviewed = null);
     List<HistoryItem> GetHistoryById(Guid valueId);
     List<HistoryItem> GetHistoryByUserName(string userName);
     List<HistoryItem> GetHistoryByDateRange(DateTime from, DateTime to);
@@ -60,13 +60,17 @@ public class HistoryRepositoryMemory : IHistoryRepository
         return result;
     }
 
-    public void SaveHistory(Guid valueId, string previousText, string newText)
+    public void SaveHistory(Guid valueId, string previousText, string newText, bool? previousIsVerified = null, bool? newIsVerified = null, bool? previousIsReviewed = null, bool? newIsReviewed = null)
     {
         var historyItem = new HistoryItem
         {
             ValueId = valueId,
             PreviousText = previousText,
             NewText = newText,
+            PreviousIsVerified = previousIsVerified,
+            NewIsVerified = newIsVerified,
+            PreviousIsReviewed = previousIsReviewed,
+            NewIsReviewed = newIsReviewed,
             Timestamp = DateTime.UtcNow,
             UserName = "Admin" // Replace with actual user retrieval logic
         };

@@ -913,3 +913,41 @@
         gap: 1rem;
     }
 }
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    left: 50%;
+    bottom: 30px;
+    background-color: #78FFAF;
+    color: #002629;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: slideInUp 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+    pointer-events: none;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}

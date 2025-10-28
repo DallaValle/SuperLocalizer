@@ -36,7 +36,7 @@ public class SyncService : ISyncService
             using var reader = new StreamReader(stream);
             var content = await reader.ReadToEndAsync();
             var json = JObject.Parse(content);
-            var properties = _propertyReader.Load(json, mainLanguage);
+            var properties = _propertyReader.Load(json, mainLanguage, false, false);
             propertyLists.Add(properties);
         }
         var allProperties = _propertyReader.MergeValues(propertyLists);
