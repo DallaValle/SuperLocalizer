@@ -64,7 +64,7 @@ namespace SuperLocalizer.Controllers
                 comment.Id = Guid.NewGuid();
                 comment.InsertDate = DateTime.UtcNow;
                 comment.UpdateDate = DateTime.UtcNow;
-
+                comment.Author = "Admin"; // Temporary hardcoded author
                 _commentRepository.Create(comment);
                 return CreatedAtAction(nameof(GetCommentsByValueId), new { valueId = comment.ValueId }, comment);
             }

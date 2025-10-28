@@ -67,6 +67,7 @@ namespace SuperLocalizer
             services.AddSingleton<ICommentRepository, CommentRepositoryMemory>();
             services.AddSingleton<IPropertyReader, PropertyReader>();
             services.AddSingleton<ISyncService, SyncService>();
+            services.AddSingleton<IHistoryRepository, HistoryRepositoryMemory>();
         }
 
 

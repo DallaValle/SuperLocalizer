@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import { PropertyService, type Property, type PropertySearchRequest, type PropertySearchResponse, type PropertyValue, type PropertyValueUpdateRequest } from '../services/PropertyService'
 import CommentsModal from './CommentsModal'
+import HistoryModal from './HistoryModal'
 import './Properties.css'
 
 export default function PropertiesPage() {
@@ -29,6 +30,17 @@ export default function PropertiesPage() {
     const [savingValues, setSavingValues] = useState<{ [key: string]: boolean }>({})
     const [activeEditFields, setActiveEditFields] = useState<{ [key: string]: boolean }>({})
     const [commentsModal, setCommentsModal] = useState<{
+        isOpen: boolean
+        propertyKey: string
+        language: string
+        valueId: string
+    }>({
+        isOpen: false,
+        propertyKey: '',
+        language: '',
+        valueId: ''
+    })
+    const [historyModal, setHistoryModal] = useState<{
         isOpen: boolean
         propertyKey: string
         language: string
@@ -364,6 +376,24 @@ export default function PropertiesPage() {
         })
     }
 
+    const openHistoryModal = (propertyKey: string, language: string, valueId: string) => {
+        setHistoryModal({
+            isOpen: true,
+            propertyKey,
+            language,
+            valueId
+        })
+    }
+
+    const closeHistoryModal = () => {
+        setHistoryModal({
+            isOpen: false,
+            propertyKey: '',
+            language: '',
+            valueId: ''
+        })
+    }
+
     const handleCommentsUpdated = () => {
         // Reload properties to get updated comment counts
         loadProperties()
@@ -597,7 +627,14 @@ export default function PropertiesPage() {
                                                     className="comments-btn"
                                                     title={`Comments (${(editingValue.comments || []).length})`}
                                                 >
-                                                    💬 ({(editingValue.comments || []).length})
+                                                    💬{/* ({(editingValue.comments || []).length}) */}
+                                                </button>
+                                                <button
+                                                    onClick={() => openHistoryModal(property.key, value.language, value.id)}
+                                                    className="history-btn"
+                                                    title="View history"
+                                                >
+                                                    🕓
                                                 </button>
                                             </div>
                                         )
@@ -627,6 +664,15 @@ export default function PropertiesPage() {
                 propertyKey={commentsModal.propertyKey}
                 language={commentsModal.language}
                 onCommentsUpdated={handleCommentsUpdated}
+            />
+
+            {/* History Modal */}
+            <HistoryModal
+                isOpen={historyModal.isOpen}
+                onClose={closeHistoryModal}
+                valueId={historyModal.valueId}
+                propertyKey={historyModal.propertyKey}
+                language={historyModal.language}
             />
         </div>
     )

@@ -38,9 +38,3 @@ public enum SearchOrder
     InsertDate,
     UpdateDate,
 }
-
-public enum SearchOrderDirection
-{
-    asc,
-    desc,
-}

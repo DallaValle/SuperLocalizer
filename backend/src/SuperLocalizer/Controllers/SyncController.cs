@@ -17,7 +17,9 @@ public class SyncController : ControllerBase
         _syncService = syncService;
     }
 
-    // POST api/sync/import -> read files and update database
+    /// <summary>
+    /// Import localization files into the database
+    /// </summary>
     [HttpPost("import")]
     public async Task<IActionResult> ImportAsync(
         [FromForm] List<IFormFile> files,
@@ -30,9 +32,12 @@ public class SyncController : ControllerBase
         return Ok("Import completed successfully.");
     }
 
-    // POST api/sync/export -> read database and generate files
+    /// <summary>
+    /// Generate export files from the database
+    /// Based on the specified provider: Azure, GitHub, etc.
+    /// </summary>
     [HttpPost("export")]
-    public async Task<IActionResult> ExportAsync()
+    public async Task<IActionResult> ExportAsync(string provider)
     {
         var files = await _syncService.ExportAsync();
         return Ok(files);

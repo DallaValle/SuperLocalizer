@@ -25,10 +25,8 @@ export default function CommentsModal({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [newComment, setNewComment] = useState('')
-    const [newAuthor, setNewAuthor] = useState('')
     const [editingComment, setEditingComment] = useState<Comment | null>(null)
     const [editingText, setEditingText] = useState('')
-    const [editingAuthor, setEditingAuthor] = useState('')
 
     // Load comments when modal opens
     useEffect(() => {
@@ -52,8 +50,8 @@ export default function CommentsModal({
     }
 
     const handleAddComment = async () => {
-        if (!newComment.trim() || !newAuthor.trim()) {
-            setError('Both comment text and author are required')
+        if (!newComment.trim()) {
+            setError('Comment text is required')
             return
         }
 
@@ -62,14 +60,13 @@ export default function CommentsModal({
         try {
             const request: CreateCommentRequest = {
                 valueId,
-                author: newAuthor.trim(),
+                author: 'Anonymous',
                 text: newComment.trim()
             }
 
             const createdComment = await CommentService.createComment(request)
             setComments(prev => [...prev, createdComment])
             setNewComment('')
-            setNewAuthor('')
             onCommentsUpdated?.()
         } catch (err) {
             setError('Failed to create comment')
@@ -82,12 +79,11 @@ export default function CommentsModal({
     const handleEditComment = (comment: Comment) => {
         setEditingComment(comment)
         setEditingText(comment.text)
-        setEditingAuthor(comment.author)
     }
 
     const handleSaveEdit = async () => {
-        if (!editingComment || !editingText.trim() || !editingAuthor.trim()) {
-            setError('Comment text and author are required')
+        if (!editingComment || !editingText.trim()) {
+            setError('Comment text is required')
             return
         }
 
@@ -97,7 +93,7 @@ export default function CommentsModal({
             const request: UpdateCommentRequest = {
                 id: editingComment.id,
                 valueId: editingComment.valueId,
-                author: editingAuthor.trim(),
+                author: editingComment.author,
                 text: editingText.trim()
             }
 
@@ -105,7 +101,6 @@ export default function CommentsModal({
             setComments(prev => prev.map(c => c.id === updatedComment.id ? updatedComment : c))
             setEditingComment(null)
             setEditingText('')
-            setEditingAuthor('')
             onCommentsUpdated?.()
         } catch (err) {
             setError('Failed to update comment')
@@ -118,7 +113,6 @@ export default function CommentsModal({
     const handleCancelEdit = () => {
         setEditingComment(null)
         setEditingText('')
-        setEditingAuthor('')
     }
 
     const handleDeleteComment = async (comment: Comment) => {
@@ -180,15 +174,6 @@ export default function CommentsModal({
                                 <div key={comment.id} className="comment-item">
                                     {editingComment?.id === comment.id ? (
                                         <div className="comment-edit">
-                                            <div className="comment-edit-field">
-                                                <label>Author:</label>
-                                                <input
-                                                    type="text"
-                                                    value={editingAuthor}
-                                                    onChange={(e) => setEditingAuthor(e.target.value)}
-                                                    className="comment-edit-author"
-                                                />
-                                            </div>
                                             <div className="comment-edit-field">
                                                 <label>Comment:</label>
                                                 <textarea
@@ -253,16 +238,6 @@ export default function CommentsModal({
                     <div className="add-comment-section">
                         <h4>Add new comment</h4>
                         <div className="add-comment-field">
-                            <label>Author:</label>
-                            <input
-                                type="text"
-                                value={newAuthor}
-                                onChange={(e) => setNewAuthor(e.target.value)}
-                                placeholder="Your name"
-                                className="new-comment-author"
-                            />
-                        </div>
-                        <div className="add-comment-field">
                             <label>Comment:</label>
                             <textarea
                                 value={newComment}
@@ -276,7 +251,7 @@ export default function CommentsModal({
                         <div className="add-comment-actions">
                             <button
                                 onClick={handleAddComment}
-                                disabled={!newComment.trim() || !newAuthor.trim() || loading}
+                                disabled={!newComment.trim() || loading}
                                 className="add-comment-btn"
                             >
                                 ➕ Add Comment
