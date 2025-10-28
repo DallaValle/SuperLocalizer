@@ -3,7 +3,7 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: #003230;
+    background: #002629;
 }
 
 .login-form {
@@ -53,7 +53,7 @@
 
 .form-group input:focus {
     outline: none;
-    border-color: #003230;
+    border-color: #002629;
 }
 
 .form-group input::placeholder {
@@ -63,7 +63,7 @@
 .login-button {
     width: 100%;
     padding: 12px;
-    background: #003230;
+    background: #002629;
     color: white;
     border: none;
     border-radius: 6px;

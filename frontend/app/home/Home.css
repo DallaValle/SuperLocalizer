@@ -4,7 +4,7 @@
 }
 
 .home-header {
-    background: #003230;
+    background: #002629;
     color: white;
     padding: 1.5rem 2rem;
     display: flex;
@@ -38,7 +38,7 @@
 
 .logout-btn {
     background: #78FFAF;
-    color: #003230;
+    color: #002629;
     border: 1px solid rgba(255, 255, 255, 0.3);
     padding: 0.5rem 1rem;
     border-radius: 5px;
@@ -93,7 +93,7 @@
 .nav-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-    border-color: #003230;
+    border-color: #002629;
 }
 
 .nav-card-icon {
@@ -146,7 +146,7 @@
 .card-number {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #003230;
+    color: #002629;
     margin: 0.5rem 0;
 }
 
@@ -184,12 +184,12 @@
     padding: 0.75rem;
     background-color: #f8f9fa;
     border-radius: 5px;
-    border-left: 3px solid #003230;
+    border-left: 3px solid #002629;
 }
 
 .activity-time {
     font-weight: 600;
-    color: #003230;
+    color: #002629;
     min-width: 60px;
 }
 

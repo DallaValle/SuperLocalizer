@@ -6,7 +6,7 @@
 }
 
 .properties-header {
-    background: #003230;
+    background: #002629;
     color: white;
     padding: clamp(1rem, 4vw, 2rem);
     /* Responsive padding */
@@ -48,7 +48,7 @@
 .back-btn,
 .logout-btn {
     background: #78FFAF;
-    color: #003230;
+    color: #002629;
     border: 1px solid rgba(255, 255, 255, 0.3);
     padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.75rem, 3vw, 1rem);
     border-radius: 5px;
@@ -105,12 +105,12 @@
 
 .search-input:focus {
     outline: none;
-    border-color: #003230;
+    border-color: #002629;
 }
 
 .search-btn {
     padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
-    background: #003230;
+    background: #002629;
     color: white;
     border: none;
     border-radius: 5px;
@@ -171,7 +171,7 @@
 .status-select:focus,
 .sort-select:focus {
     outline: none;
-    border-color: #003230;
+    border-color: #002629;
 }
 
 /* Stats */
@@ -199,7 +199,7 @@
 }
 
 .stats-value {
-    color: #003230;
+    color: #002629;
     font-weight: bold;
     font-size: clamp(0.95rem, 2.5vw, 1.1rem);
 }
@@ -220,7 +220,7 @@
     width: 40px;
     height: 40px;
     border: 4px solid #f3f4f6;
-    border-top: 4px solid #003230;
+    border-top: 4px solid #002629;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -293,7 +293,7 @@
 
 .property-key {
     margin: 0;
-    color: #003230;
+    color: #002629;
     font-size: clamp(1rem, 3vw, 1.2rem);
     font-weight: 600;
     font-family: 'Courier New', monospace;
@@ -326,7 +326,7 @@
 
 .value-row {
     display: grid;
-    grid-template-columns: auto auto 1fr auto auto auto;
+    grid-template-columns: auto auto 1fr auto;
     gap: clamp(0.4rem, 1.5vw, 0.5rem);
     align-items: center;
     padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.75rem, 2.5vw, 1rem);
@@ -387,7 +387,7 @@
 
 .edit-text-input:focus {
     outline: none;
-    border-color: #003230;
+    border-color: #002629;
 }
 
 .text-display-ellipsis {
@@ -446,7 +446,7 @@
 .comments-btn:hover,
 .commit-btn:hover {
     background: #f8f9fa;
-    border-color: #003230;
+    border-color: #002629;
 }
 
 .commit-btn:disabled {
@@ -534,9 +534,9 @@
 }
 
 .pagination-btn.active {
-    background: #003230;
+    background: #002629;
     color: white;
-    border-color: #003230;
+    border-color: #002629;
 }
 
 .pagination-btn:disabled {
