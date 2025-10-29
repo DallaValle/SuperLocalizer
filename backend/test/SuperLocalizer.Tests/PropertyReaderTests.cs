@@ -14,7 +14,7 @@ public class PropertyReaderTests
     [Test]
     public void Load_ShouldReturnListOfProperties()
     {
-        var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("./SupertextLocalisation/de-CH/localization_de-CH.json"));
+        var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("./de-CH/localization_de-CH.json"));
         var result = _sut.Load(json, "de-CH");
         Assert.That(result.Count, Is.EqualTo(2950));
     }
@@ -23,7 +23,7 @@ public class PropertyReaderTests
     public void Merge_ShouldMergePropertiesCorrectly()
     {
         var propertyLists = new List<List<SuperLocalizer.Model.Property>>();
-        foreach (string fileName in Directory.GetFiles("./SupertextLocalisation", "localization_*.json", SearchOption.AllDirectories))
+        foreach (string fileName in Directory.GetFiles(".", "localization_*.json", SearchOption.AllDirectories))
         {
             var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
             var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));

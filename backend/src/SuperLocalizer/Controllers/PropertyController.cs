@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace SuperLocalizer.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("search")]
-        public ActionResult<SearchResponse> Search([FromBody] SearchRequest request)
+        public ActionResult<SearchResponse<Property>> Search([FromBody] SearchPropertyRequest request)
         {
             if (request == null)
             {
@@ -65,28 +66,7 @@ namespace SuperLocalizer.Controllers
             }
 
             // Capture previous values for history
-            var previousText = value.Text;
-            var previousIsVerified = value.IsVerified;
-            var previousIsReviewed = value.IsReviewed;
-
-            // Determine what's changing
-            var textChanged = !string.IsNullOrEmpty(request.Text) && request.Text != previousText;
-            var verifiedChanged = request.IsVerified.HasValue && request.IsVerified.Value != previousIsVerified;
-            var reviewedChanged = request.IsReviewed.HasValue && request.IsReviewed.Value != previousIsReviewed;
-
-            // Save history if any relevant changes are made
-            if (textChanged || verifiedChanged || reviewedChanged)
-            {
-                _historyRepository.SaveHistory(
-                    value.Id,
-                    previousText,
-                    textChanged ? request.Text : previousText,
-                    verifiedChanged ? previousIsVerified : null,
-                    verifiedChanged ? request.IsVerified.Value : null,
-                    reviewedChanged ? previousIsReviewed : null,
-                    reviewedChanged ? request.IsReviewed.Value : null
-                );
-            }
+            var previousValue = JsonConvert.SerializeObject(value);
 
             // Update the value properties
             if (!string.IsNullOrEmpty(request.Text))
@@ -107,7 +87,11 @@ namespace SuperLocalizer.Controllers
             property.UpdateDate = System.DateTime.UtcNow;
 
             _propertyRepository.UpdateProperty(property);
-
+            // Save history
+            _historyRepository.SaveHistory(
+                value.Key,
+                JsonConvert.DeserializeObject<Value>(previousValue),
+                value);
             return Ok(property);
         }
     }

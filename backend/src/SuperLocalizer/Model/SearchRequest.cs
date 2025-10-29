@@ -2,7 +2,7 @@ namespace SuperLocalizer.Model;
 
 using System.Collections.Generic;
 
-public class SearchRequest
+public class SearchPropertyRequest
 {
     public string SearchTerm { get; set; }
     public string Language { get; set; }
@@ -16,9 +16,9 @@ public class SearchRequest
     public int? Size { get; set; } = 10;
 }
 
-public class SearchResponse
+public class SearchResponse<T>
 {
-    public List<Property> Items { get; set; }
+    public List<T> Items { get; set; }
     public int Page { get; set; }
     public int Size { get; set; }
     public int TotalItems { get; set; }

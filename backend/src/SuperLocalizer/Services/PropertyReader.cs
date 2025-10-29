@@ -38,6 +38,7 @@ public class PropertyReader : IPropertyReader
                 {
                     new Value
                     {
+                        PropertyKey = kvp.Key,
                         Language = language,
                         Text = kvp.Value,
                         IsVerified = defaultIsVerified,
@@ -66,7 +67,7 @@ public class PropertyReader : IPropertyReader
                 if (mergedProperties.ContainsKey(property.Key))
                 {
                     // Update PropertyId for each value before merging
-                    property.Values = property.Values.ConvertAll(_ => { _.PropertyId = mergedProperties[property.Key].Id; return _; });
+                    property.Values = property.Values.ConvertAll(_ => { _.PropertyKey = property.Key; return _; });
                     // Merge values
                     mergedProperties[property.Key].Values.AddRange(property.Values);
                     mergedProperties[property.Key].UpdateDate = DateTime.UtcNow;
@@ -91,7 +92,7 @@ public class PropertyReader : IPropertyReader
                         IsVerified = false,
                         IsReviewed = false,
                         Comments = new List<Comment>(),
-                        PropertyId = prop.Id
+                        PropertyKey = prop.Key,
                     });
                 }
             }

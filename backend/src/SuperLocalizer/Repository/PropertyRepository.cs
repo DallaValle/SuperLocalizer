@@ -9,7 +9,7 @@ namespace SuperLocalizer.Repository;
 
 public interface IPropertyRepository
 {
-    SearchResponse GetProperties(SearchRequest request);
+    SearchResponse<Property> GetProperties(SearchPropertyRequest request);
     Property GetPropertyByKey(string key);
     void UpdateProperty(Property property);
 }
@@ -23,7 +23,7 @@ public class PropertyRepositoryMemory : IPropertyRepository
         _fusionCache = fusionCache;
     }
 
-    public SearchResponse GetProperties(SearchRequest request)
+    public SearchResponse<Property> GetProperties(SearchPropertyRequest request)
     {
         var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
 
@@ -98,7 +98,7 @@ public class PropertyRepositoryMemory : IPropertyRepository
         var skip = (page - 1) * size;
         var items = query.Skip(skip).Take(size).ToList();
 
-        var result = new SearchResponse
+        var result = new SearchResponse<Property>
         {
             Items = items,
             Page = page,

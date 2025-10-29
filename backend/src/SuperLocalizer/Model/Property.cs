@@ -5,7 +5,6 @@ namespace SuperLocalizer.Model;
 
 public class Property
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
     public string Key { get; set; }
     public List<Value> Values { get; set; }
     public DateTime InsertDate { get; set; }
@@ -14,8 +13,8 @@ public class Property
 
 public class Value
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid PropertyId { get; set; }
+    public string Key => $"{PropertyKey}_{Language}";
+    public string PropertyKey { get; set; }
     public string Language { get; set; }
     public string Text { get; set; }
     public bool IsVerified { get; set; }
