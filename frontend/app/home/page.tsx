@@ -2,13 +2,16 @@
 
 import { useAuth } from '../contexts/AuthContext'
 import { PropertyService, PropertySearchRequest } from '../services/PropertyService'
+import { HistoryService, HistoryItem } from '../services/HistoryService'
 import { useEffect, useState } from 'react'
 import './Home.css'
 
 export default function HomePage() {
     const { logout, token } = useAuth()
     const [pendingReviews, setPendingReviews] = useState<number>(0)
+    const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [isActivityLoading, setIsActivityLoading] = useState<boolean>(true)
 
     const handleLogout = () => {
         logout()
@@ -33,8 +36,67 @@ export default function HomePage() {
         }
     }
 
+    const fetchTodayActivity = async () => {
+        try {
+            setIsActivityLoading(true)
+            const today = new Date()
+            // Format: YYYY-MM-DDTHH:mm:ss (start of day)
+            const todayStart = new Date(today.setHours(0, 0, 0, 0)).toISOString().slice(0, 19)
+            const todayEnd = new Date(today.setHours(23, 59, 59, 999)).toISOString().slice(0, 19)
+
+            const response = await HistoryService.searchHistory({
+                fromDate: todayStart,
+                toDate: todayEnd,
+                page: 1,
+                size: 10 // Get last 10 activities for today
+            })
+
+            // Sort by timestamp descending (most recent first)
+            const sortedActivity = response.items.sort((a, b) =>
+                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            )
+
+            setRecentActivity(sortedActivity)
+        } catch (error) {
+            console.error('Error fetching today\'s activity:', error)
+            setRecentActivity([])
+        } finally {
+            setIsActivityLoading(false)
+        }
+    }
+
+    const formatActivityDescription = (item: HistoryItem): string => {
+        if (item.newValue && !item.previousValue) {
+            // New translation added
+            return `New translation added for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+        } else if (item.newValue && item.previousValue) {
+            // Translation updated
+            if (item.newValue.isReviewed !== item.previousValue.isReviewed && item.newValue.isReviewed) {
+                return `Review completed for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+            } else if (item.newValue.isVerified !== item.previousValue.isVerified && item.newValue.isVerified) {
+                return `Translation verified for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+            } else {
+                return `Translation updated for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+            }
+        } else if (item.previousValue && !item.newValue) {
+            // Translation deleted
+            return `Translation removed for "${item.valueKey}" in ${item.previousValue.language?.toUpperCase()}`
+        }
+        return `Activity on "${item.valueKey}"`
+    }
+
+    const formatTime = (timestamp: string): string => {
+        const date = new Date(timestamp)
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        })
+    }
+
     useEffect(() => {
         fetchPendingReviews()
+        fetchTodayActivity()
     }, [])
 
     return (
@@ -101,18 +163,25 @@ export default function HomePage() {
                 <div className="recent-activity">
                     <h3>Recent Activity</h3>
                     <div className="activity-list">
-                        <div className="activity-item">
-                            <span className="activity-time">10:30</span>
-                            <span className="activity-text">New translation added for "welcome_message" in IT</span>
-                        </div>
-                        <div className="activity-item">
-                            <span className="activity-time">09:15</span>
-                            <span className="activity-text">Review completed for "Mobile App" project</span>
-                        </div>
-                        <div className="activity-item">
-                            <span className="activity-time">08:45</span>
-                            <span className="activity-text">New project "Website v2" created</span>
-                        </div>
+                        {isActivityLoading ? (
+                            <div className="activity-item">
+                                <span className="activity-text">Loading recent activity...</span>
+                            </div>
+                        ) : recentActivity.length > 0 ? (
+                            recentActivity.map((item, index) => (
+                                <div key={`${item.valueKey}-${item.timestamp}-${index}`} className="activity-item">
+                                    <span className="activity-time">{formatTime(item.timestamp)}</span>
+                                    <span className="activity-text">{formatActivityDescription(item)}</span>
+                                    {item.userName && (
+                                        <span className="activity-user">by {item.userName}</span>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="activity-item">
+                                <span className="activity-text">No activity recorded for today</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

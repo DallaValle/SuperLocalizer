@@ -69,7 +69,7 @@ export default function PropertiesPage() {
         editingValuesRef.current = editingValues
     }, [editingValues])
 
-    const debouncedAutoSave = useCallback((propertyKey: string, language: string, delay: number = 1000) => {
+    const debouncedAutoSave = useCallback((propertyKey: string, language: string, delay: number = 2000) => {
         const editKey = getEditKey(propertyKey, language)
 
         // Clear existing timeout for this field
@@ -94,7 +94,7 @@ export default function PropertiesPage() {
         }
 
         // Save immediately
-        setTimeout(() => commitChanges(propertyKey, language), 100)
+        setTimeout(() => commitChanges(propertyKey, language), 2000)
     }, [])
 
     // Toast notification function

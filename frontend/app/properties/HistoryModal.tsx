@@ -149,7 +149,7 @@ export default function HistoryModal({
 
                                         <div className="history-changes">
                                             {/* Text changes */}
-                                            {(previousText || newText) && (
+                                            {(previousText || newText) && previousText !== newText && (
                                                 <div className="text-changes">
                                                     {previousText && (
                                                         <div className="text-change previous">

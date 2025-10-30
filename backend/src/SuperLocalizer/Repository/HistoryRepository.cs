@@ -73,6 +73,11 @@ public class HistoryRepositoryMemory : IHistoryRepository
         previousValue.Comments = null; // Exclude comments from history
         newValue.Comments = null; // Exclude comments from history
 
+        if (previousValue == newValue)
+        {
+            return; // No changes detected
+        }
+
         var historyItem = new HistoryItem
         {
             ValueKey = valueKey,

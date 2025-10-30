@@ -197,6 +197,13 @@
     color: #555;
 }
 
+.activity-user {
+    color: #002629;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-left: auto;
+}
+
 .debug-info {
     background: #e9ecef;
     padding: 1rem;

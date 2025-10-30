@@ -33,7 +33,7 @@ SuperLocalizer is a localization management web application built as a full-stac
 
 ```
 SuperLocalizer/
-├── backend/                          # .NET Core Web API
+├── backend/                         # .NET Core Web API
 │   ├── SuperLocalizer.sln           # Solution file
 │   ├── src/SuperLocalizer/          # Main application
 │   │   ├── Controllers/             # API controllers (Property, Comment, History, Sync)

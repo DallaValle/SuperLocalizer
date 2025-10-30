@@ -12,34 +12,21 @@ This document outlines the core development principles for SuperLocalizer, prior
 
 ### KIS Guidelines
 
-1. **Favor Readability Over Cleverness**
-
-   ```csharp
-   // Good: Clear and simple
-   public bool IsPropertyVerified(Property property)
-   {
-       return property.Values.All(v => v.IsVerified);
-   }
-   
-   // Avoid: Clever but unclear
-   public bool IsPropertyVerified(Property property) => property.Values.All(v => v.IsVerified);
-   ```
-
-2. **Use Explicit Names Over Short Names**
+1. **Use Explicit Names Over Short Names**
 
    ```csharp
    // Good
    public async Task<List<Property>> GetPropertiesByLanguageAsync(string languageCode)
-   
+
    // Avoid
    public async Task<List<Property>> GetPropsByLangAsync(string lang)
    ```
 
-3. **Prefer Composition Over Inheritance**
+2. **Prefer Composition Over Inheritance**
    - Use dependency injection over complex inheritance hierarchies
    - Favor interfaces for contracts
 
-4. **Keep Methods Small and Focused**
+3. **Keep Methods Small and Focused**
    - One responsibility per method
    - Maximum 20-30 lines per method
    - If you need comments to explain sections, split the method
@@ -87,7 +74,7 @@ public interface IPropertyProcessor
 public class PropertyController
 {
     private readonly IEnumerable<IPropertyProcessor> _processors;
-    
+
     public PropertyController(IEnumerable<IPropertyProcessor> processors)
     {
         _processors = processors;
@@ -150,7 +137,7 @@ Depend on abstractions, not concretions.
 public class PropertyController : ControllerBase
 {
     private readonly IPropertyService _propertyService;
-    
+
     public PropertyController(IPropertyService propertyService)
     {
         _propertyService = propertyService;
@@ -175,7 +162,7 @@ public class PropertyController : ControllerBase
    public class TranslationProperty
    public string LanguageCode { get; set; }
    public DateTime LastModificationDate { get; set; }
-   
+
    // Avoid
    public class Prop
    public string Lang { get; set; }
@@ -193,7 +180,7 @@ public class PropertyController : ControllerBase
            verifiedProperties.Add(property);
        }
    }
-   
+
    // Avoid
    foreach (var p in props)
    {
@@ -247,10 +234,10 @@ public class PropertyController : ControllerBase
    {
        if (property == null)
            throw new ArgumentNullException(nameof(property));
-       
+
        if (string.IsNullOrEmpty(property.Key))
            throw new ArgumentException("Property key cannot be empty", nameof(property));
-       
+
        // Continue with business logic
    }
    ```
@@ -260,7 +247,7 @@ public class PropertyController : ControllerBase
    ```csharp
    // Good
    throw new PropertyNotFoundException($"Property with key '{key}' not found");
-   
+
    // Avoid
    throw new Exception("Error occurred");
    ```
@@ -276,7 +263,7 @@ public class PropertyController : ControllerBase
        return requiredLanguages.All(lang => 
            property.Values.Any(v => v.Language == lang && !string.IsNullOrEmpty(v.Text)));
    }
-   
+
    // Avoid: Comment explaining what code does
    // Checks if property has translations for all required languages
    public bool Check(Property prop, List<string> langs)
@@ -295,6 +282,36 @@ public class PropertyController : ControllerBase
    /// <returns>A paginated list of properties matching the search criteria.</returns>
    [HttpPost("search")]
    public ActionResult<SearchResponse> Search([FromBody] SearchRequest request)
+   ```
+
+3. **Write Tests That Express Intent**
+
+   ```csharp
+   [Test]
+   public void PropertyReader_WhenLoadingValidJson_ShouldReturnPropertiesWithCorrectLanguage()
+   {
+       // Arrange
+       var json = JObject.Parse("""{"key": "value"}""");
+       var reader = new PropertyReader();
+
+       // Act
+       var properties = reader.Load(json, "en");
+
+       // Assert
+       Assert.That(properties.All(p => p.Values.Any(v => v.Language == "en")), Is.True);
+   }
+   ```
+
+4. **Test Behavior, Not Implementation**
+
+   ```csharp
+   // Good: Testing behavior
+   [Test]
+   public void Search_WhenFilteringByLanguage_ShouldReturnOnlyPropertiesWithThatLanguage()
+
+   // Avoid: Testing implementation
+   [Test]
+   public void Search_ShouldCallWhereMethodOnList()
    ```
 
 ## Frontend-Specific Guidelines (React/TypeScript)
@@ -316,7 +333,7 @@ public class PropertyController : ControllerBase
            </tr>
        );
    };
-   
+
    // Avoid: Multiple responsibilities
    const PropertyManager = () => {
        // Handles fetching, filtering, sorting, editing, deleting...
@@ -332,7 +349,7 @@ public class PropertyController : ControllerBase
        onEdit: (property: Property) => void;
        isReadOnly?: boolean;
    }
-   
+
    // Avoid: Any types
    const PropertyRow = ({ property, onEdit }: any) => {
    ```
@@ -347,43 +364,11 @@ public class PropertyController : ControllerBase
        const [comments, setComments] = useState<Comment[]>([]);
        const [isLoading, setIsLoading] = useState(false);
    };
-   
+
    // Global state only for truly global data
    const AuthProvider = ({ children }: { children: ReactNode }) => {
        const [user, setUser] = useState<User | null>(null);
    };
-   ```
-
-## Testing Guidelines
-
-1. **Write Tests That Express Intent**
-
-   ```csharp
-   [Test]
-   public void PropertyReader_WhenLoadingValidJson_ShouldReturnPropertiesWithCorrectLanguage()
-   {
-       // Arrange
-       var json = JObject.Parse("""{"key": "value"}""");
-       var reader = new PropertyReader();
-       
-       // Act
-       var properties = reader.Load(json, "en");
-       
-       // Assert
-       Assert.That(properties.All(p => p.Values.Any(v => v.Language == "en")), Is.True);
-   }
-   ```
-
-2. **Test Behavior, Not Implementation**
-
-   ```csharp
-   // Good: Testing behavior
-   [Test]
-   public void Search_WhenFilteringByLanguage_ShouldReturnOnlyPropertiesWithThatLanguage()
-   
-   // Avoid: Testing implementation
-   [Test]
-   public void Search_ShouldCallWhereMethodOnList()
    ```
 
 ## Code Review Checklist
