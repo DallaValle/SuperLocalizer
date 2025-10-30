@@ -632,14 +632,14 @@ export default function PropertiesPage() {
                                                     <span>👁</span>
                                                 </label>
                                                 <button
-                                                    onClick={() => openCommentsModal(property.key, value.language, value.id)}
+                                                    onClick={() => openCommentsModal(property.key, value.language, `${property.key}_${value.language}`)}
                                                     className="comments-btn"
                                                     title={`Comments (${(editingValue.comments || []).length})`}
                                                 >
                                                     💬{/* ({(editingValue.comments || []).length}) */}
                                                 </button>
                                                 <button
-                                                    onClick={() => openHistoryModal(property.key, value.language, value.id)}
+                                                    onClick={() => openHistoryModal(property.key, value.language, `${property.key}_${value.language}`)}
                                                     className="history-btn"
                                                     title="View history"
                                                 >

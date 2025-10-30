@@ -61,7 +61,7 @@ SuperLocalizer/
 - **API Controllers**: Follow RESTful conventions with `[ApiController]` attribute
 - **Documentation**: XML documentation enabled for Swagger generation
 - **Configuration**: Uses `appsettings.json` and `appsettings.Development.json`
-- **Data Loading**: Localization files loaded from `backend/test/SuperLocalizer.Tests/SupertextLocalisation/`
+- **Data Loading**: Localization files loaded from `docs/SupertextLocalisation/`
 - **Important Note**: Hard-coded file path in `Startup.cs` - needs update for production deployment
 
 ### Frontend (Next.js)
@@ -159,7 +159,7 @@ Localization data is stored in JSON format with nested structure:
 
 ## Testing Strategy
 - Backend tests use NUnit framework
-- Sample localization data located in `backend/test/SuperLocalizer.Tests/SupertextLocalisation/`
+- Sample localization data located in `docs/SupertextLocalisation/`
 - Test data includes multiple languages: en, de-CH, de-DE, fr, it
 - HTTP request examples available in `docs/requests/property.http`
 

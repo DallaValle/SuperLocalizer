@@ -31,10 +31,12 @@ export default function HistoryModal({
     }, [isOpen, valueId])
 
     const loadHistory = async () => {
+        console.log('Loading history for valueId:', valueId)
         setLoading(true)
         setError(null)
         try {
             const historyData = await HistoryService.getHistoryByValueId(valueId)
+            console.log('History data received:', historyData)
             // Sort by timestamp descending (newest first)
             const sortedHistory = historyData.sort((a, b) =>
                 new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -52,16 +54,47 @@ export default function HistoryModal({
         return new Date(dateString).toLocaleString()
     }
 
-    const formatChange = (previousText: string, newText: string) => {
-        if (!previousText && newText) {
+    const formatChange = (previousValue: any, newValue: any) => {
+        const previousText = previousValue?.text || ''
+        const newText = newValue?.text || ''
+        const previousVerified = previousValue?.isVerified || false
+        const newVerified = newValue?.isVerified || false
+        const previousReviewed = previousValue?.isReviewed || false
+        const newReviewed = newValue?.isReviewed || false
+
+        if (!previousValue && newValue) {
             return { type: 'created', description: 'Created' }
         }
-        if (previousText && !newText) {
+        if (previousValue && !newValue) {
             return { type: 'deleted', description: 'Deleted' }
         }
-        if (previousText !== newText) {
-            return { type: 'updated', description: 'Updated' }
+
+        // Check for any changes
+        const textChanged = previousText !== newText
+        const verifiedChanged = previousVerified !== newVerified
+        const reviewedChanged = previousReviewed !== newReviewed
+
+        if (textChanged || verifiedChanged || reviewedChanged) {
+            let changes = []
+            if (textChanged) changes.push('text')
+            if (verifiedChanged) changes.push(newVerified ? 'verified' : 'unverified')
+            if (reviewedChanged) changes.push(newReviewed ? 'reviewed' : 'unreviewed')
+
+            return {
+                type: 'updated',
+                description: `Updated (${changes.join(', ')})`,
+                changes: {
+                    textChanged,
+                    verifiedChanged,
+                    reviewedChanged,
+                    previousVerified,
+                    newVerified,
+                    previousReviewed,
+                    newReviewed
+                }
+            }
         }
+
         return { type: 'unchanged', description: 'No change' }
     }
 
@@ -95,7 +128,9 @@ export default function HistoryModal({
                             <p className="no-history">No history</p>
                         ) : (
                             history.map((item, index) => {
-                                const change = formatChange(item.previousText, item.newText)
+                                const change = formatChange(item.previousValue, item.newValue)
+                                const previousText = item.previousValue?.text || ''
+                                const newText = item.newValue?.text || ''
 
                                 return (
                                     <div key={index} className={`history-item ${change.type}`}>
@@ -113,27 +148,65 @@ export default function HistoryModal({
                                         </div>
 
                                         <div className="history-changes">
-                                            {item.previousText && (
-                                                <div className="text-change previous">
-                                                    <label>Previous:</label>
-                                                    <div className="text-content" title={item.previousText}>
-                                                        {truncateText(item.previousText)}
+                                            {/* Text changes */}
+                                            {(previousText || newText) && (
+                                                <div className="text-changes">
+                                                    {previousText && (
+                                                        <div className="text-change previous">
+                                                            <label>Previous text:</label>
+                                                            <div className="text-content" title={previousText}>
+                                                                {truncateText(previousText)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {newText && (
+                                                        <div className="text-change new">
+                                                            <label>New text:</label>
+                                                            <div className="text-content" title={newText}>
+                                                                {truncateText(newText)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Status changes */}
+                                            {change.changes && (change.changes.verifiedChanged || change.changes.reviewedChanged) && (
+                                                <div className="status-changes">
+                                                    <label>Status changes:</label>
+                                                    <div className="status-change-list">
+                                                        {change.changes.verifiedChanged && (
+                                                            <div className="status-change">
+                                                                <span className="status-label">Verified:</span>
+                                                                <span className={`status-value previous ${change.changes.previousVerified ? 'verified' : 'unverified'}`}>
+                                                                    {change.changes.previousVerified ? '✓' : '✗'}
+                                                                </span>
+                                                                <span className="arrow">→</span>
+                                                                <span className={`status-value new ${change.changes.newVerified ? 'verified' : 'unverified'}`}>
+                                                                    {change.changes.newVerified ? '✓' : '✗'}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {change.changes.reviewedChanged && (
+                                                            <div className="status-change">
+                                                                <span className="status-label">Reviewed:</span>
+                                                                <span className={`status-value previous ${change.changes.previousReviewed ? 'reviewed' : 'unreviewed'}`}>
+                                                                    {change.changes.previousReviewed ? '👁' : '👁‍🗨'}
+                                                                </span>
+                                                                <span className="arrow">→</span>
+                                                                <span className={`status-value new ${change.changes.newReviewed ? 'reviewed' : 'unreviewed'}`}>
+                                                                    {change.changes.newReviewed ? '👁' : '👁‍🗨'}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
 
-                                            {item.newText && (
-                                                <div className="text-change new">
-                                                    <label>New:</label>
-                                                    <div className="text-content" title={item.newText}>
-                                                        {truncateText(item.newText)}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {!item.previousText && !item.newText && (
+                                            {!previousText && !newText && (!change.changes || (!change.changes.verifiedChanged && !change.changes.reviewedChanged)) && (
                                                 <div className="text-change">
-                                                    <span className="no-text">No text content</span>
+                                                    <span className="no-text">No changes detected</span>
                                                 </div>
                                             )}
                                         </div>

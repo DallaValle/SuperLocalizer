@@ -1,0 +1,10 @@
+POST http://localhost:5000/api/History/search
+accept: text/plain
+Content-Type: application/json
+
+{
+  "valueKey": "add_de-DE",
+  "page": 1,
+  "size": 10
+}
+###
