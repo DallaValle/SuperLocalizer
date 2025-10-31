@@ -21,14 +21,14 @@ export interface UpdateCommentRequest {
 }
 
 export class CommentService {
-    private static readonly BASE_URL = 'http://localhost:5000/api'
+    private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     /**
      * Get all comments for a specific value
      */
     static async getComments(valueKey: string): Promise<Comment[]> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Comment/${valueKey}`, {
+            const response = await fetch(`${this.BASE_URL}/comment/${valueKey}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -51,7 +51,7 @@ export class CommentService {
      */
     static async createComment(request: CreateCommentRequest): Promise<Comment> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Comment`, {
+            const response = await fetch(`${this.BASE_URL}/comment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export class CommentService {
      */
     static async updateComment(id: string, request: UpdateCommentRequest): Promise<Comment> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Comment/${id}`, {
+            const response = await fetch(`${this.BASE_URL}/comment/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export class CommentService {
      */
     static async deleteComment(id: string): Promise<void> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Comment/${id}`, {
+            const response = await fetch(`${this.BASE_URL}/comment/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',

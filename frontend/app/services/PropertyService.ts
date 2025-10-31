@@ -44,11 +44,11 @@ export interface PropertyValueUpdateRequest {
 }
 
 export class PropertyService {
-    private static readonly BASE_URL = 'http://localhost:5000/api'
+    private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     static async searchProperties(request: PropertySearchRequest): Promise<PropertySearchResponse> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Property/search`, {
+            const response = await fetch(`${this.BASE_URL}/property/search`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export class PropertyService {
 
     static async updateProperty(property: Property): Promise<Property> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Property`, {
+            const response = await fetch(`${this.BASE_URL}/property`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ export class PropertyService {
 
     static async updatePropertyValue(propertyKey: string, language: string, updateRequest: PropertyValueUpdateRequest): Promise<PropertyValue> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Property/${encodeURIComponent(propertyKey)}/${encodeURIComponent(language)}`, {
+            const response = await fetch(`${this.BASE_URL}/property/${encodeURIComponent(propertyKey)}/${encodeURIComponent(language)}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

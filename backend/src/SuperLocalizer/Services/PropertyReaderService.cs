@@ -111,30 +111,77 @@ public class PropertyReaderService : IPropertyReaderService
             var mainValue = property.Values.FirstOrDefault(v => v.Language.Equals(language, StringComparison.OrdinalIgnoreCase));
             if (mainValue != null)
             {
-                // Set the value in the result JSON object based on the property key
-                var keys = property.Key.Split('.');
-                JObject currentObject = result;
-                for (int i = 0; i < keys.Length; i++)
-                {
-                    var key = keys[i];
-                    if (i == keys.Length - 1)
-                    {
-                        // Last key, set the value
-                        currentObject[key] = mainValue.Text;
-                    }
-                    else
-                    {
-                        // Intermediate key, create or navigate to the nested object
-                        if (currentObject[key] == null)
-                        {
-                            currentObject[key] = new JObject();
-                        }
-                        currentObject = (JObject)currentObject[key];
-                    }
-                }
+                SetValueInJson(result, property.Key, mainValue.Text);
             }
         }
         return result;
+    }
+
+    private void SetValueInJson(JObject root, string key, string value)
+    {
+        var keys = key.Split('.');
+        JContainer currentContainer = root;
+
+        for (int i = 0; i < keys.Length; i++)
+        {
+            var currentKey = keys[i];
+            var isLast = i == keys.Length - 1;
+
+            // Check if this key represents an array index
+            if (currentKey.Contains('[') && currentKey.Contains(']'))
+            {
+                var arrayName = currentKey.Substring(0, currentKey.IndexOf('['));
+                var indexStr = currentKey.Substring(currentKey.IndexOf('[') + 1, currentKey.IndexOf(']') - currentKey.IndexOf('[') - 1);
+                var index = int.Parse(indexStr);
+
+                // Ensure the array exists
+                if (((JObject)currentContainer)[arrayName] == null)
+                {
+                    ((JObject)currentContainer)[arrayName] = new JArray();
+                }
+
+                var array = (JArray)((JObject)currentContainer)[arrayName];
+
+                // Extend array if necessary
+                while (array.Count <= index)
+                {
+                    array.Add(null);
+                }
+
+                if (isLast)
+                {
+                    // Set the value at the array index
+                    array[index] = value;
+                }
+                else
+                {
+                    // Create nested object at array index if it doesn't exist
+                    if (array[index] == null || array[index].Type != JTokenType.Object)
+                    {
+                        array[index] = new JObject();
+                    }
+                    currentContainer = (JObject)array[index];
+                }
+            }
+            else
+            {
+                // Regular object property
+                if (isLast)
+                {
+                    // Set the value
+                    ((JObject)currentContainer)[currentKey] = value;
+                }
+                else
+                {
+                    // Create or navigate to nested object
+                    if (((JObject)currentContainer)[currentKey] == null)
+                    {
+                        ((JObject)currentContainer)[currentKey] = new JObject();
+                    }
+                    currentContainer = (JObject)((JObject)currentContainer)[currentKey];
+                }
+            }
+        }
     }
 
     private void FlattenJson(JToken token, string prefix, Dictionary<string, string> result)

@@ -40,7 +40,7 @@ export interface SearchResponse<T> {
 }
 
 export class HistoryService {
-    private static readonly BASE_URL = 'http://localhost:5000/api'
+    private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     static async searchHistory(request: SearchHistoryRequest): Promise<SearchResponse<HistoryItem>> {
         console.log('Making history search request:', request)

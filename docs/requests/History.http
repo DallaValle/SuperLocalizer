@@ -1,4 +1,4 @@
-POST http://localhost:5000/api/History/search
+POST http://localhost:5000/history/search
 accept: text/plain
 Content-Type: application/json
 

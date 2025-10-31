@@ -7,7 +7,7 @@ using SuperLocalizer.Model;
 namespace SuperLocalizer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("comment")]
     public class CommentController : ControllerBase
     {
         private readonly ICommentRepository _commentRepository;

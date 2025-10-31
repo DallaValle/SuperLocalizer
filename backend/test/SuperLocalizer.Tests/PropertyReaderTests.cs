@@ -35,4 +35,15 @@ public class PropertyReaderTests
         Assert.That(allProperties.Count, Is.EqualTo(2950));
         Assert.That(allProperties.First().Value.Values.Count, Is.EqualTo(5));
     }
+
+    [Test]
+    public void UnLoad_ShouldReturnJObject()
+    {
+        string value = File.ReadAllText("./de-CH/localization_de-CH.json");
+        var json = JsonConvert.DeserializeObject<JObject>(value);
+        var result = _sut.Load(json, "de-CH");
+        var unLoaded = _sut.UnLoad(result, "de-CH");
+        Assert.That(unLoaded, Is.Not.Null);
+        Assert.That(value, Is.EqualTo(unLoaded.ToString()));
+    }
 }

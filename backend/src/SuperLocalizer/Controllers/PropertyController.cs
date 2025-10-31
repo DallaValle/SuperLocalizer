@@ -7,7 +7,7 @@ using System.Linq;
 namespace SuperLocalizer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("property")]
     public class PropertyController : ControllerBase
     {
         private readonly IPropertyRepository _propertyRepository;

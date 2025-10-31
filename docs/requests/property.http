@@ -1,4 +1,4 @@
-POST http://localhost:5000/api/Property/search
+POST http://localhost:5000/property/search
 accept: text/plain
 Content-Type: application/json
 
@@ -7,7 +7,7 @@ Content-Type: application/json
   "size": 10
 }
 ###
-PATCH http://localhost:5000/api/Property/connectivityAlerts.offline/it
+PATCH http://localhost:5000/property/connectivityAlerts.offline/it
 accept: */*
 Content-Type: application/json
 

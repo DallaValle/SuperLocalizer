@@ -5,7 +5,7 @@ using SuperLocalizer.Repository;
 namespace SuperLocalizer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("history")]
     public class HistoryController : ControllerBase
     {
         private readonly IHistoryRepository _historyRepository;
