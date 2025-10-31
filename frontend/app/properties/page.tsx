@@ -60,17 +60,15 @@ export default function PropertiesPage() {
         return `${propertyKey}|${language}`
     }
 
-    // Auto-save functionality
+    // Auto-save functionality - FIXED VERSION
     const autoSaveTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
-    const editingValuesRef = useRef<{ [key: string]: PropertyValue }>({})
+    const pendingChangesRef = useRef<{ [key: string]: PropertyValue }>({})
 
-    // Update ref whenever editingValues changes
-    useEffect(() => {
-        editingValuesRef.current = editingValues
-    }, [editingValues])
-
-    const debouncedAutoSave = useCallback((propertyKey: string, language: string, delay: number = 2000) => {
+    const debouncedAutoSave = useCallback((propertyKey: string, language: string, value: PropertyValue, delay: number = 2000) => {
         const editKey = getEditKey(propertyKey, language)
+
+        // Store the latest value for this field
+        pendingChangesRef.current[editKey] = { ...value }
 
         // Clear existing timeout for this field
         if (autoSaveTimeoutRef.current[editKey]) {
@@ -79,12 +77,16 @@ export default function PropertiesPage() {
 
         // Set new timeout
         autoSaveTimeoutRef.current[editKey] = setTimeout(() => {
-            commitChanges(propertyKey, language)
+            const latestValue = pendingChangesRef.current[editKey]
+            if (latestValue) {
+                commitChanges(propertyKey, language, latestValue)
+                delete pendingChangesRef.current[editKey]
+            }
             delete autoSaveTimeoutRef.current[editKey]
         }, delay)
     }, [])
 
-    const immediateAutoSave = useCallback((propertyKey: string, language: string) => {
+    const immediateAutoSave = useCallback((propertyKey: string, language: string, value: PropertyValue) => {
         const editKey = getEditKey(propertyKey, language)
 
         // Clear any pending debounced save
@@ -93,14 +95,17 @@ export default function PropertiesPage() {
             delete autoSaveTimeoutRef.current[editKey]
         }
 
+        // Clear pending changes since we're saving immediately
+        delete pendingChangesRef.current[editKey]
+
         // Save immediately
-        setTimeout(() => commitChanges(propertyKey, language), 2000)
+        setTimeout(() => commitChanges(propertyKey, language, value), 100)
     }, [])
 
     // Toast notification function
     const showToast = useCallback((message: string) => {
         setToastMessage(message)
-        setTimeout(() => setToastMessage(null), 3000) // Auto-hide after 3 seconds
+        setTimeout(() => setToastMessage(null), 3000)
     }, [])
 
     // Function to auto-resize textarea based on content
@@ -204,6 +209,7 @@ export default function PropertiesPage() {
                 clearTimeout(timeout)
             })
             autoSaveTimeoutRef.current = {}
+            pendingChangesRef.current = {}
         }
     }, [])
 
@@ -293,31 +299,10 @@ export default function PropertiesPage() {
         })
     }
 
-    const updateEditingValue = (propertyKey: string, language: string, field: keyof PropertyValue, value: any) => {
+    // Updated commitChanges function to accept value parameter
+    const commitChanges = async (propertyKey: string, language: string, valueToSave?: PropertyValue) => {
         const editKey = getEditKey(propertyKey, language)
-        setEditingValues(prev => ({
-            ...prev,
-            [editKey]: {
-                ...prev[editKey],
-                [field]: value
-            }
-        }))
-
-        // Auto-save logic
-        if (field === 'text') {
-            // Debounced auto-save for text changes
-            console.log('Scheduling debounced auto-save for', propertyKey, language)
-            debouncedAutoSave(propertyKey, language, 1000)
-        } else if (field === 'isVerified' || field === 'isReviewed') {
-            // Immediate auto-save for checkbox changes
-            console.log('Scheduling immediate auto-save for', propertyKey, language, field)
-            immediateAutoSave(propertyKey, language)
-        }
-    }
-
-    const commitChanges = async (propertyKey: string, language: string) => {
-        const editKey = getEditKey(propertyKey, language)
-        const editingValue = editingValuesRef.current[editKey]
+        const editingValue = valueToSave || editingValues[editKey]
 
         console.log('commitChanges called for', propertyKey, language, editingValue)
 
@@ -366,6 +351,34 @@ export default function PropertiesPage() {
                 return newState
             })
         }
+    }
+
+    // Updated updateEditingValue function
+    const updateEditingValue = (propertyKey: string, language: string, field: keyof PropertyValue, value: any) => {
+        const editKey = getEditKey(propertyKey, language)
+
+        setEditingValues(prev => {
+            const updatedValue = {
+                ...prev[editKey],
+                [field]: value
+            }
+
+            // Auto-save logic with the updated value
+            if (field === 'text') {
+                // Debounced auto-save for text changes
+                console.log('Scheduling debounced auto-save for', propertyKey, language)
+                debouncedAutoSave(propertyKey, language, updatedValue, 1000)
+            } else if (field === 'isVerified' || field === 'isReviewed') {
+                // Immediate auto-save for checkbox changes
+                console.log('Scheduling immediate auto-save for', propertyKey, language, field)
+                immediateAutoSave(propertyKey, language, updatedValue)
+            }
+
+            return {
+                ...prev,
+                [editKey]: updatedValue
+            }
+        })
     }
 
     const openCommentsModal = (propertyKey: string, language: string, valueKey: string) => {

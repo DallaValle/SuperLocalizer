@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SuperLocalizer.Services;
@@ -10,35 +9,33 @@ namespace SuperLocalizer.Controllers;
 [Route("api/[controller]")]
 public class SettingController : ControllerBase
 {
-    private readonly ISyncService _syncService;
+    private readonly ISettingService _syncService;
 
-    public SettingController(ISyncService syncService)
+    public SettingController(ISettingService syncService)
     {
         _syncService = syncService;
     }
 
     /// <summary>
-    /// Import localization files into the database
+    /// upload localization files and import them into the database
     /// </summary>
-    [HttpPost("import")]
-    public async Task<IActionResult> ImportAsync(
-        [FromForm] List<IFormFile> files,
-        [FromForm] string mainLanguage)
+    [HttpPost("upload")]
+    public async Task<IActionResult> ImportAsync(IFormFile file, string language)
     {
-        if (files == null || files.Count == 0)
-            return BadRequest("No files uploaded.");
+        if (file == null || file.Length == 0 || string.IsNullOrEmpty(language))
+            return BadRequest("No files uploaded or language not specified.");
 
-        await _syncService.ImportAsync(files, mainLanguage);
+        await _syncService.ImportAsync(file, language);
         return Ok("Import completed successfully.");
     }
 
     /// <summary>
-    /// Export localization files from the database based on the specified target language
+    /// download localization files from the database
     /// </summary>
-    [HttpPost("export")]
-    public async Task<IActionResult> ExportAsync(string targetLanguage = null)
+    [HttpPost("download")]
+    public async Task<IActionResult> ExportAsync(string targetLanguage)
     {
-        var files = await _syncService.ExportAsync();
-        return Ok(files);
+        var files = await _syncService.ExportAsync(targetLanguage);
+        return File(files, "application/json", $"{targetLanguage}.json");
     }
 }

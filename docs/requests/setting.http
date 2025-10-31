@@ -1,0 +1,55 @@
+### Import German (Switzerland) localization file
+POST http://localhost:5000/api/Setting/upload?language=de-CH
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="localization_de-CH.json"
+Content-Type: application/json
+
+< ../SupertextLocalisation/de-CH/localization_de-CH.json
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Import German (Germany) localization file
+POST http://localhost:5000/api/Setting/upload?language=de-DE
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="localization_de-DE.json"
+Content-Type: application/json
+
+< ../SupertextLocalisation/de-DE/localization_de-DE.json
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Import French localization file
+POST http://localhost:5000/api/Setting/upload?language=fr
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="localization_fr.json"
+Content-Type: application/json
+
+< ../SupertextLocalisation/fr/localization_fr.json
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Import English localization file
+POST http://localhost:5000/api/Setting/upload?language=en
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="localization_en.json"
+Content-Type: application/json
+
+< ../SupertextLocalisation/en/localization_en.json
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Import Italian localization file
+POST http://localhost:5000/api/Setting/upload?language=it
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="localization_it.json"
+Content-Type: application/json
+
+< ../SupertextLocalisation/it/localization_it.json
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+###

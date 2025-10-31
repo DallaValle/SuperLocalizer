@@ -363,17 +363,18 @@
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s ease;
-    background: #002629;
-    color: white;
+    background: #78FFAF;
+    color: #002629;
 }
 
 .add-comment-btn:hover:not(:disabled) {
-    background: #5a67d8;
+    background: #6c757d;
     transform: translateY(-1px);
 }
 
 .add-comment-btn:disabled {
     background: #6c757d;
+    color: black;
     cursor: not-allowed;
     transform: none;
     opacity: 0.6;

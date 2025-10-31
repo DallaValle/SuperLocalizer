@@ -4,12 +4,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using SuperLocalizer.Services;
+using SuperLocalizer.Model;
+using System.Linq;
 
 namespace SuperLocalization.Tests;
 
 public class PropertyReaderTests
 {
-    PropertyReader _sut = new PropertyReader();
+    PropertyReaderService _sut = new PropertyReaderService();
 
     [Test]
     public void Load_ShouldReturnListOfProperties()
@@ -22,15 +24,15 @@ public class PropertyReaderTests
     [Test]
     public void Merge_ShouldMergePropertiesCorrectly()
     {
-        var propertyLists = new List<List<SuperLocalizer.Model.Property>>();
+        var allProperties = new Dictionary<string, Property>();
         foreach (string fileName in Directory.GetFiles(".", "localization_*.json", SearchOption.AllDirectories))
         {
             var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
             var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));
             var properties = _sut.Load(json, lang);
-            propertyLists.Add(properties);
+            allProperties = _sut.MergeValues(allProperties, properties);
         }
-        var merged = _sut.MergeValues(propertyLists);
-        Assert.That(merged.Count, Is.EqualTo(2950));
+        Assert.That(allProperties.Count, Is.EqualTo(2950));
+        Assert.That(allProperties.First().Value.Values.Count, Is.EqualTo(5));
     }
 }

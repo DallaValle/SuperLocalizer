@@ -19,6 +19,8 @@ public class Value
     public string Text { get; set; }
     public bool IsVerified { get; set; }
     public bool IsReviewed { get; set; }
+    public DateTime InsertDate { get; set; }
+    public DateTime UpdateDate { get; set; }
     public List<Comment> Comments { get; set; }
 
     public override bool Equals(object obj)

@@ -6,20 +6,15 @@ using SuperLocalizer.Model;
 
 namespace SuperLocalizer.Services;
 
-public interface IPropertyReader
+public interface IPropertyReaderService
 {
     List<Property> Load(JObject json, string language, bool defaultIsVerified = true, bool defaultIsReviewed = true);
-    List<Property> MergeValues(List<List<Property>> propertyLists);
+    JObject UnLoad(List<Property> properties, string language);
+    Dictionary<string, Property> MergeValues(Dictionary<string, Property> allProperties, List<Property> newProperties);
 }
 
-public class PropertyReader : IPropertyReader
+public class PropertyReaderService : IPropertyReaderService
 {
-    private readonly string mainLanguage = "de-CH";
-    private readonly List<string> supportedLanguages = new List<string>
-    {
-        "de-CH", "de-DE", "fr", "it", "en"
-    };
-
     public List<Property> Load(JObject json, string language, bool defaultIsVerified = true, bool defaultIsReviewed = true)
     {
         var properties = new List<Property>();
@@ -56,32 +51,38 @@ public class PropertyReader : IPropertyReader
         return properties;
     }
 
-    public List<Property> MergeValues(List<List<Property>> propertyLists)
+    // Scenario: Import method is called from Azure when PR is completed, merge to develop branch.
+    // Dev team only add properties or rename property keys.
+    // Can happen that in the meantime some language specialists have updated some translations: property -> value -> text.
+    // We keep all property value text from currentProperties and we add the new properties from newProperties.
+    // A conflict happens when a property has changed key and a value text has changed for the same language.
+    public Dictionary<string, Property> MergeValues(Dictionary<string, Property> allProperties, List<Property> newProperties)
     {
-        // the result list should contains all unique properties based on their keys and merge their values
-        var mergedProperties = new Dictionary<string, Property>();
-        foreach (var propertyList in propertyLists)
+        if (allProperties.Count == 0)
         {
-            foreach (var property in propertyList)
+            return newProperties.ToDictionary(p => p.Key, p => p);
+        }
+
+        foreach (var property in newProperties)
+        {
+            if (allProperties.ContainsKey(property.Key))
             {
-                if (mergedProperties.ContainsKey(property.Key))
-                {
-                    // Update PropertyId for each value before merging
-                    property.Values = property.Values.ConvertAll(_ => { _.PropertyKey = property.Key; return _; });
-                    // Merge values
-                    mergedProperties[property.Key].Values.AddRange(property.Values);
-                    mergedProperties[property.Key].UpdateDate = DateTime.UtcNow;
-                }
-                else
-                {
-                    mergedProperties[property.Key] = property;
-                }
+                // Update PropertyId for each value before merging
+                property.Values = property.Values.ConvertAll(_ => { _.PropertyKey = property.Key; return _; });
+                // Merge values
+                allProperties[property.Key].Values.AddRange(property.Values);
+                allProperties[property.Key].UpdateDate = DateTime.UtcNow;
+            }
+            else
+            {
+                allProperties[property.Key] = property;
             }
         }
         // Controls that each property has values for all supported languages
-        foreach (var prop in mergedProperties.Values)
+        foreach (var prop in allProperties.Values)
         {
-            foreach (var lang in supportedLanguages)
+            var langs = allProperties.First().Value.Values.ConvertAll(_ => _.Language);
+            foreach (var lang in langs)
             {
                 if (!prop.Values.Any(v => v.Language.Equals(lang, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -96,8 +97,44 @@ public class PropertyReader : IPropertyReader
                     });
                 }
             }
+            // Ordering values by language
+            prop.Values.Sort((a, b) => string.Compare(a.Language, b.Language, StringComparison.OrdinalIgnoreCase));
         }
-        return mergedProperties.Values.ToList();
+        return allProperties;
+    }
+
+    public JObject UnLoad(List<Property> properties, string language)
+    {
+        var result = new JObject();
+        foreach (var property in properties)
+        {
+            var mainValue = property.Values.FirstOrDefault(v => v.Language.Equals(language, StringComparison.OrdinalIgnoreCase));
+            if (mainValue != null)
+            {
+                // Set the value in the result JSON object based on the property key
+                var keys = property.Key.Split('.');
+                JObject currentObject = result;
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    var key = keys[i];
+                    if (i == keys.Length - 1)
+                    {
+                        // Last key, set the value
+                        currentObject[key] = mainValue.Text;
+                    }
+                    else
+                    {
+                        // Intermediate key, create or navigate to the nested object
+                        if (currentObject[key] == null)
+                        {
+                            currentObject[key] = new JObject();
+                        }
+                        currentObject = (JObject)currentObject[key];
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     private void FlattenJson(JToken token, string prefix, Dictionary<string, string> result)

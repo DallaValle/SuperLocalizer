@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -8,10 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SuperLocalizer.Configuration;
-using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
 using ZiggyCreatures.Caching.Fusion;
@@ -65,21 +60,16 @@ namespace SuperLocalizer
                 });
             services.AddSingleton<IPropertyRepository, PropertyRepositoryMemory>();
             services.AddSingleton<ICommentRepository, CommentRepositoryMemory>();
-            services.AddSingleton<IPropertyReader, PropertyReader>();
-            services.AddSingleton<ISyncService, SyncService>();
+            services.AddSingleton<IPropertyReaderService, PropertyReaderService>();
+            services.AddSingleton<ISettingService, SettingService>();
             services.AddSingleton<IHistoryRepository, HistoryRepositoryMemory>();
+            services.AddSingleton<FileService>();
         }
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // Initialize the database/cache with localization data
-            if (env.IsDevelopment())
-            {
-                InitializeDb(app.ApplicationServices, Configuration);
-            }
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -101,25 +91,6 @@ namespace SuperLocalizer
             {
                 endpoints.MapControllers();
             });
-        }
-
-        private static void InitializeDb(IServiceProvider serviceProvider, IConfiguration configuration)
-        {
-            var propertyLists = new List<List<Property>>();
-            PropertyReader propertyReader = new();
-            foreach (string fileName in Directory.GetFiles(
-                configuration["Localization:DirectoryPath"],
-                configuration["Localization:FilePattern"],
-                SearchOption.AllDirectories))
-            {
-                var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
-                var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));
-                var properties = propertyReader.Load(json, lang);
-                propertyLists.Add(properties);
-            }
-            var propertiesDictionary = propertyReader.MergeValues(propertyLists);
-            var cache = serviceProvider.GetRequiredService<IFusionCache>();
-            cache.Set(CacheKeys.AllProperties, propertiesDictionary);
         }
     }
 }

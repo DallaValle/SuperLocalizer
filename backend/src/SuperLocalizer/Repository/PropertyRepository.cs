@@ -12,6 +12,7 @@ public interface IPropertyRepository
     SearchResponse<Property> GetProperties(SearchPropertyRequest request);
     Property GetPropertyByKey(string key);
     void UpdateProperty(Property property);
+    bool MergeProperties(List<Property> newProperties);
 }
 
 public class PropertyRepositoryMemory : IPropertyRepository
@@ -27,7 +28,7 @@ public class PropertyRepositoryMemory : IPropertyRepository
     {
         var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
 
-        var query = allProperties.AsQueryable();
+        var query = allProperties.Values.AsQueryable();
 
         // Filter by key and Text value if provided
         if (!string.IsNullOrEmpty(request.SearchTerm))
@@ -112,18 +113,18 @@ public class PropertyRepositoryMemory : IPropertyRepository
     public Property GetPropertyByKey(string key)
     {
         var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
-        return allProperties.FirstOrDefault(p => p.Key.Equals(key, System.StringComparison.OrdinalIgnoreCase));
+        allProperties.TryGetValue(key, out var property);
+        return property;
     }
 
     public void UpdateProperty(Property property)
     {
         var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties, _ => ReadFilesFromSnapshot());
-        var existingProperty = allProperties.FirstOrDefault(p => p.Key.Equals(property.Key, System.StringComparison.OrdinalIgnoreCase));
-        if (existingProperty != null)
-        {
-            allProperties.Remove(existingProperty);
-            allProperties.Add(property);
-        }
+
+        // Update the property in the dictionary
+        property.UpdateDate = DateTime.UtcNow;
+        allProperties[property.Key] = property;
+
         _fusionCache.Set(CacheKeys.AllProperties, allProperties);
     }
 
@@ -134,10 +135,10 @@ public class PropertyRepositoryMemory : IPropertyRepository
 
         foreach (var newProp in newProperties)
         {
-            var existingProp = allProperties.FirstOrDefault(p => p.Key.Equals(newProp.Key, System.StringComparison.OrdinalIgnoreCase));
-            if (existingProp == null)
+            if (!allProperties.TryGetValue(newProp.Key, out var existingProp))
             {
-                allProperties.Add(newProp);
+                // Add new property
+                allProperties[newProp.Key] = newProp;
                 updated = true;
             }
             else
@@ -145,7 +146,9 @@ public class PropertyRepositoryMemory : IPropertyRepository
                 // Merge values
                 foreach (var newValue in newProp.Values)
                 {
-                    var existingValue = existingProp.Values.FirstOrDefault(v => v.Language.Equals(newValue.Language, System.StringComparison.OrdinalIgnoreCase));
+                    var existingValue = existingProp.Values.FirstOrDefault(v =>
+                        v.Language.Equals(newValue.Language, System.StringComparison.OrdinalIgnoreCase));
+
                     if (existingValue == null)
                     {
                         existingProp.Values.Add(newValue);
@@ -165,7 +168,11 @@ public class PropertyRepositoryMemory : IPropertyRepository
                         }
                     }
                 }
-                existingProp.UpdateDate = DateTime.UtcNow;
+
+                if (updated)
+                {
+                    existingProp.UpdateDate = DateTime.UtcNow;
+                }
             }
         }
 
@@ -177,9 +184,10 @@ public class PropertyRepositoryMemory : IPropertyRepository
         return updated;
     }
 
-    private List<Property> ReadFilesFromSnapshot()
+    // property key -> property
+    private Dictionary<string, Property> ReadFilesFromSnapshot()
     {
-        // For simplicity, returning an empty list now.
-        return new List<Property>();
+        // For simplicity, returning an empty dictionary now.
+        return new Dictionary<string, Property>();
     }
 }

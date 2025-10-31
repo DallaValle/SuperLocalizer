@@ -19,6 +19,19 @@ namespace SuperLocalizer.Controllers
             _historyRepository = historyRepository;
         }
 
+        /// <summary>
+        /// Get property by key
+        /// </summary>
+        [HttpGet("{key}")]
+        public ActionResult<Property> GetPropertyByKey(string key)
+        {
+            var property = _propertyRepository.GetPropertyByKey(key);
+            if (property == null)
+            {
+                return NotFound($"Property with key '{key}' not found");
+            }
+            return Ok(property);
+        }
 
         /// <summary>
         /// Search properties based on criteria
