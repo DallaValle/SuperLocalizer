@@ -7,7 +7,7 @@ import './HistoryModal.css'
 interface HistoryModalProps {
     isOpen: boolean
     onClose: () => void
-    valueId: string
+    valueKey: string
     propertyKey: string
     language: string
 }
@@ -15,7 +15,7 @@ interface HistoryModalProps {
 export default function HistoryModal({
     isOpen,
     onClose,
-    valueId,
+    valueKey,
     propertyKey,
     language
 }: HistoryModalProps) {
@@ -25,17 +25,17 @@ export default function HistoryModal({
 
     // Load history when modal opens
     useEffect(() => {
-        if (isOpen && valueId) {
+        if (isOpen && valueKey) {
             loadHistory()
         }
-    }, [isOpen, valueId])
+    }, [isOpen, valueKey])
 
     const loadHistory = async () => {
-        console.log('Loading history for valueId:', valueId)
+        console.log('Loading history for valueKey:', valueKey)
         setLoading(true)
         setError(null)
         try {
-            const historyData = await HistoryService.getHistoryByValueId(valueId)
+            const historyData = await HistoryService.getHistoryByValueId(valueKey)
             console.log('History data received:', historyData)
             // Sort by timestamp descending (newest first)
             const sortedHistory = historyData.sort((a, b) =>

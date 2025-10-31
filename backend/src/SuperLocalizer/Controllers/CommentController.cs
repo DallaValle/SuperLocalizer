@@ -20,14 +20,14 @@ namespace SuperLocalizer.Controllers
         /// <summary>
         /// Get all comments for a specific value
         /// </summary>
-        /// <param name="valueId">The ID of the value to get comments for</param>
+        /// <param name="key">The key of the value to get comments for</param>
         /// <returns>List of comments</returns>
-        [HttpGet("{valueId}")]
-        public ActionResult<List<Comment>> GetCommentsByValueId(Guid valueId)
+        [HttpGet("{valueKey}")]
+        public ActionResult<List<Comment>> GetComments(string key)
         {
             try
             {
-                var comments = _commentRepository.GetCommentsByValueId(valueId);
+                var comments = _commentRepository.GetComments(key);
                 return Ok(comments);
             }
             catch (Exception ex)
@@ -66,7 +66,7 @@ namespace SuperLocalizer.Controllers
                 comment.UpdateDate = DateTime.UtcNow;
                 comment.Author = "Admin"; // Temporary hardcoded author
                 _commentRepository.Create(comment);
-                return CreatedAtAction(nameof(GetCommentsByValueId), new { valueId = comment.ValueId }, comment);
+                return CreatedAtAction(nameof(GetComments), new { valueKey = comment.ValueKey }, comment);
             }
             catch (Exception ex)
             {

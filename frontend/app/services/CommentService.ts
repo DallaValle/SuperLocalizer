@@ -1,6 +1,6 @@
 export interface Comment {
     id: string
-    valueId: string
+    valueKey: string
     author: string
     text: string
     insertDate: string
@@ -8,14 +8,14 @@ export interface Comment {
 }
 
 export interface CreateCommentRequest {
-    valueId: string
+    valueKey: string
     author: string
     text: string
 }
 
 export interface UpdateCommentRequest {
     id: string
-    valueId: string
+    valueKey: string
     author: string
     text: string
 }
@@ -26,9 +26,9 @@ export class CommentService {
     /**
      * Get all comments for a specific value
      */
-    static async getCommentsByValueId(valueId: string): Promise<Comment[]> {
+    static async getComments(valueKey: string): Promise<Comment[]> {
         try {
-            const response = await fetch(`${this.BASE_URL}/Comment/${valueId}`, {
+            const response = await fetch(`${this.BASE_URL}/Comment/${valueKey}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',

@@ -8,11 +8,11 @@ namespace SuperLocalizer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SyncController : ControllerBase
+public class SettingController : ControllerBase
 {
     private readonly ISyncService _syncService;
 
-    public SyncController(ISyncService syncService)
+    public SettingController(ISyncService syncService)
     {
         _syncService = syncService;
     }
@@ -33,11 +33,10 @@ public class SyncController : ControllerBase
     }
 
     /// <summary>
-    /// Generate export files from the database
-    /// Based on the specified provider: Azure, GitHub, etc.
+    /// Export localization files from the database based on the specified target language
     /// </summary>
     [HttpPost("export")]
-    public async Task<IActionResult> ExportAsync(string provider)
+    public async Task<IActionResult> ExportAsync(string targetLanguage = null)
     {
         var files = await _syncService.ExportAsync();
         return Ok(files);

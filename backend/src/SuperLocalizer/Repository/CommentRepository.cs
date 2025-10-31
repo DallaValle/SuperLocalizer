@@ -9,7 +9,7 @@ namespace SuperLocalizer.Repository;
 
 public interface ICommentRepository
 {
-    List<Comment> GetCommentsByValueId(Guid valueId);
+    List<Comment> GetComments(string key);
     void Create(Comment comment);
     void Delete(Guid id);
     void Update(Comment comment);
@@ -24,10 +24,10 @@ public class CommentRepositoryMemory : ICommentRepository
         _fusionCache = fusionCache;
     }
 
-    public List<Comment> GetCommentsByValueId(Guid valueId)
+    public List<Comment> GetComments(string key)
     {
         var allComments = _fusionCache.GetOrSet(CacheKeys.AllComments, _ => GetValueFromDatabase());
-        return allComments.Where(c => c.ValueId == valueId).ToList();
+        return allComments.Where(c => c.ValueKey == key).ToList();
     }
 
     public void Create(Comment comment)

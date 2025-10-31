@@ -164,7 +164,7 @@
 
 .comment-updated {
     font-size: 0.75rem;
-    color: #ffc107;
+    color: #002629;
     font-style: italic;
 }
 
@@ -200,8 +200,8 @@
 }
 
 .edit-comment-btn {
-    background: #17a2b8;
-    color: white;
+    background: #78FFAF;
+    color: #002629;
 }
 
 .edit-comment-btn:hover {
@@ -209,8 +209,8 @@
 }
 
 .delete-comment-btn {
-    background: #dc3545;
-    color: white;
+    background: #78FFAF;
+    color: #002629;
 }
 
 .delete-comment-btn:hover {

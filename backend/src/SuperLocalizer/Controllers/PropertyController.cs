@@ -91,7 +91,7 @@ namespace SuperLocalizer.Controllers
             _historyRepository.SaveHistory(
                 value.Key,
                 JsonConvert.DeserializeObject<Value>(previousValue),
-                value);
+                JsonConvert.DeserializeObject<Value>(JsonConvert.SerializeObject(value)));
             return Ok(property);
         }
     }

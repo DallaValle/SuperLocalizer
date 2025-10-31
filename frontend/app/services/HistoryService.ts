@@ -66,9 +66,9 @@ export class HistoryService {
         return data
     }
 
-    static async getHistoryByValueId(valueId: string): Promise<HistoryItem[]> {
+    static async getHistoryByValueId(valueKey: string): Promise<HistoryItem[]> {
         const response = await this.searchHistory({
-            valueKey: valueId,
+            valueKey: valueKey,
             page: 1,
             size: 1000 // Large size to get all items for a specific value
         })

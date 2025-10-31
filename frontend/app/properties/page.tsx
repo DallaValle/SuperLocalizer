@@ -33,23 +33,23 @@ export default function PropertiesPage() {
         isOpen: boolean
         propertyKey: string
         language: string
-        valueId: string
+        valueKey: string
     }>({
         isOpen: false,
         propertyKey: '',
         language: '',
-        valueId: ''
+        valueKey: ''
     })
     const [historyModal, setHistoryModal] = useState<{
         isOpen: boolean
         propertyKey: string
         language: string
-        valueId: string
+        valueKey: string
     }>({
         isOpen: false,
         propertyKey: '',
         language: '',
-        valueId: ''
+        valueKey: ''
     })
     const [toastMessage, setToastMessage] = useState<string | null>(null)
 
@@ -368,12 +368,12 @@ export default function PropertiesPage() {
         }
     }
 
-    const openCommentsModal = (propertyKey: string, language: string, valueId: string) => {
+    const openCommentsModal = (propertyKey: string, language: string, valueKey: string) => {
         setCommentsModal({
             isOpen: true,
             propertyKey,
             language,
-            valueId
+            valueKey
         })
     }
 
@@ -382,16 +382,16 @@ export default function PropertiesPage() {
             isOpen: false,
             propertyKey: '',
             language: '',
-            valueId: ''
+            valueKey: ''
         })
     }
 
-    const openHistoryModal = (propertyKey: string, language: string, valueId: string) => {
+    const openHistoryModal = (propertyKey: string, language: string, valueKey: string) => {
         setHistoryModal({
             isOpen: true,
             propertyKey,
             language,
-            valueId
+            valueKey
         })
     }
 
@@ -400,7 +400,7 @@ export default function PropertiesPage() {
             isOpen: false,
             propertyKey: '',
             language: '',
-            valueId: ''
+            valueKey: ''
         })
     }
 
@@ -669,7 +669,7 @@ export default function PropertiesPage() {
             <CommentsModal
                 isOpen={commentsModal.isOpen}
                 onClose={closeCommentsModal}
-                valueId={commentsModal.valueId}
+                valueKey={commentsModal.valueKey}
                 propertyKey={commentsModal.propertyKey}
                 language={commentsModal.language}
                 onCommentsUpdated={handleCommentsUpdated}
@@ -679,7 +679,7 @@ export default function PropertiesPage() {
             <HistoryModal
                 isOpen={historyModal.isOpen}
                 onClose={closeHistoryModal}
-                valueId={historyModal.valueId}
+                valueKey={historyModal.valueKey}
                 propertyKey={historyModal.propertyKey}
                 language={historyModal.language}
             />

@@ -7,7 +7,7 @@ import './CommentsModal.css'
 interface CommentsModalProps {
     isOpen: boolean
     onClose: () => void
-    valueId: string
+    valueKey: string
     propertyKey: string
     language: string
     onCommentsUpdated?: () => void
@@ -16,7 +16,7 @@ interface CommentsModalProps {
 export default function CommentsModal({
     isOpen,
     onClose,
-    valueId,
+    valueKey: valueKey,
     propertyKey,
     language,
     onCommentsUpdated
@@ -30,16 +30,16 @@ export default function CommentsModal({
 
     // Load comments when modal opens
     useEffect(() => {
-        if (isOpen && valueId) {
+        if (isOpen && valueKey) {
             loadComments()
         }
-    }, [isOpen, valueId])
+    }, [isOpen, valueKey])
 
     const loadComments = async () => {
         setLoading(true)
         setError(null)
         try {
-            const commentsData = await CommentService.getCommentsByValueId(valueId)
+            const commentsData = await CommentService.getComments(valueKey)
             setComments(commentsData)
         } catch (err) {
             setError('Failed to load comments')
@@ -59,7 +59,7 @@ export default function CommentsModal({
         setError(null)
         try {
             const request: CreateCommentRequest = {
-                valueId,
+                valueKey: valueKey,
                 author: 'Anonymous',
                 text: newComment.trim()
             }
@@ -92,7 +92,7 @@ export default function CommentsModal({
         try {
             const request: UpdateCommentRequest = {
                 id: editingComment.id,
-                valueId: editingComment.valueId,
+                valueKey: editingComment.valueKey,
                 author: editingComment.author,
                 text: editingText.trim()
             }
