@@ -447,9 +447,6 @@ storybook-static
 tmp/
 temp/
 
-# === Docker ===
-*.dockerignore
-
 # === Database ===
 *.db
 *.sqlite
@@ -558,7 +555,6 @@ secrets.json
 *.bak
 
 # Package managers
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
