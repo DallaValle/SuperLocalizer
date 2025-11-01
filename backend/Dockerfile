@@ -1,42 +1,51 @@
-# Use the official .NET 9 SDK image to build the application
+# Use the official .NET 9 SDK image with Alpine for smallest build image
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copy the solution file
-COPY SuperLocalizer.sln ./
-
-# Copy project files
-COPY src/SuperLocalizer/SuperLocalizer.csproj ./src/SuperLocalizer/
-COPY test/SuperLocalizer.Tests/SuperLocalizer.Tests.csproj ./test/SuperLocalizer.Tests/
-
-# Restore dependencies
-RUN dotnet restore
-
-# Copy the rest of the application code
+# Copy project files first for better layer caching
+COPY ["src/SuperLocalizer/SuperLocalizer.csproj", "src/SuperLocalizer/"]
 COPY . .
 
-# Build the application
-RUN dotnet build src/SuperLocalizer/SuperLocalizer.csproj -c Release --no-restore
+# Restore dependencies in a separate layer
+RUN dotnet restore "src/SuperLocalizer/SuperLocalizer.csproj"
 
-# Publish the application
-RUN dotnet publish src/SuperLocalizer/SuperLocalizer.csproj -c Release --no-restore -o /app/publish
+# Build and publish in one step with optimizations
+WORKDIR "/src/src/SuperLocalizer"
+RUN dotnet publish "SuperLocalizer.csproj" \
+    -c Release \
+    -o /app/publish
 
-# Use the official .NET 9 runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+# Use the smallest possible runtime image (Alpine-based)
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -S appuser -u 1001 -G appgroup
+
+# Set working directory
 WORKDIR /app
 
-# Copy the published application from the build stage
-COPY --from=build /app/publish .
+# Create directory for localization files with proper permissions
+RUN chown -R appuser:appgroup /app
 
-# Create directory for localization files
-RUN mkdir -p /app/docs/SupertextLocalisation
+# Copy published app with correct ownership
+COPY --from=build --chown=appuser:appgroup /app/publish .
 
-# Expose the port the app runs on
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 5000
 
-# Set environment variables
-ENV ASPNETCORE_URLS=http://+:5000
-ENV ASPNETCORE_ENVIRONMENT=Production
+# Set environment variables for production
+ENV ASPNETCORE_URLS=http://+:5000 \
+    ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_USE_POLLING_FILE_WATCHER=true
 
-# Start the application
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Use exec form for better signal handling
 ENTRYPOINT ["dotnet", "SuperLocalizer.dll"]

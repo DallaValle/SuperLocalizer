@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
-import { PropertyService, type Property, type PropertySearchRequest, type PropertySearchResponse, type PropertyValue, type PropertyValueUpdateRequest } from '../services/PropertyService'
+import { PropertyService } from '../services/PropertyService'
 import CommentsModal from './CommentsModal'
 import HistoryModal from './HistoryModal'
 import './Properties.css'
+import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest } from '../types/domain'
 
-export default function PropertiesPage() {
+function PropertiesContent() {
     const { logout } = useAuth()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -28,7 +29,6 @@ export default function PropertiesPage() {
     const [isInitialized, setIsInitialized] = useState(false)
     const [editingValues, setEditingValues] = useState<{ [key: string]: PropertyValue }>({})
     const [savingValues, setSavingValues] = useState<{ [key: string]: boolean }>({})
-    const [activeEditFields, setActiveEditFields] = useState<{ [key: string]: boolean }>({})
     const [commentsModal, setCommentsModal] = useState<{
         isOpen: boolean
         propertyKey: string
@@ -52,8 +52,6 @@ export default function PropertiesPage() {
         valueKey: ''
     })
     const [toastMessage, setToastMessage] = useState<string | null>(null)
-
-    const availableLanguages = ['de-DE', 'it', 'fr', 'en', 'de-CH']
 
     // Helper function
     const getEditKey = (propertyKey: string, language: string) => {
@@ -122,25 +120,6 @@ export default function PropertiesPage() {
 
         const finalRows = Math.max(minRows, Math.min(maxRows, calculatedRows));
         element.rows = finalRows;
-    };
-
-    // Function to toggle edit mode for a specific field
-    const toggleEditMode = (propertyKey: string, language: string, isActive: boolean) => {
-        const fieldKey = `${propertyKey}-${language}`;
-        setActiveEditFields(prev => ({
-            ...prev,
-            [fieldKey]: isActive
-        }));
-    };
-
-    // Function to check if text should show ellipsis
-    const shouldShowEllipsis = (text: string, maxLength: number = 100) => {
-        return text.length > maxLength;
-    };
-
-    // Function to get truncated text
-    const getTruncatedText = (text: string, maxLength: number = 100) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     };
 
     // Function to update URL with current filters
@@ -358,21 +337,29 @@ export default function PropertiesPage() {
         const editKey = getEditKey(propertyKey, language)
 
         setEditingValues(prev => {
-            const updatedValue = {
-                ...prev[editKey],
+            const currentValue = prev[editKey]
+            if (!currentValue) {
+                console.error('No current value found for editKey:', editKey)
+                return prev
+            }
+
+            const updatedValue: PropertyValue = {
+                ...currentValue,
                 [field]: value
             }
 
-            // Auto-save logic with the updated value
-            if (field === 'text') {
-                // Debounced auto-save for text changes
-                console.log('Scheduling debounced auto-save for', propertyKey, language)
-                debouncedAutoSave(propertyKey, language, updatedValue, 1000)
-            } else if (field === 'isVerified' || field === 'isReviewed') {
-                // Immediate auto-save for checkbox changes
-                console.log('Scheduling immediate auto-save for', propertyKey, language, field)
-                immediateAutoSave(propertyKey, language, updatedValue)
-            }
+            // Use setTimeout to ensure auto-save happens after state update
+            setTimeout(() => {
+                if (field === 'text') {
+                    // Debounced auto-save for text changes
+                    console.log('Scheduling debounced auto-save for', propertyKey, language)
+                    debouncedAutoSave(propertyKey, language, updatedValue, 1000)
+                } else if (field === 'isVerified' || field === 'isReviewed') {
+                    // Immediate auto-save for checkbox changes
+                    console.log('Scheduling immediate auto-save for', propertyKey, language, field)
+                    immediateAutoSave(propertyKey, language, updatedValue)
+                }
+            }, 0)
 
             return {
                 ...prev,
@@ -500,6 +487,9 @@ export default function PropertiesPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="search-input"
                             />
+                            <button type="button" onClick={clearFilters} className="clear-btn">
+                                Clear
+                            </button>
                         </div>
 
                         <div className="filter-group">
@@ -704,5 +694,24 @@ export default function PropertiesPage() {
                 </div>
             )}
         </div>
+    )
+}
+
+function PropertiesPageFallback() {
+    return (
+        <div className="properties-container">
+            <div className="loading-section">
+                <div className="loading-spinner"></div>
+                <p>Loading...</p>
+            </div>
+        </div>
+    )
+}
+
+export default function PropertiesPage() {
+    return (
+        <Suspense fallback={<PropertiesPageFallback />}>
+            <PropertiesContent />
+        </Suspense>
     )
 }

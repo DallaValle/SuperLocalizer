@@ -1,8 +1,9 @@
 'use client'
 
 import { useAuth } from '../contexts/AuthContext'
-import { PropertyService, PropertySearchRequest } from '../services/PropertyService'
-import { HistoryService, HistoryItem } from '../services/HistoryService'
+import { PropertyService } from '../services/PropertyService'
+import { HistoryService } from '../services/HistoryService'
+import type { HistoryItem, PropertySearchRequest } from '../types/domain'
 import { useEffect, useState } from 'react'
 import './Home.css'
 

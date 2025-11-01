@@ -48,7 +48,11 @@ npm install
 npm run dev
 ```
 
-## Development
+## Docker
+
+```bash
+docker-compose up -d --build
+```
 
 ### Prerequisites
 
@@ -56,46 +60,6 @@ npm run dev
 - Node.js (v18 or later)
 - npm or yarn
 
-### Available Tasks
-
-Use VS Code's task runner or run these commands:
-
-- `dotnet build` - Build the backend application
-- `dotnet test` - Run unit tests
-- `dotnet watch run` - Run backend in watch mode
-- `npm run dev` - Start frontend development server
-- `npm run build` - Build frontend for production
-
 ### API Documentation
 
 When running the backend, visit `http://localhost:5000/swagger` to access the interactive API documentation.
-
-### Testing
-
-The project includes comprehensive unit tests with sample localization data for multiple languages (en, de-CH, de-DE, fr, it).
-
-```bash
-# Run backend tests
-dotnet test backend/test/SuperLocalizer.Tests/SuperLocalizer.Tests.csproj
-
-# Run frontend tests (if available)
-cd frontend && npm test
-```
-
-## Configuration
-
-- Backend runs on port 5000 by default
-- Frontend runs on port 3000 by default
-- CORS is configured for development (localhost:3000, localhost:3001)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests to ensure everything works
-5. Submit a pull request
-
-## License
-
-This project is for educational and development purposes.

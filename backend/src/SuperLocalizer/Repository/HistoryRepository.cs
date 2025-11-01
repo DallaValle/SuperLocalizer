@@ -14,7 +14,7 @@ public interface IHistoryRepository
 public class HistoryRepositoryMemory : IHistoryRepository
 {
     private readonly IFusionCache _fusionCache;
-    private readonly Dictionary<string, List<HistoryItem>> _historyStorage = new();
+    private readonly Dictionary<string, Stack<HistoryItem>> _historyStorage = new();
 
     public HistoryRepositoryMemory(IFusionCache fusionCache)
     {
@@ -89,8 +89,28 @@ public class HistoryRepositoryMemory : IHistoryRepository
 
         if (!_historyStorage.ContainsKey(valueKey))
         {
-            _historyStorage[valueKey] = new List<HistoryItem>();
+            _historyStorage[valueKey] = new Stack<HistoryItem>();
         }
-        _historyStorage[valueKey].Add(historyItem);
+        // Add the new history item or merge changes arrived in the similar time
+        if (_historyStorage[valueKey].Count == 0)
+        {
+            _historyStorage[valueKey].Push(historyItem);
+        }
+        else
+        {
+            var last = _historyStorage[key: valueKey].Pop();
+            if (last.Timestamp.AddMilliseconds(2000) < historyItem.Timestamp)
+            {
+                _historyStorage[valueKey].Push(last); // Put back the last item
+                _historyStorage[valueKey].Push(historyItem); // Add the new item
+            }
+            else
+            {
+                // Merge timestamps if no significant changes
+                last.Timestamp = historyItem.Timestamp;
+                last.NewValue = historyItem.NewValue;
+                _historyStorage[valueKey].Push(last);
+            }
+        }
     }
 }

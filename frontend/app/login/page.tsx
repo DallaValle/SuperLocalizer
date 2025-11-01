@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import './Login.css'
 
-export default function LoginPage() {
+function LoginContent() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
@@ -99,5 +99,30 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    )
+}
+
+function LoginPageFallback() {
+    return (
+        <div className="login-container">
+            <div className="login-card">
+                <div className="login-header">
+                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="login-logo" />
+                    <h1>SuperLocalizer</h1>
+                </div>
+                <div className="loading-section">
+                    <div className="loading-spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoginPageFallback />}>
+            <LoginContent />
+        </Suspense>
     )
 }

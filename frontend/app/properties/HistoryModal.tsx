@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { HistoryItem, HistoryService } from '../services/HistoryService'
+import { HistoryService } from '../services/HistoryService'
+import type { HistoryItem } from '../types/domain'
 import './HistoryModal.css'
 
 interface HistoryModalProps {

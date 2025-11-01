@@ -41,13 +41,13 @@ public class SettingService : ISettingService
         return new List<MergeError>();
     }
 
-    public async Task<byte[]> ExportAsync(string targetLanguage)
+    public Task<byte[]> ExportAsync(string targetLanguage)
     {
         var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties, new List<Property>());
         var targetLanguageProperties = allProperties.FindAll(p => p.Values.Exists(v => v.Language == targetLanguage));
         var json = _propertyReader.UnLoad(targetLanguageProperties, targetLanguage);
         var fileBytes = _fileService.GenerateFileContent(json);
-        return fileBytes;
+        return Task.FromResult(fileBytes);
     }
 }
 

@@ -1,119 +1,49 @@
-export interface Comment {
-    id: string
-    valueKey: string
-    author: string
-    text: string
-    insertDate: string
-    updateDate: string
-}
+import { HttpClient } from '../utils/HttpClient';
+import type {
+    Comment,
+    CreateCommentRequest,
+    UpdateCommentRequest
+} from '../types/domain';
 
-export interface CreateCommentRequest {
-    valueKey: string
-    author: string
-    text: string
-}
-
-export interface UpdateCommentRequest {
-    id: string
-    valueKey: string
-    author: string
-    text: string
-}
-
+/**
+ * Service for managing comment-related API operations
+ */
 export class CommentService {
-    private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    private static readonly ENDPOINTS = {
+        GET_COMMENTS: (valueKey: string) => `/comment/${valueKey}`,
+        CREATE: '/comment',
+        UPDATE: (id: string) => `/comment/${id}`,
+        DELETE: (id: string) => `/comment/${id}`
+    } as const;
 
     /**
      * Get all comments for a specific value
      */
     static async getComments(valueKey: string): Promise<Comment[]> {
-        try {
-            const response = await fetch(`${this.BASE_URL}/comment/${valueKey}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            return await response.json()
-        } catch (error) {
-            console.error('Error getting comments:', error)
-            throw error
-        }
+        const endpoint = this.ENDPOINTS.GET_COMMENTS(valueKey);
+        return HttpClient.get<Comment[]>(endpoint);
     }
 
     /**
      * Create a new comment
      */
     static async createComment(request: CreateCommentRequest): Promise<Comment> {
-        try {
-            const response = await fetch(`${this.BASE_URL}/comment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(request),
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            return await response.json()
-        } catch (error) {
-            console.error('Error creating comment:', error)
-            throw error
-        }
+        return HttpClient.post<Comment>(this.ENDPOINTS.CREATE, request);
     }
 
     /**
      * Update an existing comment
      */
     static async updateComment(id: string, request: UpdateCommentRequest): Promise<Comment> {
-        try {
-            const response = await fetch(`${this.BASE_URL}/comment/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(request),
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            return await response.json()
-        } catch (error) {
-            console.error('Error updating comment:', error)
-            throw error
-        }
+        const endpoint = this.ENDPOINTS.UPDATE(id);
+        return HttpClient.put<Comment>(endpoint, request);
     }
 
     /**
      * Delete a comment
      */
     static async deleteComment(id: string): Promise<void> {
-        try {
-            const response = await fetch(`${this.BASE_URL}/comment/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-        } catch (error) {
-            console.error('Error deleting comment:', error)
-            throw error
-        }
+        const endpoint = this.ENDPOINTS.DELETE(id);
+        return HttpClient.delete<void>(endpoint);
     }
 }

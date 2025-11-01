@@ -1,108 +1,86 @@
-export interface HistoryItem {
-    valueKey: string
-    userName: string
-    timestamp: string
-    previousValue: {
-        key?: string
-        propertyKey?: string
-        language?: string
-        text: string
-        isVerified: boolean
-        isReviewed: boolean
-        comments?: any[]
-    } | null
-    newValue: {
-        key?: string
-        propertyKey?: string
-        language?: string
-        text: string
-        isVerified: boolean
-        isReviewed: boolean
-        comments?: any[]
-    } | null
-}
+import { HttpClient } from '../utils/HttpClient';
+import type {
+    HistoryItem,
+    HistorySearchRequest,
+    HistorySearchResponse
+} from '../types/domain';
 
-export interface SearchHistoryRequest {
-    valueKey?: string
-    userName?: string
-    fromDate?: string
-    toDate?: string
-    page?: number
-    size?: number
-}
-
-export interface SearchResponse<T> {
-    items: T[]
-    totalItems: number
-    page: number
-    size: number
-    totalPages: number
-}
-
+/**
+ * Service for managing history-related API operations
+ */
 export class HistoryService {
-    private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    private static readonly ENDPOINTS = {
+        SEARCH: '/history/search'
+    } as const;
 
-    static async searchHistory(request: SearchHistoryRequest): Promise<SearchResponse<HistoryItem>> {
-        console.log('Making history search request:', request)
-        const response = await fetch(`${this.BASE_URL}/history/search`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(request)
-        })
-
-        console.log('Response status:', response.status)
-        console.log('Response ok:', response.ok)
-
-        if (!response.ok) {
-            const errorText = await response.text()
-            console.error('Error response:', errorText)
-            throw new Error(`Failed to search history: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        console.log('Response data:', data)
-        return data
+    /**
+     * Search history with filtering and pagination
+     */
+    static async searchHistory(request: HistorySearchRequest): Promise<HistorySearchResponse> {
+        return HttpClient.post<HistorySearchResponse>(this.ENDPOINTS.SEARCH, request);
     }
 
+    /**
+     * Get all history for a specific value by valueKey
+     */
     static async getHistoryByValueId(valueKey: string): Promise<HistoryItem[]> {
         const response = await this.searchHistory({
-            valueKey: valueKey,
             page: 1,
             size: 1000 // Large size to get all items for a specific value
-        })
+        });
 
-        return response.items
+        // Filter by valueKey if the API doesn't support it directly
+        return response.items.filter(item => item.valueKey === valueKey);
     }
 
+    /**
+     * Get all history for a specific value
+     */
+    static async getHistoryByValueKey(propertyKey: string, language: string): Promise<HistoryItem[]> {
+        const response = await this.searchHistory({
+            propertyKey,
+            language,
+            page: 1,
+            size: 1000 // Large size to get all items for a specific value
+        });
+
+        return response.items;
+    }
+
+    /**
+     * Get history filtered by date range
+     */
     static async getHistoryByDateRange(fromDate: string, toDate: string): Promise<HistoryItem[]> {
         const response = await this.searchHistory({
             fromDate,
             toDate,
             page: 1,
             size: 1000
-        })
+        });
 
-        return response.items
+        return response.items;
     }
 
-    static async getHistoryByUser(userName: string): Promise<HistoryItem[]> {
+    /**
+     * Get history filtered by author
+     */
+    static async getHistoryByAuthor(author: string): Promise<HistoryItem[]> {
         const response = await this.searchHistory({
-            userName,
+            author,
             page: 1,
             size: 1000
-        })
+        });
 
-        return response.items
+        return response.items;
     }
 
-    static async getAllHistory(): Promise<HistoryItem[]> {
-        const response = await this.searchHistory({
-            page: 1,
-            size: 1000
-        })
-
-        return response.items
+    /**
+     * Get all history (with pagination)
+     */
+    static async getAllHistory(page: number = 1, size: number = 100): Promise<HistorySearchResponse> {
+        return this.searchHistory({
+            page,
+            size
+        });
     }
 }

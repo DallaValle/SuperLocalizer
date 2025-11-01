@@ -1,0 +1,115 @@
+.search-filters {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-filters__row {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+}
+
+.search-filters__row:last-child {
+    margin-bottom: 0;
+}
+
+.search-filters__group {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-filters__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.search-filters__input,
+.search-filters__select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.5;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: #fff;
+}
+
+.search-filters__input:focus,
+.search-filters__select:focus {
+    outline: 0;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.search-filters__input:disabled,
+.search-filters__select:disabled {
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+.search-filters__input::placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+.search-filters__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .search-filters__row {
+        flex-wrap: wrap;
+    }
+
+    .search-filters__group {
+        flex: 0 0 calc(50% - 0.5rem);
+    }
+
+    .search-filters__actions {
+        flex: 0 0 100%;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-filters {
+        padding: 1rem;
+    }
+
+    .search-filters__row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .search-filters__group {
+        flex: 1;
+    }
+
+    .search-filters__actions {
+        flex-direction: column;
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-filters {
+        padding: 0.75rem;
+    }
+
+    .search-filters__row {
+        gap: 0.75rem;
+    }
+}
