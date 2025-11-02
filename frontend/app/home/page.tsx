@@ -3,12 +3,14 @@
 import { useAuth } from '../contexts/AuthContext'
 import { PropertyService } from '../services/PropertyService'
 import { HistoryService } from '../services/HistoryService'
+import { AuthService } from '../services/AuthService'
 import type { HistoryItem, PropertySearchRequest } from '../types/domain'
 import { useEffect, useState } from 'react'
 import './Home.css'
 
 export default function HomePage() {
-    const { logout, token } = useAuth()
+    const { logout, token, user } = useAuth()
+    const [fetchedUser, setFetchedUser] = useState<typeof user | null>(null)
     const [pendingReviews, setPendingReviews] = useState<number>(0)
     const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -34,6 +36,15 @@ export default function HomePage() {
             setPendingReviews(0)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const fetchCurrentUser = async () => {
+        try {
+            const u = await AuthService.getCurrentUser()
+            if (u) setFetchedUser(u)
+        } catch (error) {
+            console.error('Error fetching current user:', error)
         }
     }
 
@@ -98,6 +109,7 @@ export default function HomePage() {
     useEffect(() => {
         fetchPendingReviews()
         fetchTodayActivity()
+        fetchCurrentUser()
     }, [])
 
     return (
@@ -107,7 +119,7 @@ export default function HomePage() {
                     <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
                 </div>
                 <div className="user-info">
-                    <span>Welcome!</span>
+                    <span>{user && user.username ? user.username : ''}</span>
                     <button onClick={handleLogout} className="logout-btn">
                         Logout
                     </button>
@@ -119,23 +131,28 @@ export default function HomePage() {
                 <div className="navigation-section">
                     <h2>Quick Actions</h2>
                     <div className="navigation-cards">
-                        <a href="/properties" className="nav-card">
+                        {/* If mainProjectId is not set, prevent navigation to /properties */}
+                        <a
+                            href={((fetchedUser || user)?.mainProjectId == null) ? '#'
+                                : '/properties'}
+                            className={"nav-card" + (((fetchedUser || user)?.mainProjectId == null) ? ' disabled' : '')}
+                            onClick={(e) => {
+                                if ((fetchedUser || user)?.mainProjectId == null) {
+                                    e.preventDefault()
+                                    alert('No main project selected. Please select a project in Configuration before accessing Properties.')
+                                }
+                            }}
+                        >
                             <div className="nav-card-icon">📝</div>
                             <h3>Manage Translations</h3>
                             <p>View and edit all translations</p>
                         </a>
 
-                        <div className="nav-card">
-                            <div className="nav-card-icon">📊</div>
-                            <h3>Reports</h3>
-                            <p>Translation statistics and analytics</p>
-                        </div>
-
-                        <div className="nav-card">
+                        <a href="/configuration" className="nav-card">
                             <div className="nav-card-icon">⚙️</div>
-                            <h3>Settings</h3>
+                            <h3>Configuration</h3>
                             <p>Configure projects and languages</p>
-                        </div>
+                        </a>
                     </div>
                 </div>
 
@@ -188,7 +205,7 @@ export default function HomePage() {
 
                 <div className="debug-info">
                     <h4>Debug Info:</h4>
-                    <p>Token: {token ? `${token.substring(0, 20)}...` : 'Not available'}</p>
+                    <p>{token ? token : 'Not available'}</p>
                 </div>
             </main>
         </div>

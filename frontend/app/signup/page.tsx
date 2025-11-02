@@ -46,9 +46,10 @@ export default function SignupPage() {
 
                 if (signinResp.ok) {
                     const data = await signinResp.json()
-                    const token = data.token ?? data.Token
-                    if (token) {
-                        login(token)
+                    // backend may return full user object { username, companyId, token }
+                    if (data && (data.token || data.Token)) {
+                        // prefer passing the whole object if provided
+                        login(data)
                         router.push('/home')
                         return
                     }

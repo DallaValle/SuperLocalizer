@@ -72,17 +72,25 @@ public class UserRepositoryInMemory : IUserRepository
         return Task.FromResult(user);
     }
 
-    public Task<User> UpdateAsync(User user)
+    public Task<User> PartialUpdateAsync(User user)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.Users, _ => new List<User>());
 
         var idx = allUser.FindIndex(u => u.Id == user.Id);
         if (idx >= 0)
         {
-            // replace existing
-            allUser[idx] = user;
+            // Merge non-null / provided fields into the existing user (partial update)
+            var existing = allUser[idx];
+
+            if (user.Username != null) existing.Username = user.Username;
+            if (user.Email != null) existing.Email = user.Email;
+            if (user.PasswordHash != null) existing.PasswordHash = user.PasswordHash;
+            if (user.CompanyId.HasValue) existing.CompanyId = user.CompanyId;
+            if (user.MainProjectId.HasValue) existing.MainProjectId = user.MainProjectId;
+
+            allUser[idx] = existing;
             _fusionCache.Set(CacheKeys.Users, allUser);
-            return Task.FromResult(user);
+            return Task.FromResult(existing);
         }
 
         return Task.FromResult<User>(null);

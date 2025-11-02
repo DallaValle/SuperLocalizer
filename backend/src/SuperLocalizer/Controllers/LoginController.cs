@@ -1,17 +1,13 @@
-namespace Test2.Api.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
+namespace Test2.Api.Controllers;
 /// <summary>
 /// Controller responsible for handling authentication and login requests.
 /// </summary>
@@ -22,6 +18,7 @@ public class LoginController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IUserProfile _userProfile;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LoginController"/> class.
@@ -29,11 +26,12 @@ public class LoginController : ControllerBase
     /// <param name="configuration">The application configuration.</param>
     /// <param name="passwordHasher">The password hasher service.</param>
     /// <param name="userRepository">The user repository.</param>
-    public LoginController(IConfiguration configuration, IPasswordHasher passwordHasher, IUserRepository userRepository)
+    public LoginController(IConfiguration configuration, IPasswordHasher passwordHasher, IUserRepository userRepository, IUserProfile userProfile)
     {
         _configuration = configuration;
         _passwordHasher = passwordHasher;
         _userRepository = userRepository;
+        _userProfile = userProfile;
     }
 
     /// <summary>
@@ -42,7 +40,7 @@ public class LoginController : ControllerBase
     /// <param name="request">The login request containing username and password.</param>
     /// <returns>An IActionResult containing the JWT token if successful, or Unauthorized if not.</returns>
     [HttpPost("signin")]
-    public async Task<IActionResult> Signin([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.Username) || request.Password == null)
         {
@@ -63,8 +61,8 @@ public class LoginController : ControllerBase
             return this.Unauthorized();
         }
 
-        var token = this.GenerateJwtToken(user.Username);
-        return this.Ok(new { Token = token });
+        var token = _userProfile.GenerateJwtToken(user.Username);
+        return this.Ok(new LoginResponse { Token = token, Username = user.Username, CompanyId = user.CompanyId });
     }
 
     [HttpPost("signup")]
@@ -88,25 +86,15 @@ public class LoginController : ControllerBase
         return this.Ok("User created successfully.");
     }
 
-    private string GenerateJwtToken(string username)
+    [HttpGet("user")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
     {
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
+        var currentUser = await _userProfile.GetCurrentUser();
+        if (currentUser == null)
+            return Unauthorized("Invalid token");
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this._configuration["Jwt:Key"] ?? "supersecretkey12345678901234567890123456789"));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: this._configuration["Jwt:Issuer"] ?? "MyIssuer",
-            audience: this._configuration["Jwt:Audience"] ?? "MyAudience",
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(int.TryParse(this._configuration["Jwt:ExpireMinutes"], out var minutes) ? minutes : 60),
-            signingCredentials: creds);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return Ok(currentUser);
     }
 }
 
@@ -124,4 +112,12 @@ public class LoginRequest
     /// Gets or sets the password.
     /// </summary>
     public string Password { get; set; }
+}
+
+public class LoginResponse
+{
+    public string Token { get; set; }
+    public string Username { get; set; }
+    public int? CompanyId { get; set; }
+    public int? MainProjectId { get; set; }
 }

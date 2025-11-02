@@ -15,7 +15,7 @@ public interface IUserRepository
     Task<User> GetByUserAndPasswordAsync(string username, string passwordHash);
     Task<IEnumerable<User>> GetAllAsync();
     Task<User> CreateAsync(User user);
-    Task<User> UpdateAsync(User user);
+    Task<User> PartialUpdateAsync(User user);
     Task<bool> DeleteAsync(int id);
     Task<bool> ExistsAsync(int id);
 }
@@ -144,29 +144,67 @@ public class UserRepository : IUserRepository
         return user;
     }
 
-    public async Task<User> UpdateAsync(User user)
+    public async Task<User> PartialUpdateAsync(User user)
     {
-        const string query = @"
-            UPDATE `User`
-            SET Username = @Username,
-                Email = @Email,
-                PasswordHash = @PasswordHash,
-                CompanyId = @CompanyId
-            WHERE Id = @Id";
-
+        // Build a partial update query: only set columns for properties that are not null.
+        var setClauses = new List<string>();
         using var connection = new MySqlConnection(_connectionString);
-        using var command = new MySqlCommand(query, connection);
+        using var command = new MySqlCommand();
+        command.Connection = connection;
 
+        // Id is required for the WHERE clause
         command.Parameters.AddWithValue("@Id", user.Id);
-        command.Parameters.AddWithValue("@Username", user.Username ?? string.Empty);
-        command.Parameters.AddWithValue("@Email", user.Email ?? string.Empty);
-        command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? string.Empty);
-        command.Parameters.AddWithValue("@CompanyId", user.CompanyId);
+
+        if (user.Username != null)
+        {
+            setClauses.Add("Username = @Username");
+            command.Parameters.AddWithValue("@Username", user.Username);
+        }
+
+        if (user.Email != null)
+        {
+            setClauses.Add("Email = @Email");
+            command.Parameters.AddWithValue("@Email", user.Email);
+        }
+
+        if (user.PasswordHash != null)
+        {
+            setClauses.Add("PasswordHash = @PasswordHash");
+            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+        }
+
+        // Nullable ints: distinguish between 'not provided' (null) and provided value (even if 0)
+        if (user.CompanyId.HasValue)
+        {
+            setClauses.Add("CompanyId = @CompanyId");
+            command.Parameters.AddWithValue("@CompanyId", user.CompanyId.Value);
+        }
+
+        if (user.MainProjectId.HasValue)
+        {
+            setClauses.Add("MainProjectId = @MainProjectId");
+            command.Parameters.AddWithValue("@MainProjectId", user.MainProjectId.Value);
+        }
+
+        if (setClauses.Count == 0)
+        {
+            // Nothing to update
+            return await GetByIdAsync(user.Id);
+        }
+
+        var query = $"UPDATE `User` SET {string.Join(", ", setClauses)} WHERE Id = @Id";
+        command.CommandText = query;
 
         await connection.OpenAsync();
         var rowsAffected = await command.ExecuteNonQueryAsync();
 
-        return rowsAffected > 0 ? user : null;
+        if (rowsAffected <= 0)
+        {
+            return null;
+        }
+
+        // Return the current state of the user from DB
+        return await GetByIdAsync(user.Id);
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -205,6 +243,7 @@ public class UserRepository : IUserRepository
         var emailOrd = reader.GetOrdinal("Email");
         var passwordHashOrd = reader.GetOrdinal("PasswordHash");
         var companyIdOrd = reader.GetOrdinal("CompanyId");
+        var mainProjectIdOrd = reader.GetOrdinal("MainProjectId");
 
         return new User
         {
@@ -212,7 +251,8 @@ public class UserRepository : IUserRepository
             Username = !reader.IsDBNull(usernameOrd) ? reader.GetString(usernameOrd) : string.Empty,
             Email = !reader.IsDBNull(emailOrd) ? reader.GetString(emailOrd) : string.Empty,
             PasswordHash = !reader.IsDBNull(passwordHashOrd) ? reader.GetString(passwordHashOrd) : string.Empty,
-            CompanyId = !reader.IsDBNull(companyIdOrd) ? reader.GetInt32(companyIdOrd) : 0
+            CompanyId = !reader.IsDBNull(companyIdOrd) ? reader.GetInt32(companyIdOrd) : null,
+            MainProjectId = !reader.IsDBNull(mainProjectIdOrd) ? reader.GetInt32(mainProjectIdOrd) : null,
         };
     }
 }

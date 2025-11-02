@@ -10,6 +10,14 @@ export class HttpClient {
     } as const;
 
     /**
+     * Gets authorization headers with bearer token if available
+     */
+    private static getAuthHeaders(): Record<string, string> {
+        const token = localStorage.getItem('auth-token');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    /**
      * Makes an HTTP request with retry logic and error handling
      */
     static async request<T>(
@@ -27,6 +35,7 @@ export class HttpClient {
                     ...options,
                     headers: {
                         ...this.DEFAULT_HEADERS,
+                        ...this.getAuthHeaders(),
                         ...options.headers,
                     },
                 }, timeout);

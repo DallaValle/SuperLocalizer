@@ -1,12 +1,15 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
 using ZiggyCreatures.Caching.Fusion;
@@ -44,6 +47,27 @@ namespace SuperLocalizer
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
+            services.AddHttpContextAccessor();
+
+            // Configure JWT Authentication
+            var jwtKey = Configuration["Jwt:Key"] ?? "supersecretkey12345678901234567890123456789";
+            var key = Encoding.UTF8.GetBytes(jwtKey);
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = Configuration["Jwt:Issuer"] ?? "MyIssuer",
+                        ValidAudience = Configuration["Jwt:Audience"] ?? "MyAudience",
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+                });
+
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
@@ -65,6 +89,7 @@ namespace SuperLocalizer
             services.AddSingleton<IHistoryRepository, HistoryRepositoryMemory>();
             services.AddSingleton<FileService>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<IUserProfile, UserProfile>();
             if (Configuration.GetValue<bool?>("UseDatabase") == true)
             {
                 services.AddSingleton<ICompanyRepository, CompanyRepository>();
@@ -99,6 +124,10 @@ namespace SuperLocalizer
             app.UseCors("AllowFrontend");
 
             app.UseRouting();
+
+            // Add Authentication & Authorization middleware
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

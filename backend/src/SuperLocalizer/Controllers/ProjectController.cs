@@ -1,19 +1,26 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
+using SuperLocalizer.Services;
 
 namespace SuperLocalizer.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("company/{companyId}/project")]
 public class ProjectController : ControllerBase
 {
     private readonly IProjectRepository _projectRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IUserProfile _userProfile;
 
-    public ProjectController(IProjectRepository companyRepository)
+    public ProjectController(IProjectRepository companyRepository, IUserRepository userRepository, IUserProfile userProfile)
     {
         _projectRepository = companyRepository;
+        _userRepository = userRepository;
+        _userProfile = userProfile;
     }
 
     [HttpGet]
@@ -36,8 +43,23 @@ public class ProjectController : ControllerBase
     {
         if (project == null) return BadRequest();
 
-        project.CompanyId = companyId;
+        var currentUser = await _userProfile.GetCurrentUser();
+
+        // Check if user already has a company
+        if (currentUser.MainProjectId.HasValue)
+            return BadRequest("User already has an associated project");
+
         var created = await _projectRepository.CreateAsync(project);
+
+        // Associate the company with the current user
+        currentUser.MainProjectId = created.Id;
+        await _userRepository.PartialUpdateAsync(new User
+        {
+            Id = currentUser.Id,
+            MainProjectId = currentUser.MainProjectId,
+        });
+
+        project.CompanyId = companyId;
         return CreatedAtAction(nameof(GetById), new { companyId = companyId, id = created.Id }, created);
     }
 

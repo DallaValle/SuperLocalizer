@@ -8,6 +8,7 @@ Content-Type: application/json
   "email": "admin"
 }
 ###
+# @name login
 POST http://localhost:5000/auth/signin
 Content-Type: application/json
 
@@ -17,8 +18,8 @@ Content-Type: application/json
 }
 ### Create a new company
 POST http://localhost:5000/company
-accept: */*
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 {
   "name": "test",
@@ -40,3 +41,11 @@ Content-Type: application/json
 }
 ### Get the project by ID
 GET http://localhost:5000/company/1/project/1
+### Setup main project for the user
+POST http://localhost:5000/auth/setup-main-project
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "projectId": 1
+}

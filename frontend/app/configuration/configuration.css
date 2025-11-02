@@ -1,0 +1,261 @@
+.configuration-container {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.home-header {
+    background: #002629;
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-logo {
+    height: 40px;
+    width: auto;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logout-btn {
+    background: #78FFAF;
+    color: #002629;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.back-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.back-btn,
+.logout-btn {
+    background: #78FFAF;
+    color: #002629;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.75rem, 3vw, 1rem);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.back-btn:hover,
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.configuration-container main {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.configuration-container h1 {
+    margin: 0 0 2rem 0;
+    color: #333;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.company-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.company-card h2 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.company-card p {
+    margin: 0.5rem 0;
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.company-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+}
+
+.company-form h2 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.company-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.company-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.company-form input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.company-form textarea {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.company-form input:focus,
+.company-form textarea:focus {
+    outline: none;
+    border-color: #002629;
+    box-shadow: 0 0 0 3px rgba(0, 38, 41, 0.1);
+}
+
+.company-form button {
+    background: #002629;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+.company-form button:hover:not(:disabled) {
+    background: #003d42;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 38, 41, 0.2);
+}
+
+.company-form button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.form-error {
+    color: #b00020;
+    background: #fdeaea;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #f5c6cb;
+    font-size: 0.9rem;
+}
+
+/* Projects Section */
+.projects-section {
+    margin-top: 2rem;
+}
+
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.project-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #002629;
+}
+
+.project-item h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.project-item p {
+    margin: 0 0 0.5rem 0;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.project-item small {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+    .home-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .configuration-container main {
+        padding: 1rem;
+    }
+
+    .company-card,
+    .company-form {
+        max-width: 100%;
+    }
+}

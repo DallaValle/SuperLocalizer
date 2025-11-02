@@ -35,10 +35,9 @@ function LoginContent() {
 
             if (response.ok) {
                 const data = await response.json()
-                // backend returns Token or token
-                const token = data.token ?? data.Token ?? data.TokenString ?? data.tokenString
-                if (token) {
-                    login(token)
+                if (data) {
+                    // server returns { username, companyId, token }
+                    login(data)
                     router.push(redirectPath)
                 } else {
                     setError('No token returned from server')
@@ -50,8 +49,8 @@ function LoginContent() {
         } catch (err) {
             // fallback to dev credentials
             if (username === 'admin' && password === 'password') {
-                const mockToken = 'mock-jwt-token-' + Date.now()
-                login(mockToken)
+                const mockUser = { username: 'admin@admin.it', companyId: 1, token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJqdGkiOiJiYzAxMjdlMS01NzdlLTRmMzUtYjNmNC1lMWM4YmIyZmFhN2QiLCJleHAiOjE3NjIxMDM5MTQsImlzcyI6Ik15SXNzdWVyIiwiYXVkIjoiTXlBdWRpZW5jZSJ9.k8sIzezC4ksuex9K_0I_NRFpDjbu3GjgHR93unZdeKM' };
+                login(mockUser)
                 router.push(redirectPath)
             } else {
                 setError('Login error')

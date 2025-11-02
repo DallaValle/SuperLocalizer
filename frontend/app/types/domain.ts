@@ -152,3 +152,31 @@ export type PageSize = typeof PAGE_SIZES[number];
 
 export const SORT_FIELDS: SortField[] = ['Key', 'InsertDate', 'UpdateDate'];
 export const SORT_DIRECTIONS: SortDirection[] = ['asc', 'desc'];
+
+// Company
+export interface Company {
+    id: number;
+    name: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+    insertDate?: string;
+    updateDate?: string;
+}
+
+// Project
+export interface Project {
+    id: number;
+    name: string;
+    description?: string;
+    insertDate?: string;
+    updateDate?: string;
+    companyId: number;
+}
+
+export interface UserPayload {
+    username: string;
+    companyId?: number;
+    token: string;
+    mainProjectId?: number;
+}

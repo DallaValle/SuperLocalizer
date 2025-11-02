@@ -96,6 +96,15 @@
     border-color: #002629;
 }
 
+.nav-card.disabled,
+.nav-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: transparent;
+}
+
 .nav-card-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
