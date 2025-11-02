@@ -3,6 +3,8 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { API_BASE_URL } from '../types/api'
+import Link from 'next/link'
 import './Login.css'
 
 function LoginContent() {
@@ -22,9 +24,8 @@ function LoginContent() {
         setLoading(true)
 
         try {
-            // Simula una chiamata API di login
-            // In una vera applicazione, qui faresti una chiamata al tuo backend
-            const response = await fetch('/api/auth/login', {
+            const url = `${API_BASE_URL}/auth/signin`
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,20 +35,20 @@ function LoginContent() {
 
             if (response.ok) {
                 const data = await response.json()
-                login(data.token)
-                router.push(redirectPath)
-            } else {
-                // Per ora simulo un login di test
-                if (username === 'admin' && password === 'password') {
-                    const mockToken = 'mock-jwt-token-' + Date.now()
-                    login(mockToken)
+                // backend returns Token or token
+                const token = data.token ?? data.Token ?? data.TokenString ?? data.tokenString
+                if (token) {
+                    login(token)
                     router.push(redirectPath)
                 } else {
-                    setError('Invalid credentials')
+                    setError('No token returned from server')
                 }
+            } else {
+                const errText = await response.text()
+                setError(errText || 'Invalid credentials')
             }
         } catch (err) {
-            // Fallback per il login di test
+            // fallback to dev credentials
             if (username === 'admin' && password === 'password') {
                 const mockToken = 'mock-jwt-token-' + Date.now()
                 login(mockToken)
@@ -89,13 +90,16 @@ function LoginContent() {
                             placeholder="Enter password"
                         />
                     </div>
-                    {error && <div className="error-message">{error}</div>}
+                    {error && <div className="error-message">Login failed</div>}
                     <button type="submit" disabled={loading}>
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
                 <p className="test-credentials">
                     Test credentials: <strong>admin / password</strong>
+                </p>
+                <p className="signup-link">
+                    <Link href="/signup" className="signup-button">Create account</Link>
                 </p>
             </div>
         </div>

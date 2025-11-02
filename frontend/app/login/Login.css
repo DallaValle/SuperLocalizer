@@ -100,3 +100,22 @@ button:disabled {
     color: #666;
     font-size: 0.9rem;
 }
+
+.signup-button {
+    display: inline-block;
+    width: auto;
+    padding: 0.5rem 1rem;
+    margin-top: 1rem;
+    background: transparent;
+    color: #002629;
+    border: 2px solid #002629;
+    border-radius: 5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.signup-button:hover {
+    background: #002629;
+    color: #fff;
+}
