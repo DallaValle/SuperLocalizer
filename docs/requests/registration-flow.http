@@ -1,0 +1,42 @@
+### Registration Flow
+POST http://localhost:5000/auth/signup
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin",
+  "email": "admin"
+}
+###
+POST http://localhost:5000/auth/signin
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+### Create a new company
+POST http://localhost:5000/company
+accept: */*
+Content-Type: application/json
+
+{
+  "name": "test",
+  "address": "address",
+  "email": "email@email.com",
+  "phone": "1234567890"
+}
+### Get the company by ID
+GET http://localhost:5000/company/1
+### Create a new project for the company
+POST http://localhost:5000/company/1/project
+accept: */*
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Test Project",
+  "description": "This is a test project"
+}
+### Get the project by ID
+GET http://localhost:5000/company/1/project/1

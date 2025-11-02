@@ -1,0 +1,15 @@
+CREATE DATABASE IF NOT EXISTS superlocalizer;
+USE superlocalizer;
+
+CREATE TABLE IF NOT EXISTS Value (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    PropertyKey NVARCHAR(255) NOT NULL,
+    Language NVARCHAR(50) NOT NULL,
+    Text NVARCHAR(MAX),
+    IsVerified BIT NOT NULL DEFAULT 0,
+    IsReviewed BIT NOT NULL DEFAULT 0,
+    InsertDate DATETIME NOT NULL DEFAULT(GETDATE()),
+    UpdateDate DATETIME NULL,
+    PropertyId INT NOT NULL,
+    CONSTRAINT FK_Value_Property FOREIGN KEY (PropertyId) REFERENCES Property(Id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

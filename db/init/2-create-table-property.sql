@@ -1,0 +1,11 @@
+CREATE DATABASE IF NOT EXISTS superlocalizer;
+USE superlocalizer;
+
+CREATE TABLE IF NOT EXISTS Property (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    [Key] NVARCHAR(255) NOT NULL,
+    InsertDate DATETIME NOT NULL DEFAULT(GETDATE()),
+    UpdateDate DATETIME NULL,
+    ProjectId INT NOT NULL,
+    CONSTRAINT FK_Property_Project FOREIGN KEY (ProjectId) REFERENCES Project(Id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

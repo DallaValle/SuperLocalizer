@@ -1,4 +1,22 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: superlocalizer-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: SuperLocalizer123!
+      MYSQL_DATABASE: superlocalizer
+      MYSQL_USER: superlocalizer
+      MYSQL_PASSWORD: SuperLocalizer123!
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - superlocalizer-network
+    command: --default-authentication-plugin=mysql_native_password
+
   backend:
     build:
       context: ./backend
@@ -9,6 +27,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
       - Cors__AllowedOrigins=http://localhost:3000
+      - ConnectionStrings__DefaultConnection=Server=mysql;Database=superlocalizer;User=superlocalizer;Password=SuperLocalizer123!;
+    depends_on:
+      - mysql
     networks:
       - superlocalizer-network
     restart: unless-stopped
@@ -33,4 +54,5 @@ networks:
     driver: bridge
 
 volumes:
+  mysql-data:
   localization-data:

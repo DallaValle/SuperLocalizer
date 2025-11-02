@@ -9,11 +9,11 @@ namespace SuperLocalizer.Controllers;
 [Route("setting")]
 public class SettingController : ControllerBase
 {
-    private readonly ISettingService _syncService;
+    private readonly ISettingService _settingService;
 
     public SettingController(ISettingService syncService)
     {
-        _syncService = syncService;
+        _settingService = syncService;
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class SettingController : ControllerBase
         if (file == null || file.Length == 0 || string.IsNullOrEmpty(language))
             return BadRequest("No files uploaded or language not specified.");
 
-        await _syncService.ImportAsync(file, language);
+        await _settingService.ImportAsync(file, language);
         return Ok("Import completed successfully.");
     }
 
@@ -35,7 +35,17 @@ public class SettingController : ControllerBase
     [HttpPost("download")]
     public async Task<IActionResult> DownloadFile(string targetLanguage)
     {
-        var files = await _syncService.ExportAsync(targetLanguage);
+        var files = await _settingService.ExportAsync(targetLanguage);
         return File(files, "application/json", $"{targetLanguage}.json");
+    }
+
+    /// <summary>
+    /// save snapshot of current project
+    /// </summary>
+    [HttpPost("snapshot/{projectId}")]
+    public async Task<IActionResult> SaveSnapshot(int projectId)
+    {
+        await _settingService.SaveSnapshotAsync(projectId);
+        return Ok("Snapshot saved successfully.");
     }
 }

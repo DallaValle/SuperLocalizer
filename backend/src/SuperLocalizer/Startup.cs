@@ -64,6 +64,19 @@ namespace SuperLocalizer
             services.AddSingleton<ISettingService, SettingService>();
             services.AddSingleton<IHistoryRepository, HistoryRepositoryMemory>();
             services.AddSingleton<FileService>();
+            services.AddSingleton<IPasswordHasher, PasswordHasher>();
+            if (Configuration.GetValue<bool?>("UseDatabase") == true)
+            {
+                services.AddSingleton<ICompanyRepository, CompanyRepository>();
+                services.AddSingleton<IProjectRepository, ProjectRepository>();
+                services.AddSingleton<IUserRepository, UserRepository>();
+            }
+            else
+            {
+                services.AddSingleton<ICompanyRepository, CompanyRepositoryInMemory>();
+                services.AddSingleton<IProjectRepository, ProjectRepositoryInMemory>();
+                services.AddSingleton<IUserRepository, UserRepositoryInMemory>();
+            }
         }
 
 
