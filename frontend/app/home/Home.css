@@ -3,55 +3,6 @@
     background-color: #f8f9fa;
 }
 
-.home-header {
-    background: #002629;
-    color: white;
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.home-header h1 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-
-.header-title {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.header-logo {
-    height: 40px;
-    width: auto;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.logout-btn {
-    background: #78FFAF;
-    color: #002629;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.logout-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
-}
-
 .home-content {
     padding: 2rem;
     max-width: 1200px;
@@ -101,8 +52,94 @@
     transform: none;
     box-shadow: none;
     cursor: not-allowed;
-    opacity: 0.6;
     border-color: transparent;
+}
+
+/* Tooltip for disabled nav-cards */
+.nav-card {
+    position: relative;
+    /* ensure tooltip is positioned relative to the card */
+}
+
+.nav-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(0) scale(0.96);
+    background-color: #002629;
+    /* solid dark color */
+    color: #fff;
+    padding: 0.6rem 1rem;
+    border-radius: 14px;
+    /* increased radius */
+    border: 1px solid #001919;
+    white-space: normal;
+    /* allow wrapping for long messages */
+    max-width: min(360px, 92vw);
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.32;
+    box-shadow: 0 12px 40px #0b0b0b;
+    /* solid shadow color (no transparency) */
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: center bottom;
+    transition: opacity 200ms cubic-bezier(.2, .8, .2, 1) 60ms, transform 200ms cubic-bezier(.2, .8, .2, 1) 40ms;
+    z-index: 60;
+}
+
+.nav-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #002629;
+    /* match solid background */
+}
+
+/* Show tooltip on hover/focus of the disabled card */
+.nav-card.disabled:hover .nav-tooltip,
+.nav-card.disabled:focus-within .nav-tooltip,
+.nav-card.disabled:focus .nav-tooltip,
+.nav-card.disabled:focus-visible .nav-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px) scale(1);
+    pointer-events: auto;
+}
+
+/* Visible focus ring for keyboard users */
+.nav-card.disabled:focus-visible {
+    outline: 3px solid rgba(120, 255, 175, 0.25);
+    outline-offset: 4px;
+}
+
+/* On small screens, place tooltip below the card to avoid clipping */
+@media (max-width: 480px) {
+    .nav-tooltip {
+        bottom: auto;
+        top: calc(100% + 8px);
+        transform: translateX(-50%) translateY(0) scale(0.96);
+    }
+
+    .nav-tooltip::after {
+        top: auto;
+        bottom: 100%;
+        border-top: none;
+        border-bottom: 7px solid #002629;
+        /* solid color to match tooltip */
+    }
+}
+
+/* Dim only the visible card content when disabled (keep tooltip fully opaque) */
+.nav-card.disabled .nav-card-icon,
+.nav-card.disabled h3,
+.nav-card.disabled p {
+    opacity: 0.6;
 }
 
 .nav-card-icon {

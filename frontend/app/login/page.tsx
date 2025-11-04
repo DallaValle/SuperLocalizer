@@ -61,9 +61,22 @@ function LoginContent() {
     }
 
     return (
-        <div className="login-container">
+        <div className="landing-page">
+            <header className="properties-header">
+                <div className="header-title">
+                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
+                </div>
+                <div className="header-actions">
+                    <Link href="/login" className="navbar-item">
+                        Login
+                    </Link>
+                    <Link href="/signup" className="navbar-item navbar-button">
+                        Try it for free
+                    </Link>
+                </div>
+            </header>
+
             <div className="login-box">
-                <h2>SuperLocalizer</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="username">Username:</label>

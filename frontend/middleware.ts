@@ -7,7 +7,6 @@ export function middleware(request: NextRequest) {
         request.headers.get('authorization')?.replace('Bearer ', '')
 
     const protectedPaths = ['/home', '/dashboard', '/properties']
-    //const publicPaths = ['/login']
 
     const { pathname } = request.nextUrl
 

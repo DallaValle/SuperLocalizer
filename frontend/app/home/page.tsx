@@ -136,16 +136,18 @@ export default function HomePage() {
                             href={((fetchedUser || user)?.mainProjectId == null) ? '#'
                                 : '/properties'}
                             className={"nav-card" + (((fetchedUser || user)?.mainProjectId == null) ? ' disabled' : '')}
-                            onClick={(e) => {
-                                if ((fetchedUser || user)?.mainProjectId == null) {
-                                    e.preventDefault()
-                                    alert('No main project selected. Please select a project in Configuration before accessing Properties.')
-                                }
-                            }}
+                            aria-disabled={((fetchedUser || user)?.mainProjectId == null) ? 'true' : undefined}
+                            aria-describedby={((fetchedUser || user)?.mainProjectId == null) ? 'manage-translations-tooltip' : undefined}
                         >
                             <div className="nav-card-icon">📝</div>
                             <h3>Manage Translations</h3>
                             <p>View and edit all translations</p>
+
+                            {((fetchedUser || user)?.mainProjectId == null) && (
+                                <span id="manage-translations-tooltip" className="nav-tooltip" role="tooltip">
+                                    🚀 Kick things off! Create your first project in Configuration!
+                                </span>
+                            )}
                         </a>
 
                         <a href="/configuration" className="nav-card">
