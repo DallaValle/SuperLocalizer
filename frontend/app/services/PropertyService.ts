@@ -11,36 +11,47 @@ import type {
  * Service for managing property-related API operations
  */
 export class PropertyService {
-    private static readonly ENDPOINTS = {
-        SEARCH: '/property/search',
-        UPDATE: '/property',
-        UPDATE_VALUE: (propertyKey: string, language: string) =>
-            `/property/${encodeURIComponent(propertyKey)}/${encodeURIComponent(language)}`
-    } as const;
+    private readonly projectId: number;
+
+    constructor(projectId: number) {
+        this.projectId = projectId;
+    }
+
+    private endpointSearch(): string {
+        return `/project/${encodeURIComponent(this.projectId)}/property/search`;
+    }
+
+    private endpointUpdate(): string {
+        return `/project/${encodeURIComponent(this.projectId)}/property`;
+    }
+
+    private endpointUpdateValue(propertyKey: string, language: string): string {
+        return `/project/${encodeURIComponent(this.projectId)}/property/${encodeURIComponent(propertyKey)}/${encodeURIComponent(language)}`;
+    }
 
     /**
      * Search properties with filtering and pagination
      */
-    static async searchProperties(request: PropertySearchRequest): Promise<PropertySearchResponse> {
-        return HttpClient.post<PropertySearchResponse>(this.ENDPOINTS.SEARCH, request);
+    async searchProperties(request: PropertySearchRequest): Promise<PropertySearchResponse> {
+        return HttpClient.post<PropertySearchResponse>(this.endpointSearch(), request);
     }
 
     /**
      * Update an entire property
      */
-    static async updateProperty(property: Property): Promise<Property> {
-        return HttpClient.put<Property>(this.ENDPOINTS.UPDATE, property);
+    async updateProperty(property: Property): Promise<Property> {
+        return HttpClient.put<Property>(this.endpointUpdate(), property);
     }
 
     /**
      * Update a specific property value
      */
-    static async updatePropertyValue(
+    async updatePropertyValue(
         propertyKey: string,
         language: string,
         updateRequest: PropertyValueUpdateRequest
     ): Promise<PropertyValue> {
-        const endpoint = this.ENDPOINTS.UPDATE_VALUE(propertyKey, language);
+        const endpoint = this.endpointUpdateValue(propertyKey, language);
         return HttpClient.patch<PropertyValue>(endpoint, updateRequest);
     }
 }

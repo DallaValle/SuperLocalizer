@@ -11,7 +11,7 @@ import './Home.css'
 export default function HomePage() {
     const { logout, token, user } = useAuth()
     const [fetchedUser, setFetchedUser] = useState<typeof user | null>(null)
-    const [pendingReviews, setPendingReviews] = useState<number>(0)
+    const [pendingReviews, setPendingReviews] = useState<string>("0")
     const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isActivityLoading, setIsActivityLoading] = useState<boolean>(true)
@@ -27,13 +27,18 @@ export default function HomePage() {
                 page: 1,
                 size: 1, // We only need the count, so minimal page size
                 isReviewed: false // Filter for not reviewed items
+
+            }
+            if (user?.mainProjectId == null) {
+                setPendingReviews("-")
+                return
             }
 
-            const response = await PropertyService.searchProperties(searchRequest)
-            setPendingReviews(response.totalItems)
+            const response = await new PropertyService(user.mainProjectId).searchProperties(searchRequest)
+            setPendingReviews(response.totalItems.toString())
         } catch (error) {
             console.error('Error fetching pending reviews:', error)
-            setPendingReviews(0)
+            setPendingReviews("-")
         } finally {
             setIsLoading(false)
         }

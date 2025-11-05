@@ -10,7 +10,7 @@ import './Properties.css'
 import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest } from '../types/domain'
 
 function PropertiesContent() {
-    const { logout } = useAuth()
+    const { logout, user } = useAuth()
     const router = useRouter()
     const searchParams = useSearchParams()
     const [properties, setProperties] = useState<Property[]>([])
@@ -218,8 +218,9 @@ function PropertiesContent() {
                 orderBy,
                 orderDirection
             }
+            if (user?.mainProjectId == null) throw new Error("User's main project ID is not set.")
 
-            const response: PropertySearchResponse = await PropertyService.searchProperties(request)
+            const response: PropertySearchResponse = await new PropertyService(user.mainProjectId).searchProperties(request)
 
             setProperties(response.items)
             setTotalPages(response.totalPages)
@@ -298,8 +299,9 @@ function PropertiesContent() {
                 isVerified: editingValue.isVerified,
                 isReviewed: editingValue.isReviewed
             }
+            if (user?.mainProjectId == null) throw new Error("User's main project ID is not set.")
 
-            await PropertyService.updatePropertyValue(propertyKey, language, updateRequest)
+            await new PropertyService(user.mainProjectId).updatePropertyValue(propertyKey, language, updateRequest)
 
             setProperties(prev => prev.map(property => {
                 if (property.key === propertyKey) {

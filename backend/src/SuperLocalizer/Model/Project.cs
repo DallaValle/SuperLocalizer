@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SuperLocalizer.Model;
 
@@ -12,4 +13,5 @@ public class Project
     public DateTime? UpdateDate { get; set; }
     public List<Property> Properties { get; set; }
     public int CompanyId { get; set; }
+    public List<string> SupportedLanguages => Properties?.FirstOrDefault()?.Values?.Select(v => v.Language)?.Distinct()?.ToList() ?? new List<string>();
 }

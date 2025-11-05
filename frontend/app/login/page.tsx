@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
-import { API_BASE_URL } from '../types/api'
+import { AuthService } from '../services/AuthService'
 import Link from 'next/link'
 import './Login.css'
 
@@ -24,37 +24,17 @@ function LoginContent() {
         setLoading(true)
 
         try {
-            const url = `${API_BASE_URL}/auth/signin`
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                if (data) {
-                    // server returns { username, companyId, token }
-                    login(data)
-                    router.push(redirectPath)
-                } else {
-                    setError('No token returned from server')
-                }
-            } else {
-                const errText = await response.text()
-                setError(errText || 'Invalid credentials')
-            }
-        } catch (err) {
-            // fallback to dev credentials
-            if (username === 'admin' && password === 'password') {
-                const mockUser = { username: 'admin@admin.it', companyId: 1, token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJqdGkiOiJiYzAxMjdlMS01NzdlLTRmMzUtYjNmNC1lMWM4YmIyZmFhN2QiLCJleHAiOjE3NjIxMDM5MTQsImlzcyI6Ik15SXNzdWVyIiwiYXVkIjoiTXlBdWRpZW5jZSJ9.k8sIzezC4ksuex9K_0I_NRFpDjbu3GjgHR93unZdeKM' };
-                login(mockUser)
+            const data = await AuthService.signIn(username, password)
+            if (data && data.token) {
+                login(data)
                 router.push(redirectPath)
             } else {
-                setError('Login error')
+                setError('No token returned from server')
             }
+        } catch (err: any) {
+            // Try to show a helpful message when available
+            const message = err?.message || 'An error occurred during login'
+            setError(message)
         } finally {
             setLoading(false)
         }

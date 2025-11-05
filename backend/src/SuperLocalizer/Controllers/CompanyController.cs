@@ -39,29 +39,10 @@ public class CompanyController : ControllerBase
 
         // Check if user has access to this company
         if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != id)
-            return Forbid("Access denied to this company");
+            return StatusCode(403, "Access denied to this company");
 
         var company = await _companyRepository.GetByIdAsync(id);
         if (company == null) return NotFound();
-        return Ok(company);
-    }
-
-    /// <summary>
-    /// Gets the current user's company
-    /// </summary>
-    [HttpGet("current")]
-    public async Task<IActionResult> GetCurrentUser()
-    {
-        var currentUser = await _userProfile.GetCurrentUser();
-        if (currentUser == null)
-            return Unauthorized("Invalid token");
-
-        if (!currentUser.CompanyId.HasValue)
-            return NotFound("User has no associated company");
-
-        var company = await _companyRepository.GetByIdAsync(currentUser.CompanyId.Value);
-        if (company == null) return NotFound("Company not found");
-
         return Ok(company);
     }
 
@@ -99,7 +80,7 @@ public class CompanyController : ControllerBase
 
         // Check if user has access to this company
         if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != id)
-            return Forbid("Access denied to this company");
+            return StatusCode(403, "Access denied to this company");
 
         var exists = await _companyRepository.ExistsAsync(id);
         if (!exists) return NotFound();
@@ -118,7 +99,7 @@ public class CompanyController : ControllerBase
 
         // Check if user has access to this company
         if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != id)
-            return Forbid("Access denied to this company");
+            return StatusCode(403, "Access denied to this company");
 
         var exists = await _companyRepository.ExistsAsync(id);
         if (!exists) return NotFound();

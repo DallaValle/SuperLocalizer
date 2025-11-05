@@ -174,9 +174,14 @@ export interface Project {
     companyId: number;
 }
 
-export interface UserPayload {
+export interface User {
+    id: number;
     username: string;
     companyId?: number;
-    token: string;
     mainProjectId?: number;
+}
+
+export interface LoginResponse {
+    token: string;
+    user: User;
 }

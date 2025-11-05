@@ -7,7 +7,7 @@ using System.Linq;
 namespace SuperLocalizer.Controllers
 {
     [ApiController]
-    [Route("property")]
+    [Route("project/{projectId}/property")]
     public class PropertyController : ControllerBase
     {
         private readonly IPropertyRepository _propertyRepository;
@@ -21,11 +21,13 @@ namespace SuperLocalizer.Controllers
 
         /// <summary>
         /// Get property by key
+        /// <param name="projectId"></param>
+        /// <param name="key"></param>
         /// </summary>
         [HttpGet("{key}")]
-        public ActionResult<Property> GetPropertyByKey(string key)
+        public ActionResult<Property> GetPropertyByKey(int projectId, string key)
         {
-            var property = _propertyRepository.GetPropertyByKey(key);
+            var property = _propertyRepository.GetPropertyByKey(projectId, key);
             if (property == null)
             {
                 return NotFound($"Property with key '{key}' not found");
@@ -36,17 +38,18 @@ namespace SuperLocalizer.Controllers
         /// <summary>
         /// Search properties based on criteria
         /// </summary>
+        /// <param name="projectId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("search")]
-        public ActionResult<SearchResponse<Property>> Search([FromBody] SearchPropertyRequest request)
+        public ActionResult<SearchResponse<Property>> Search(int projectId, [FromBody] SearchPropertyRequest request)
         {
             if (request == null)
             {
                 return BadRequest("Search request is required");
             }
 
-            var result = _propertyRepository.GetProperties(request);
+            var result = _propertyRepository.GetProperties(projectId, request);
 
             return Ok(result);
         }
@@ -54,19 +57,20 @@ namespace SuperLocalizer.Controllers
         /// <summary>
         /// Update a property's value for a specific language
         /// </summary>
+        /// <param name="projectId"></param>
         /// <param name="id"></param>
         /// <param name="language"></param>
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPatch("{id}/{language}")]
-        public ActionResult UpdatePropertyValue(string id, string language, [FromBody] UpdateValueRequest request)
+        public ActionResult UpdatePropertyValue(int projectId, string id, string language, [FromBody] UpdateValueRequest request)
         {
             if (request == null)
             {
                 return BadRequest("Update request is required");
             }
 
-            var property = _propertyRepository.GetPropertyByKey(id);
+            var property = _propertyRepository.GetPropertyByKey(projectId, id);
             if (property == null)
             {
                 return NotFound($"Property with key '{id}' not found");
@@ -99,7 +103,7 @@ namespace SuperLocalizer.Controllers
 
             property.UpdateDate = System.DateTime.UtcNow;
 
-            _propertyRepository.UpdateProperty(property);
+            _propertyRepository.UpdateProperty(projectId, property);
             // Save history
             _historyRepository.SaveHistory(
                 value.Key,

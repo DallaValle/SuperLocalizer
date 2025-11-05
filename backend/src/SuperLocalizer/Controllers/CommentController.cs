@@ -7,7 +7,7 @@ using SuperLocalizer.Model;
 namespace SuperLocalizer.Controllers
 {
     [ApiController]
-    [Route("comment")]
+    [Route("property/{valueKey}/comment")]
     public class CommentController : ControllerBase
     {
         private readonly ICommentRepository _commentRepository;
@@ -22,7 +22,7 @@ namespace SuperLocalizer.Controllers
         /// </summary>
         /// <param name="key">The key of the value to get comments for</param>
         /// <returns>List of comments</returns>
-        [HttpGet("{valueKey}")]
+        [HttpGet]
         public ActionResult<List<Comment>> GetComments(string key)
         {
             try
@@ -77,11 +77,12 @@ namespace SuperLocalizer.Controllers
         /// <summary>
         /// Update an existing comment
         /// </summary>
+        /// <param name="valueKey">The value key of the comment</param>
         /// <param name="id">The ID of the comment to update</param>
         /// <param name="comment">The updated comment data</param>
         /// <returns>Updated comment</returns>
         [HttpPut("{id}")]
-        public ActionResult<Comment> UpdateComment(Guid id, [FromBody] Comment comment)
+        public ActionResult<Comment> UpdateComment(string valueKey, Guid id, [FromBody] Comment comment)
         {
             try
             {
@@ -113,14 +114,15 @@ namespace SuperLocalizer.Controllers
         /// <summary>
         /// Delete a comment
         /// </summary>
+        /// <param name="valueKey">The value key of the comment</param>
         /// <param name="id">The ID of the comment to delete</param>
         /// <returns>No content on success</returns>
         [HttpDelete("{id}")]
-        public ActionResult DeleteComment(Guid id)
+        public ActionResult DeleteComment(string valueKey, Guid id)
         {
             try
             {
-                _commentRepository.Delete(id);
+                _commentRepository.Delete(valueKey, id);
                 return NoContent();
             }
             catch (Exception ex)

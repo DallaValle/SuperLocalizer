@@ -26,6 +26,7 @@ public class LoginController : ControllerBase
     /// <param name="configuration">The application configuration.</param>
     /// <param name="passwordHasher">The password hasher service.</param>
     /// <param name="userRepository">The user repository.</param>
+    /// <param name="userProfile">The user profile service.</param>
     public LoginController(IConfiguration configuration, IPasswordHasher passwordHasher, IUserRepository userRepository, IUserProfile userProfile)
     {
         _configuration = configuration;
@@ -62,7 +63,11 @@ public class LoginController : ControllerBase
         }
 
         var token = _userProfile.GenerateJwtToken(user.Username);
-        return this.Ok(new LoginResponse { Token = token, Username = user.Username, CompanyId = user.CompanyId });
+        return Ok(new LoginResponse
+        {
+            Token = token,
+            User = null,
+        });
     }
 
     [HttpPost("signup")]
@@ -117,7 +122,5 @@ public class LoginRequest
 public class LoginResponse
 {
     public string Token { get; set; }
-    public string Username { get; set; }
-    public int? CompanyId { get; set; }
-    public int? MainProjectId { get; set; }
+    public CurrentUser User { get; set; }
 }

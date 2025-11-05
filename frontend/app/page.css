@@ -54,13 +54,14 @@
 }
 
 .hero-section {
+    margin-bottom: -35px;
     text-align: center;
     background: linear-gradient(135deg, #002629 0%, #004d57 100%);
     color: white;
     padding: clamp(3rem, 8vw, 6rem);
     border-radius: 15px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    margin-bottom: clamp(2rem, 5vw, 3rem);
+    /* margin-bottom: clamp(2rem, 5vw, 3rem); */
 }
 
 .hero-section p {
@@ -101,6 +102,86 @@
 
 .flow-image:hover {
     transform: scale(1.02);
+}
+
+/* Plans matrix styles */
+.plans-matrix {
+    overflow-x: auto;
+}
+
+.plans-table {
+    display: grid;
+    grid-template-columns: 1fr repeat(3, minmax(180px, 1fr));
+    gap: 1px;
+    background: linear-gradient(180deg, #e9ecef, #e9ecef);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.plans-row {
+    display: contents;
+    /* allow grid of cells */
+}
+
+.plans-header .plans-cell {
+    background: transparent;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 1rem 1.25rem;
+    color: #002629;
+    background: linear-gradient(90deg, rgba(0, 38, 41, 0.04), rgba(0, 38, 41, 0.02));
+}
+
+.plans-cell {
+    background: white;
+    padding: 1rem 1.25rem;
+    border-right: 1px solid rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    min-width: 140px;
+    text-align: center;
+}
+
+.plans-cell:first-child {
+    text-align: left;
+    font-weight: 600;
+}
+
+.plans-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.get-started-button {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    background: #004d57;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Responsive: stack or allow horizontal scroll on small screens */
+@media (max-width: 720px) {
+    .plans-table {
+        grid-template-columns: 1fr;
+        /* stack rows as single column */
+    }
+
+    .plans-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .plans-header .plans-cell {
+        grid-column: 1 / -1;
+        text-align: center;
+    }
+
+    .plans-cell {
+        text-align: left;
+    }
 }
 
 /* Responsive Design */
@@ -194,10 +275,6 @@
     .content-container {
         padding: 3rem;
         margin-bottom: 2.5rem;
-    }
-
-    .hero-section {
-        padding: 4rem 3rem;
     }
 
     .flow-image-container {

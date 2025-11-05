@@ -29,18 +29,21 @@ Authorization: Bearer {{login.response.body.token}}
 }
 ### Get the company by ID
 GET http://localhost:5000/company/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 ### Create a new project for the company
 POST http://localhost:5000/company/1/project
-accept: */*
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 {
-  "id": 1,
   "name": "Test Project",
   "description": "This is a test project"
 }
 ### Get the project by ID
 GET http://localhost:5000/company/1/project/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 ### Setup main project for the user
 POST http://localhost:5000/auth/setup-main-project
 Content-Type: application/json
@@ -49,3 +52,8 @@ Content-Type: application/json
   "username": "admin",
   "projectId": 1
 }
+###
+GET http://localhost:5000/auth/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+###

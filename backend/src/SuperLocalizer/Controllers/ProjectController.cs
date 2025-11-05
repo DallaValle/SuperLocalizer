@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,32 @@ public class ProjectController : ControllerBase
         _userProfile = userProfile;
     }
 
+    [HttpPut("{id}/user")]
+    public async Task<IActionResult> SetMainLanguage(int companyId, int id)
+    {
+        var current = await _userProfile.GetCurrentUser();
+        if (current == null) return Unauthorized();
+        var projects = await _projectRepository.GetAllAsync(companyId);
+        var project = projects.FirstOrDefault(p => p.Id == id);
+        if (project == null) return NotFound();
+        current.MainProjectId = project.Id;
+        await _userRepository.PartialUpdateAsync(new User
+        {
+            Id = current.Id,
+            MainProjectId = current.MainProjectId,
+        });
+        return Ok();
+    }
+
+    [HttpGet("{id}/languages")]
+    public async Task<IActionResult> GetAllSupportedLanguages(int companyId, int id)
+    {
+        var projects = await _projectRepository.GetAllAsync(companyId);
+        var current = projects.FirstOrDefault(p => p.Id == id);
+        if (current == null) return NotFound();
+        return Ok(current.SupportedLanguages);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll(int companyId)
     {
@@ -35,6 +62,15 @@ public class ProjectController : ControllerBase
     {
         var project = await _projectRepository.GetByIdAsync(companyId, id);
         if (project == null) return NotFound();
+
+        var currentUser = await _userProfile.GetCurrentUser();
+        if (currentUser == null)
+            return Unauthorized("Invalid token");
+
+        // Check if user has access to this company
+        if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != project.CompanyId)
+            return StatusCode(403, "Access denied to this company under this project");
+
         return Ok(project);
     }
 
@@ -43,23 +79,20 @@ public class ProjectController : ControllerBase
     {
         if (project == null) return BadRequest();
 
-        var currentUser = await _userProfile.GetCurrentUser();
-
-        // Check if user already has a company
-        if (currentUser.MainProjectId.HasValue)
-            return BadRequest("User already has an associated project");
-
+        project.CompanyId = companyId;
         var created = await _projectRepository.CreateAsync(project);
 
         // Associate the company with the current user
-        currentUser.MainProjectId = created.Id;
-        await _userRepository.PartialUpdateAsync(new User
+        var currentUser = await _userProfile.GetCurrentUser();
+        if (currentUser.MainProjectId == null)
         {
-            Id = currentUser.Id,
-            MainProjectId = currentUser.MainProjectId,
-        });
+            await _userRepository.PartialUpdateAsync(new User
+            {
+                Id = currentUser.Id,
+                MainProjectId = created.Id,
+            });
+        }
 
-        project.CompanyId = companyId;
         return CreatedAtAction(nameof(GetById), new { companyId = companyId, id = created.Id }, created);
     }
 

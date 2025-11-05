@@ -8,7 +8,7 @@ import type { Company, Project } from '../types/domain'
 import './configuration.css'
 
 export default function ConfigurationPage() {
-    const { user, logout } = useAuth()
+    const { user, logout, refreshCurrentUser, loading: authLoading } = useAuth()
     const [company, setCompany] = useState<Company | null>(null)
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState<boolean>(true)
@@ -21,15 +21,22 @@ export default function ConfigurationPage() {
 
     useEffect(() => {
         const load = async () => {
+            // Wait for auth to be ready and user to be available
+            if (authLoading || !user) {
+                return;
+            }
+
             try {
                 setLoading(true)
-                // Try to get the current user's company first
-                const data = await CompanyService.getCurrentUserCompany()
-                setCompany(data)
+                // Only call services when companyId is not null/undefined
+                if (user?.companyId != null) {
+                    const data = await CompanyService.getCompany(user.companyId)
+                    setCompany(data)
 
-                // Load projects for this company
-                const projectData = await ProjectService.getAllProjects(data.id)
-                setProjects(projectData)
+                    // Load projects for this company
+                    const projectData = await ProjectService.getAllProjects(user.companyId)
+                    setProjects(projectData)
+                }
             } catch (err) {
                 console.error('Failed to load company/projects', err)
                 // If no company found, that's expected for new users
@@ -40,7 +47,7 @@ export default function ConfigurationPage() {
             }
         }
         load()
-    }, [user])
+    }, [user, authLoading])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -63,6 +70,12 @@ export default function ConfigurationPage() {
             setCreating(true)
             const created = await CompanyService.createCompany(form)
             setCompany(created)
+            // refresh auth user so user.companyId is up-to-date
+            try {
+                await refreshCurrentUser()
+            } catch (err) {
+                console.error('Failed to refresh user after creating company', err)
+            }
         } catch (err) {
             console.error('Failed to create company', err)
             setError('Failed to create company')
@@ -87,6 +100,12 @@ export default function ConfigurationPage() {
             const created = await ProjectService.createProject(company.id, projectForm)
             setProjects(prev => [...prev, created])
             setProjectForm({ name: '', description: '' })
+            // refresh auth user in case project creation affects user state elsewhere
+            try {
+                await refreshCurrentUser()
+            } catch (err) {
+                console.error('Failed to refresh user after creating project', err)
+            }
         } catch (err) {
             console.error('Failed to create project', err)
             setProjectError('Failed to create project')
@@ -95,7 +114,9 @@ export default function ConfigurationPage() {
         }
     }
 
-    // if (loading) return <div className="configuration-container">Loading configuration...</div>
+    if (authLoading) return <div className="configuration-container">Loading authentication...</div>
+
+    if (loading) return <div className="configuration-container">Loading configuration...</div>
 
     return (
         <div className="configuration-container">

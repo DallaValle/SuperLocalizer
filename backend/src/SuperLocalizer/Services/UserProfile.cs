@@ -64,6 +64,7 @@ public class UserProfile : IUserProfile
                        ?? string.Empty;
 
         var dbUser = await _userRepository.GetByUsername(username);
+        if (dbUser == null) return null;
         return new CurrentUser
         {
             Id = dbUser.Id,

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
-import { API_BASE_URL } from '../types/api'
+import { AuthService } from '../services/AuthService'
 import Link from 'next/link'
 import '../login/Login.css'
 
@@ -28,41 +28,28 @@ export default function SignupPage() {
 
         setLoading(true)
         try {
-            const url = `${API_BASE_URL}/auth/signup`
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-            })
+            // attempt signup via service
+            await AuthService.signUp(username, password)
 
-            if (response.ok) {
-                // automatically sign in after signup if token returned, otherwise redirect to login
-                // backend returns a success message; try to sign in
-                const signinResp = await fetch(`${API_BASE_URL}/auth/signin`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password }),
-                })
-
-                if (signinResp.ok) {
-                    const data = await signinResp.json()
-                    // backend may return full user object { username, companyId, token }
-                    if (data && (data.token || data.Token)) {
-                        // prefer passing the whole object if provided
-                        login(data)
-                        router.push('/home')
-                        return
-                    }
+            // If signup succeeded, try to sign in automatically
+            try {
+                const data = await AuthService.signIn(username, password)
+                if (data && data.token) {
+                    login(data)
+                    router.push('/home')
+                    return
                 }
-
-                // fallback: go to login
-                router.push('/login')
-            } else {
-                const err = await response.text()
-                setError(err || 'Signup failed')
+            } catch (signinErr) {
+                // Signin after signup failed; continue to fallback to login page
+                console.warn('Signin after signup failed', signinErr)
             }
-        } catch (err) {
-            setError('Signup error')
+
+            // fallback: go to login
+            router.push('/login')
+        } catch (err: any) {
+            // show backend error if available
+            const message = err?.message || 'Signup failed'
+            setError(message)
         } finally {
             setLoading(false)
         }

@@ -82,11 +82,8 @@ namespace SuperLocalizer
                 {
                     options.Duration = TimeSpan.FromMinutes(3000);
                 });
-            services.AddSingleton<IPropertyRepository, PropertyRepositoryMemory>();
-            services.AddSingleton<ICommentRepository, CommentRepositoryMemory>();
             services.AddSingleton<IPropertyReaderService, PropertyReaderService>();
             services.AddSingleton<ISettingService, SettingService>();
-            services.AddSingleton<IHistoryRepository, HistoryRepositoryMemory>();
             services.AddSingleton<FileService>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IUserProfile, UserProfile>();
@@ -95,12 +92,18 @@ namespace SuperLocalizer
                 services.AddSingleton<ICompanyRepository, CompanyRepository>();
                 services.AddSingleton<IProjectRepository, ProjectRepository>();
                 services.AddSingleton<IUserRepository, UserRepository>();
+                services.AddSingleton<IHistoryRepository, HistoryRepository>();
+                services.AddSingleton<IPropertyRepository, PropertyRepository>();
+                services.AddSingleton<ICommentRepository, CommentRepository>();
             }
             else
             {
                 services.AddSingleton<ICompanyRepository, CompanyRepositoryInMemory>();
                 services.AddSingleton<IProjectRepository, ProjectRepositoryInMemory>();
                 services.AddSingleton<IUserRepository, UserRepositoryInMemory>();
+                services.AddSingleton<IHistoryRepository, HistoryRepositoryInMemory>();
+                services.AddSingleton<IPropertyRepository, PropertyRepositoryInMemory>();
+                services.AddSingleton<ICommentRepository, CommentRepositoryInMemory>();
             }
         }
 

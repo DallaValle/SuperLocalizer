@@ -18,7 +18,7 @@ public class ProjectRepositoryInMemory : IProjectRepository
 
     public Task<Project> CreateAsync(Project project)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects, _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(project.CompanyId), _ => new Dictionary<int, Project>());
 
         // generate new id (max existing id + 1)
         var newId = 1;
@@ -38,18 +38,18 @@ public class ProjectRepositoryInMemory : IProjectRepository
         project.UpdateDate = now;
 
         allProjects[project.Id] = project;
-        _fusionCache.Set(CacheKeys.AllProjects, allProjects);
+        _fusionCache.Set(CacheKeys.AllProjects(project.CompanyId), allProjects);
 
         return Task.FromResult(project);
     }
 
     public Task<bool> DeleteAsync(int companyId, int id)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects, _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
         if (allProjects.TryGetValue(id, out var existing) && existing.CompanyId == companyId)
         {
             var removed = allProjects.Remove(id);
-            _fusionCache.Set(CacheKeys.AllProjects, allProjects);
+            _fusionCache.Set(CacheKeys.AllProjects(companyId), allProjects);
             return Task.FromResult(removed);
         }
 
@@ -58,7 +58,7 @@ public class ProjectRepositoryInMemory : IProjectRepository
 
     public Task<bool> ExistsAsync(int companyId, int id)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects, _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
         if (allProjects.TryGetValue(id, out var existing))
         {
             return Task.FromResult(existing.CompanyId == companyId);
@@ -69,13 +69,13 @@ public class ProjectRepositoryInMemory : IProjectRepository
 
     public Task<IEnumerable<Project>> GetAllAsync(int companyId)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects, _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
         return Task.FromResult<IEnumerable<Project>>(allProjects.Values);
     }
 
     public Task<Project> GetByIdAsync(int companyId, int id)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects, _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
         if (allProjects.TryGetValue(id, out var project) && project.CompanyId == companyId)
         {
             return Task.FromResult(project);
@@ -86,7 +86,7 @@ public class ProjectRepositoryInMemory : IProjectRepository
 
     public Task<Project> UpdateAsync(Project project)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects, _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(project.CompanyId), _ => new Dictionary<int, Project>());
 
         if (!allProjects.TryGetValue(project.Id, out var existing) || existing.CompanyId != project.CompanyId)
         {
@@ -99,7 +99,7 @@ public class ProjectRepositoryInMemory : IProjectRepository
         existing.UpdateDate = DateTime.UtcNow;
 
         allProjects[existing.Id] = existing;
-        _fusionCache.Set(CacheKeys.AllProjects, allProjects);
+        _fusionCache.Set(CacheKeys.AllProjects(project.CompanyId), allProjects);
 
         return Task.FromResult(existing);
     }
