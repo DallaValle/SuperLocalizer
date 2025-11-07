@@ -178,7 +178,9 @@ export interface User {
     id: number;
     username: string;
     companyId?: number;
+    companyName?: string;
     mainProjectId?: number;
+    mainProjectName?: string;
 }
 
 export interface LoginResponse {

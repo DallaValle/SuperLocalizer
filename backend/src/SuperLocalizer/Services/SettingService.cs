@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -47,8 +48,8 @@ public class SettingService : ISettingService
 
     public Task<byte[]> ExportAsync(int projectId, string targetLanguage)
     {
-        var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new List<Property>());
-        var targetLanguageProperties = allProperties.FindAll(p => p.Values.Exists(v => v.Language == targetLanguage));
+        var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new Dictionary<string, Property>());
+        var targetLanguageProperties = allProperties.Values.ToList().FindAll(p => p.Values.Exists(v => v.Language == targetLanguage));
         var json = _propertyReader.UnLoad(targetLanguageProperties, targetLanguage);
         var fileBytes = _fileService.GenerateFileContent(json);
         return Task.FromResult(fileBytes);
@@ -56,8 +57,8 @@ public class SettingService : ISettingService
 
     public Task SaveSnapshotAsync(int projectId)
     {
-        var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new List<Property>());
-        var json = _propertyReader.UnLoad(allProperties, "all");
+        var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new Dictionary<string, Property>());
+        var json = _propertyReader.UnLoad(allProperties.Values.ToList(), "all");
         // save snapshot inside my sql for now
         using var connection = new MySql.Data.MySqlClient.MySqlConnection(_connectionString);
         connection.Open();

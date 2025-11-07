@@ -7,5 +7,7 @@ public class User
     public string Email { get; set; }
     public string PasswordHash { get; set; }
     public int? CompanyId { get; set; }
+    public string CompanyName { get; set; }
     public int? MainProjectId { get; set; }
+    public string MainProjectName { get; set; }
 }

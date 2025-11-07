@@ -1,3 +1,13 @@
+###
+# @name login
+POST http://localhost:5000/auth/signin
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+###
 POST http://localhost:5000/property/search
 accept: text/plain
 Content-Type: application/json
@@ -16,3 +26,8 @@ Content-Type: application/json
   "isVerified": true,
   "isReviewed": true
 }
+###
+GET http://localhost:5000/project/1/property/all-languages
+Authorization: Bearer {{login.response.body.token}}
+accept: application/json
+###

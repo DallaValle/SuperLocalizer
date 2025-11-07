@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using SuperLocalizer.Model;
 
 namespace SuperLocalizer.Services;
 
@@ -70,15 +71,9 @@ public class UserProfile : IUserProfile
             Id = dbUser.Id,
             Username = dbUser.Username,
             CompanyId = dbUser.CompanyId,
-            MainProjectId = dbUser.MainProjectId
+            CompanyName = dbUser.CompanyName,
+            MainProjectId = dbUser.MainProjectId,
+            MainProjectName = dbUser.MainProjectName,
         };
     }
-}
-
-public class CurrentUser
-{
-    public int Id { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public int? CompanyId { get; set; }
-    public int? MainProjectId { get; set; }
 }

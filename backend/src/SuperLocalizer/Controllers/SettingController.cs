@@ -33,10 +33,10 @@ public class SettingController : ControllerBase
     /// download localization files from the database
     /// </summary>
     [HttpPost("download")]
-    public async Task<IActionResult> DownloadFile(int projectId, string targetLanguage)
+    public async Task<IActionResult> DownloadFile(int projectId, string language)
     {
-        var files = await _settingService.ExportAsync(projectId, targetLanguage);
-        return File(files, "application/json", $"{targetLanguage}.json");
+        var files = await _settingService.ExportAsync(projectId, language);
+        return File(files, "application/json", $"{language}.json");
     }
 
     /// <summary>

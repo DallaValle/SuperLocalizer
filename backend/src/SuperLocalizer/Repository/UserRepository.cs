@@ -180,10 +180,22 @@ public class UserRepository : IUserRepository
             command.Parameters.AddWithValue("@CompanyId", user.CompanyId.Value);
         }
 
+        if (user.CompanyName != null)
+        {
+            setClauses.Add("CompanyName = @CompanyName");
+            command.Parameters.AddWithValue("@CompanyName", user.CompanyName);
+        }
+
         if (user.MainProjectId.HasValue)
         {
             setClauses.Add("MainProjectId = @MainProjectId");
             command.Parameters.AddWithValue("@MainProjectId", user.MainProjectId.Value);
+        }
+
+        if (user.MainProjectName != null)
+        {
+            setClauses.Add("MainProjectName = @MainProjectName");
+            command.Parameters.AddWithValue("@MainProjectName", user.MainProjectName);
         }
 
         if (setClauses.Count == 0)
@@ -243,7 +255,9 @@ public class UserRepository : IUserRepository
         var emailOrd = reader.GetOrdinal("Email");
         var passwordHashOrd = reader.GetOrdinal("PasswordHash");
         var companyIdOrd = reader.GetOrdinal("CompanyId");
+        var companyNameOrd = reader.GetOrdinal("CompanyName");
         var mainProjectIdOrd = reader.GetOrdinal("MainProjectId");
+        var mainProjectNameOrd = reader.GetOrdinal("MainProjectName");
 
         return new User
         {
@@ -252,7 +266,14 @@ public class UserRepository : IUserRepository
             Email = !reader.IsDBNull(emailOrd) ? reader.GetString(emailOrd) : string.Empty,
             PasswordHash = !reader.IsDBNull(passwordHashOrd) ? reader.GetString(passwordHashOrd) : string.Empty,
             CompanyId = !reader.IsDBNull(companyIdOrd) ? reader.GetInt32(companyIdOrd) : null,
+            CompanyName = !reader.IsDBNull(companyNameOrd) ? reader.GetString(companyNameOrd) : null,
             MainProjectId = !reader.IsDBNull(mainProjectIdOrd) ? reader.GetInt32(mainProjectIdOrd) : null,
+            MainProjectName = !reader.IsDBNull(mainProjectNameOrd) ? reader.GetString(mainProjectNameOrd) : null,
         };
+    }
+
+    public Task<User> GetInvitationByToken(string invitationToken)
+    {
+        throw new NotImplementedException();
     }
 }

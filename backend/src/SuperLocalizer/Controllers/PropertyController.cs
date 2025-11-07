@@ -2,7 +2,9 @@
 using Newtonsoft.Json;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SuperLocalizer.Controllers
 {
@@ -20,9 +22,18 @@ namespace SuperLocalizer.Controllers
         }
 
         /// <summary>
+        /// Get all supported languages for a project
+        /// </summary>
+        [HttpGet("all-languages")]
+        public async Task<IActionResult> GetAllSupportedLanguages(int projectId)
+        {
+            var allProperties = _propertyRepository.GetProperties(projectId, new SearchPropertyRequest() { Page = 1, Size = 1 });
+            var current = allProperties.Items.FirstOrDefault();
+            return Ok(current.Values?.Select(_ => _.Language)?.ToList() ?? new List<string>());
+        }
+
+        /// <summary>
         /// Get property by key
-        /// <param name="projectId"></param>
-        /// <param name="key"></param>
         /// </summary>
         [HttpGet("{key}")]
         public ActionResult<Property> GetPropertyByKey(int projectId, string key)

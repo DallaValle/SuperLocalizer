@@ -7,7 +7,8 @@ export class ProjectService {
         GET: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
         CREATE: (companyId: number) => `/company/${companyId}/project`,
         UPDATE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
-        DELETE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`
+        DELETE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
+        SET_MAIN: (companyId: number, id: number) => `/company/${companyId}/project/${id}/user`
     } as const;
 
     static async getAllProjects(companyId: number): Promise<Project[]> {
@@ -33,5 +34,10 @@ export class ProjectService {
     static async deleteProject(companyId: number, id: number): Promise<void> {
         const endpoint = this.ENDPOINTS.DELETE(companyId, id);
         return HttpClient.delete<void>(endpoint);
+    }
+
+    static async setMainProject(companyId: number, projectId: number): Promise<void> {
+        const endpoint = this.ENDPOINTS.SET_MAIN(companyId, projectId);
+        return HttpClient.put<void>(endpoint, {});
     }
 }

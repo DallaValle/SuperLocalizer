@@ -22,7 +22,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 
 {
-  "name": "test",
+  "name": "Supertext",
   "address": "address",
   "email": "email@email.com",
   "phone": "1234567890"
@@ -37,7 +37,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 
 {
-  "name": "Test Project",
+  "name": "Mt.Ui interface",
   "description": "This is a test project"
 }
 ### Get the project by ID
@@ -45,14 +45,15 @@ GET http://localhost:5000/company/1/project/1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 ### Setup main project for the user
-POST http://localhost:5000/auth/setup-main-project
+PUT http://localhost:5000/company/1/project/1/user
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
 {
   "username": "admin",
   "projectId": 1
 }
-###
+### Get the user info
 GET http://localhost:5000/auth/user
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}

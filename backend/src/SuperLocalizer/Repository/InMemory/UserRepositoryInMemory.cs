@@ -86,7 +86,9 @@ public class UserRepositoryInMemory : IUserRepository
             if (user.Email != null) existing.Email = user.Email;
             if (user.PasswordHash != null) existing.PasswordHash = user.PasswordHash;
             if (user.CompanyId.HasValue) existing.CompanyId = user.CompanyId;
+            if (user.CompanyName != null) existing.CompanyName = user.CompanyName;
             if (user.MainProjectId.HasValue) existing.MainProjectId = user.MainProjectId;
+            if (user.MainProjectName != null) existing.MainProjectName = user.MainProjectName;
 
             allUser[idx] = existing;
             _fusionCache.Set(CacheKeys.AllUsers, allUser);

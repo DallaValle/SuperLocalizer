@@ -13,26 +13,34 @@ namespace Test2.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("auth")]
-public class LoginController : ControllerBase
+public class AccountController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IUserProfile _userProfile;
+    private readonly IInvitationService _invitationService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LoginController"/> class.
+    /// Initializes a new instance of the <see cref="AccountController"/> class.
     /// </summary>
     /// <param name="configuration">The application configuration.</param>
     /// <param name="passwordHasher">The password hasher service.</param>
     /// <param name="userRepository">The user repository.</param>
     /// <param name="userProfile">The user profile service.</param>
-    public LoginController(IConfiguration configuration, IPasswordHasher passwordHasher, IUserRepository userRepository, IUserProfile userProfile)
+    /// <param name="invitationService">The invitation service.</param>
+    public AccountController(
+        IConfiguration configuration,
+        IPasswordHasher passwordHasher,
+        IUserRepository userRepository,
+        IUserProfile userProfile,
+        IInvitationService invitationService)
     {
         _configuration = configuration;
         _passwordHasher = passwordHasher;
         _userRepository = userRepository;
         _userProfile = userProfile;
+        _invitationService = invitationService;
     }
 
     /// <summary>
@@ -70,8 +78,11 @@ public class LoginController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Registers a new user with the provided credentials.
+    /// </summary>
     [HttpPost("signup")]
-    public async Task<IActionResult> Signup([FromBody] LoginRequest request)
+    public async Task<IActionResult> Signup([FromBody] LoginRequest request, string invitationToken)
     {
         var user = new User
         {
@@ -87,10 +98,38 @@ public class LoginController : ControllerBase
         }
 
         user.PasswordHash = this._passwordHasher.HashPassword(user.PasswordHash);
+
+        if (!string.IsNullOrEmpty(invitationToken))
+        {
+            var invitation = await this._invitationService.GetInvitationByTokenAsync(invitationToken);
+            if (invitation == null)
+            {
+                return this.BadRequest("Invalid invitation token.");
+            }
+            user.CompanyId = invitation.CompanyId;
+            user.CompanyName = invitation.CompanyName;
+            user.MainProjectId = invitation.MainProjectId;
+            user.MainProjectName = invitation.MainProjectName;
+        }
+
         await this._userRepository.CreateAsync(user);
         return this.Ok("User created successfully.");
     }
 
+    /// <summary>
+    /// Creates an invitation for the current user.
+    /// </summary>
+    [HttpPost("create/invitation")]
+    public async Task<IActionResult> CreateInvitation()
+    {
+        var current = await _userProfile.GetCurrentUser();
+        var token = await this._invitationService.CreateInvitationAsync(current.ToUser());
+        return this.Ok(new { token = token, message = "Invitation created successfully." });
+    }
+
+    /// <summary>
+    /// Gets the currently authenticated user's profile.
+    /// </summary>
     [HttpGet("user")]
     [Authorize]
     public async Task<IActionResult> GetCurrentUser()

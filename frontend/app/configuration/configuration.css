@@ -30,6 +30,10 @@
     gap: 1rem;
 }
 
+.account-line {
+    color: #e6f7f0;
+}
+
 .logout-btn {
     background: #78FFAF;
     color: #002629;
@@ -222,6 +226,55 @@
     padding: 1rem;
     border-radius: 8px;
     border-left: 4px solid #002629;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.project-content {
+    flex: 1;
+}
+
+.project-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.main-project-btn {
+    background: #78FFAF;
+    color: #002629;
+    border: 1px solid #002629;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.main-project-btn:hover:not(:disabled) {
+    background: #6ae69a;
+    transform: translateY(-1px);
+}
+
+.main-project-btn:disabled {
+    background: #e0e0e0;
+    color: #888;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+.main-project-badge {
+    background: #002629;
+    color: #78FFAF;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .project-item h3 {
@@ -243,6 +296,129 @@
     font-size: 0.85rem;
 }
 
+/* Invitation Section */
+.invitation-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+}
+
+.invitation-section h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.invitation-section p {
+    margin: 0 0 1.5rem 0;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.invitation-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.invitation-btn {
+    background: #78FFAF;
+    color: #002629;
+    border: 1px solid #002629;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 600;
+    align-self: flex-start;
+}
+
+.invitation-btn:hover:not(:disabled) {
+    background: #6ae69a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 38, 41, 0.2);
+}
+
+.invitation-btn:disabled {
+    background: #e0e0e0;
+    color: #888;
+    border-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.invitation-result {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.invitation-result p {
+    margin: 0;
+    color: #28a745;
+    font-weight: 500;
+}
+
+.invitation-link-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.invitation-link-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #f8f9fa;
+    color: #495057;
+    font-family: monospace;
+}
+
+.invitation-link-input:focus {
+    outline: none;
+    border-color: #002629;
+    box-shadow: 0 0 0 3px rgba(0, 38, 41, 0.1);
+}
+
+.copy-btn {
+    background: #002629;
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: #003d42;
+    transform: translateY(-1px);
+}
+
+.generate-new-btn {
+    background: transparent;
+    color: #002629;
+    border: 1px solid #002629;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    align-self: flex-start;
+}
+
+.generate-new-btn:hover {
+    background: #f8f9fa;
+}
+
 @media (max-width: 768px) {
     .home-header {
         flex-direction: column;
@@ -257,5 +433,14 @@
     .company-card,
     .company-form {
         max-width: 100%;
+    }
+
+    .invitation-link-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .copy-btn {
+        margin-top: 0.5rem;
     }
 }

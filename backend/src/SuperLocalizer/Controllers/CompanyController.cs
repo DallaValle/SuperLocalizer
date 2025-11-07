@@ -23,13 +23,9 @@ public class CompanyController : ControllerBase
         _userProfile = userProfile;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var companies = await _companyRepository.GetAllAsync();
-        return Ok(companies);
-    }
-
+    /// <summary>
+    /// Get company by id
+    /// </summary>
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -46,6 +42,9 @@ public class CompanyController : ControllerBase
         return Ok(company);
     }
 
+    /// <summary>
+    /// Create a new company
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Company company)
     {
@@ -59,16 +58,19 @@ public class CompanyController : ControllerBase
 
         // Associate the company with the current user
         var created = await _companyRepository.CreateAsync(company);
-        currentUser.CompanyId = created.Id;
         await _userRepository.PartialUpdateAsync(new User
         {
             Id = currentUser.Id,
-            CompanyId = currentUser.CompanyId
+            CompanyId = company.Id,
+            CompanyName = company.Name,
         });
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
+    /// <summary>
+    /// Update an existing company
+    /// </summary>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] Company company)
     {
@@ -90,6 +92,9 @@ public class CompanyController : ControllerBase
         return Ok(updated);
     }
 
+    /// <summary>
+    /// Delete a company
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

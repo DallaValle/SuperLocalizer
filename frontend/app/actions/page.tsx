@@ -1,0 +1,290 @@
+'use client'
+
+import { useAuth } from '../contexts/AuthContext'
+import { SettingService } from '../services/SettingService'
+import { useEffect, useState } from 'react'
+import './Actions.css'
+
+interface ImportStatus {
+    isLoading: boolean;
+    message: string;
+    error: string | null;
+}
+
+interface ExportStatus {
+    isLoading: boolean;
+    error: string | null;
+}
+
+const SUPPORTED_LANGUAGES = [
+    { code: 'en', name: 'English' },
+    { code: 'de-CH', name: 'German (Switzerland)' },
+    { code: 'de-DE', name: 'German (Germany)' },
+    { code: 'fr', name: 'French' },
+    { code: 'it', name: 'Italian' }
+];
+
+export default function ActionsPage() {
+    const { logout, user } = useAuth()
+    const [settingService, setSettingService] = useState<SettingService | null>(null)
+
+    // Import states
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [importLanguage, setImportLanguage] = useState<string>('en')
+    const [importStatus, setImportStatus] = useState<ImportStatus>({
+        isLoading: false,
+        message: '',
+        error: null
+    })
+
+    // Export states
+    const [exportLanguage, setExportLanguage] = useState<string>('en')
+    const [exportStatus, setExportStatus] = useState<ExportStatus>({
+        isLoading: false,
+        error: null
+    })
+
+    useEffect(() => {
+        if (user?.mainProjectId) {
+            setSettingService(new SettingService(user.mainProjectId))
+        }
+    }, [user])
+
+    const handleLogout = () => {
+        logout()
+    }
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] || null
+        setSelectedFile(file)
+
+        // Clear previous status when selecting a new file
+        if (file) {
+            setImportStatus({ isLoading: false, message: '', error: null })
+        }
+    }
+
+    const handleImport = async () => {
+        if (!selectedFile || !settingService) {
+            setImportStatus({
+                isLoading: false,
+                message: '',
+                error: 'Please select a file first'
+            })
+            return
+        }
+
+        setImportStatus({ isLoading: true, message: 'Importing file...', error: null })
+
+        try {
+            const result = await settingService.importFile(selectedFile, importLanguage)
+            setImportStatus({
+                isLoading: false,
+                message: result || 'Import completed successfully',
+                error: null
+            })
+            // Clear the file input after successful import
+            setSelectedFile(null)
+            const fileInput = document.getElementById('file-input') as HTMLInputElement
+            if (fileInput) {
+                fileInput.value = ''
+            }
+        } catch (error) {
+            setImportStatus({
+                isLoading: false,
+                message: '',
+                error: error instanceof Error ? error.message : 'Import failed'
+            })
+        }
+    }
+
+    const handleExport = async () => {
+        if (!settingService) {
+            setExportStatus({ isLoading: false, error: 'Service not available' })
+            return
+        }
+
+        setExportStatus({ isLoading: true, error: null })
+
+        try {
+            const blob = await settingService.exportFile(exportLanguage)
+            const filename = `localization_${exportLanguage}.json`
+            SettingService.downloadBlob(blob, filename)
+            setExportStatus({ isLoading: false, error: null })
+        } catch (error) {
+            setExportStatus({
+                isLoading: false,
+                error: error instanceof Error ? error.message : 'Export failed'
+            })
+        }
+    }
+
+    const handleSaveSnapshot = async () => {
+        if (!settingService) return
+
+        try {
+            const result = await settingService.saveSnapshot()
+            alert(result || 'Snapshot saved successfully')
+        } catch (error) {
+            alert(`Failed to save snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+    }
+
+    return (
+        <div className="actions-page">
+            <header className="actions-header">
+                <div className="header-title">
+                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
+                </div>
+                <div className="header-nav">
+                    <button onClick={() => window.location.href = '/home'} className="nav-btn">
+                        Dashboard
+                    </button>
+                    <button onClick={() => window.location.href = '/properties'} className="nav-btn">
+                        Properties
+                    </button>
+                    <button onClick={() => window.location.href = '/configuration'} className="nav-btn">
+                        Configuration
+                    </button>
+                </div>
+                <div className="user-info">
+                    <span>{user && user.username ? user.username : ''}</span>
+                    <button onClick={handleLogout} className="logout-btn">
+                        Logout
+                    </button>
+                </div>
+            </header>
+
+            <main className="actions-main">
+                <div className="page-title">
+                    <h1>Import & Export Actions</h1>
+                    <p>Manage your localization files - import new translations or export current ones</p>
+                </div>
+
+                <div className="actions-grid">
+                    {/* Import Section */}
+                    <div className="action-card">
+                        <div className="action-header">
+                            <h2>📥 Import Localization File</h2>
+                            <p>Upload a JSON localization file to import translations</p>
+                        </div>
+
+                        <div className="action-content">
+                            <div className="form-group">
+                                <label htmlFor="language-select">Language:</label>
+                                <select
+                                    id="language-select"
+                                    value={importLanguage}
+                                    onChange={(e) => setImportLanguage(e.target.value)}
+                                    className="language-select"
+                                    disabled={importStatus.isLoading}
+                                >
+                                    {SUPPORTED_LANGUAGES.map(lang => (
+                                        <option key={lang.code} value={lang.code}>
+                                            {lang.name} ({lang.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="file-input">Select File:</label>
+                                <input
+                                    id="file-input"
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handleFileSelect}
+                                    className="file-input"
+                                    disabled={importStatus.isLoading}
+                                />
+                                {selectedFile && (
+                                    <div className="file-info">
+                                        Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={handleImport}
+                                disabled={!selectedFile || importStatus.isLoading}
+                                className="action-btn import-btn"
+                            >
+                                {importStatus.isLoading ? 'Importing...' : 'Import File'}
+                            </button>
+
+                            {importStatus.message && (
+                                <div className="status-message success">
+                                    {importStatus.message}
+                                </div>
+                            )}
+
+                            {importStatus.error && (
+                                <div className="status-message error">
+                                    {importStatus.error}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Export Section */}
+                    <div className="action-card">
+                        <div className="action-header">
+                            <h2>📤 Export Localization File</h2>
+                            <p>Download current translations as a JSON file</p>
+                        </div>
+
+                        <div className="action-content">
+                            <div className="form-group">
+                                <label htmlFor="export-language-select">Language:</label>
+                                <select
+                                    id="export-language-select"
+                                    value={exportLanguage}
+                                    onChange={(e) => setExportLanguage(e.target.value)}
+                                    className="language-select"
+                                    disabled={exportStatus.isLoading}
+                                >
+                                    {SUPPORTED_LANGUAGES.map(lang => (
+                                        <option key={lang.code} value={lang.code}>
+                                            {lang.name} ({lang.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={handleExport}
+                                disabled={exportStatus.isLoading}
+                                className="action-btn export-btn"
+                            >
+                                {exportStatus.isLoading ? 'Exporting...' : 'Export File'}
+                            </button>
+
+                            {exportStatus.error && (
+                                <div className="status-message error">
+                                    {exportStatus.error}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Snapshot Section */}
+                    <div className="action-card">
+                        <div className="action-header">
+                            <h2>💾 Save Snapshot</h2>
+                            <p>Create a backup snapshot of the current project state</p>
+                        </div>
+
+                        <div className="action-content">
+                            <button
+                                onClick={handleSaveSnapshot}
+                                className="action-btn snapshot-btn"
+                            >
+                                Save Snapshot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    )
+}

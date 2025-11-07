@@ -13,8 +13,10 @@ export default function HomePage() {
     const [fetchedUser, setFetchedUser] = useState<typeof user | null>(null)
     const [pendingReviews, setPendingReviews] = useState<string>("0")
     const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
+    const [supportedLanguages, setSupportedLanguages] = useState<string>("0")
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isActivityLoading, setIsActivityLoading] = useState<boolean>(true)
+    const [isLanguagesLoading, setIsLanguagesLoading] = useState<boolean>(true)
 
     const handleLogout = () => {
         logout()
@@ -50,6 +52,24 @@ export default function HomePage() {
             if (u) setFetchedUser(u)
         } catch (error) {
             console.error('Error fetching current user:', error)
+        }
+    }
+
+    const fetchSupportedLanguages = async () => {
+        try {
+            setIsLanguagesLoading(true)
+            if (user?.mainProjectId == null) {
+                setSupportedLanguages("-")
+                return
+            }
+
+            const languages = await new PropertyService(user.mainProjectId).getAllLanguages()
+            setSupportedLanguages(languages.length.toString())
+        } catch (error) {
+            console.error('Error fetching supported languages:', error)
+            setSupportedLanguages("-")
+        } finally {
+            setIsLanguagesLoading(false)
         }
     }
 
@@ -115,6 +135,7 @@ export default function HomePage() {
         fetchPendingReviews()
         fetchTodayActivity()
         fetchCurrentUser()
+        fetchSupportedLanguages()
     }, [])
 
     return (
@@ -124,7 +145,7 @@ export default function HomePage() {
                     <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
                 </div>
                 <div className="user-info">
-                    <span>{user && user.username ? user.username : ''}</span>
+                    <div className="account-tab">{user && user.username ? user.username : ''}</div>
                     <button onClick={handleLogout} className="logout-btn">
                         Logout
                     </button>
@@ -134,7 +155,19 @@ export default function HomePage() {
             <main className="home-content">
                 {/* Navigation Cards */}
                 <div className="navigation-section">
-                    <h2>Quick Actions</h2>
+                    <div className="user-info-tab">
+                        {((fetchedUser || user)?.companyName == null && (fetchedUser || user)?.mainProjectName == null) ? (
+                            <>
+                                <div className="account-line"><strong>Hey! Not ready yet? Go to configuration to create your first Company and Project! ↓ ↓ ↓ ↓ ↓</strong></div>
+                                <div className='account-line'>:)</div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="account-line"><strong>Company:</strong> {(fetchedUser || user)?.companyName ?? '—'}</div>
+                                <div className="account-line"><strong>Project:</strong> {((fetchedUser || user) && (fetchedUser || user)!.mainProjectName) ?? '—'}</div>
+                            </>
+                        )}
+                    </div>
                     <div className="navigation-cards">
                         {/* If mainProjectId is not set, prevent navigation to /properties */}
                         <a
@@ -150,7 +183,7 @@ export default function HomePage() {
 
                             {((fetchedUser || user)?.mainProjectId == null) && (
                                 <span id="manage-translations-tooltip" className="nav-tooltip" role="tooltip">
-                                    🚀 Kick things off! Create your first project in Configuration!
+                                    🏃‍♂️ Kick things off! Create your first project in Configuration!
                                 </span>
                             )}
                         </a>
@@ -158,7 +191,19 @@ export default function HomePage() {
                         <a href="/configuration" className="nav-card">
                             <div className="nav-card-icon">⚙️</div>
                             <h3>Configuration</h3>
-                            <p>Configure projects and languages</p>
+                            <p>Configure projects and more</p>
+                        </a>
+
+                        <a href="/actions" className="nav-card">
+                            <div className="nav-card-icon">🚀</div>
+                            <h3>Bulk actions</h3>
+                            <p>Fast is best!</p>
+                        </a>
+
+                        <a href="/automation" className="nav-card">
+                            <div className="nav-card-icon">🤖</div>
+                            <h3>Automation</h3>
+                            <p>Configure import, export, merge and triggers!</p>
                         </a>
                     </div>
                 </div>
@@ -166,7 +211,9 @@ export default function HomePage() {
                 <div className="dashboard-grid">
                     <div className="dashboard-card">
                         <h3>Supported Languages</h3>
-                        <p className="card-number">5</p>
+                        <p className="card-number">
+                            {isLanguagesLoading ? '...' : supportedLanguages}
+                        </p>
                         <p className="card-description">Available languages for translation</p>
                     </div>
 
@@ -208,11 +255,6 @@ export default function HomePage() {
                             </div>
                         )}
                     </div>
-                </div>
-
-                <div className="debug-info">
-                    <h4>Debug Info:</h4>
-                    <p>{token ? token : 'Not available'}</p>
                 </div>
             </main>
         </div>

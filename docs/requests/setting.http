@@ -1,5 +1,5 @@
 ### Import German (Switzerland) localization file
-POST http://localhost:5000/setting/upload?language=de-CH
+POST http://localhost:5000/project/1/setting/upload?language=de-CH
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -10,7 +10,7 @@ Content-Type: application/json
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### Import German (Germany) localization file
-POST http://localhost:5000/setting/upload?language=de-DE
+POST http://localhost:5000/project/1/setting/upload?language=de-DE
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -21,7 +21,7 @@ Content-Type: application/json
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### Import French localization file
-POST http://localhost:5000/setting/upload?language=fr
+POST http://localhost:5000/project/1/setting/upload?language=fr
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -32,7 +32,7 @@ Content-Type: application/json
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### Import English localization file
-POST http://localhost:5000/setting/upload?language=en
+POST http://localhost:5000/project/1/setting/upload?language=en
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -43,7 +43,7 @@ Content-Type: application/json
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### Import Italian localization file
-POST http://localhost:5000/setting/upload?language=it
+POST http://localhost:5000/project/1/setting/upload?language=it
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -52,4 +52,6 @@ Content-Type: application/json
 
 < ../SupertextLocalisation/it/localization_it.json
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
-###
+### Export localization file for French
+POST http://localhost:5000/project/1/setting/download?language=de-CH
+Content-Type: application/json

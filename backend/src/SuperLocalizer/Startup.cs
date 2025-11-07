@@ -71,10 +71,38 @@ namespace SuperLocalizer
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                // Set the comments path for the Swagger JSON and UI.
+                // Set the comments path for the Swagger JSON and UI if the XML file exists.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
+
+                // Add JWT bearer definition so Swagger can accept a token.
+                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'",
+                    Name = "Authorization",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                {
+                    {
+                        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                        {
+                            Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                            {
+                                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
 
             services.AddFusionCache()
@@ -87,6 +115,7 @@ namespace SuperLocalizer
             services.AddSingleton<FileService>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IUserProfile, UserProfile>();
+            services.AddSingleton<IInvitationService, InvitationService>();
             if (Configuration.GetValue<bool?>("UseDatabase") == true)
             {
                 services.AddSingleton<ICompanyRepository, CompanyRepository>();
@@ -111,17 +140,18 @@ namespace SuperLocalizer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Use developer exception page in development
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-
-                // Enable middleware to serve generated Swagger as a JSON endpoint.
-                app.UseSwagger();
-
-                // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
-                // specifying the Swagger JSON endpoint.
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SuperLocalizer v1"));
             }
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint and UI in all environments
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SuperLocalizer v1");
+            });
 
             // Use CORS
             app.UseCors("AllowFrontend");

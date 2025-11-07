@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -24,32 +25,29 @@ public class ProjectController : ControllerBase
         _userProfile = userProfile;
     }
 
+    /// <summary>
+    /// Set main project for current user
+    /// </summary>
     [HttpPut("{id}/user")]
-    public async Task<IActionResult> SetMainLanguage(int companyId, int id)
+    public async Task<IActionResult> SetMainProject(int companyId, int id)
     {
         var current = await _userProfile.GetCurrentUser();
         if (current == null) return Unauthorized();
         var projects = await _projectRepository.GetAllAsync(companyId);
         var project = projects.FirstOrDefault(p => p.Id == id);
         if (project == null) return NotFound();
-        current.MainProjectId = project.Id;
         await _userRepository.PartialUpdateAsync(new User
         {
             Id = current.Id,
-            MainProjectId = current.MainProjectId,
+            MainProjectId = project.Id,
+            MainProjectName = project.Name,
         });
         return Ok();
     }
 
-    [HttpGet("{id}/languages")]
-    public async Task<IActionResult> GetAllSupportedLanguages(int companyId, int id)
-    {
-        var projects = await _projectRepository.GetAllAsync(companyId);
-        var current = projects.FirstOrDefault(p => p.Id == id);
-        if (current == null) return NotFound();
-        return Ok(current.SupportedLanguages);
-    }
-
+    /// <summary>
+    /// Get all projects for a company
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll(int companyId)
     {
@@ -57,6 +55,9 @@ public class ProjectController : ControllerBase
         return Ok(projects);
     }
 
+    /// <summary>
+    /// Get project by id
+    /// </summary>
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int companyId, int id)
     {
@@ -74,6 +75,9 @@ public class ProjectController : ControllerBase
         return Ok(project);
     }
 
+    /// <summary>
+    /// Create a new project
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create(int companyId, [FromBody] Project project)
     {
@@ -90,12 +94,16 @@ public class ProjectController : ControllerBase
             {
                 Id = currentUser.Id,
                 MainProjectId = created.Id,
+                MainProjectName = created.Name,
             });
         }
 
         return CreatedAtAction(nameof(GetById), new { companyId = companyId, id = created.Id }, created);
     }
 
+    /// <summary>
+    /// Update an existing project
+    /// </summary>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int companyId, int id, [FromBody] Project project)
     {
@@ -110,6 +118,9 @@ public class ProjectController : ControllerBase
         return Ok(updated);
     }
 
+    /// <summary>
+    /// Delete a project
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int companyId, int id)
     {
