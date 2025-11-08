@@ -1,4 +1,6 @@
 import { API_CONFIG, ApiRequestError, NetworkError, type RequestOptions } from '../types/api';
+import { getSession } from 'next-auth/react';
+import { AuthUtils } from './AuthUtils';
 
 /**
  * Base HTTP client with built-in error handling, retries, and timeouts
@@ -10,11 +12,17 @@ export class HttpClient {
     } as const;
 
     /**
-     * Gets authorization headers with bearer token if available
+     * Gets authorization headers with bearer token from NextAuth session
      */
-    private static getAuthHeaders(): Record<string, string> {
-        const token = localStorage.getItem('auth-token');
-        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    private static async getAuthHeaders(): Promise<Record<string, string>> {
+        try {
+            const session = await getSession();
+            const token = (session as any)?.backendToken;
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        } catch (error) {
+            console.warn('Failed to get auth token from session:', error);
+            return {};
+        }
     }
 
     /**
@@ -25,7 +33,11 @@ export class HttpClient {
         options: RequestOptions = { method: 'GET' }
     ): Promise<T> {
         const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[HttpClient] Request URL:', url, 'Options:', options);
+        }
         const timeout = options.timeout ?? API_CONFIG.TIMEOUT;
+        const authHeaders = await this.getAuthHeaders();
 
         let lastError: Error;
 
@@ -35,12 +47,17 @@ export class HttpClient {
                     ...options,
                     headers: {
                         ...this.DEFAULT_HEADERS,
-                        ...this.getAuthHeaders(),
+                        ...authHeaders,
                         ...options.headers,
                     },
                 }, timeout);
 
                 if (!response.ok) {
+                    // Handle 401 Unauthorized - token expired or invalid
+                    if (response.status === 401) {
+                        await this.handleUnauthorized();
+                    }
+
                     throw new ApiRequestError(
                         `HTTP ${response.status}: ${response.statusText}`,
                         response.status
@@ -55,9 +72,13 @@ export class HttpClient {
 
                 return await response.json() as T;
             } catch (error) {
+                if (process.env.NODE_ENV !== 'production') {
+                    // eslint-disable-next-line no-console
+                    console.error('[HttpClient] Error for URL:', url, error);
+                }
                 lastError = error instanceof Error ? error : new Error('Unknown error');
 
-                // Don't retry for client errors (4xx)
+                // Don't retry for client errors (4xx), especially 401 Unauthorized
                 if (error instanceof ApiRequestError && error.status >= 400 && error.status < 500) {
                     throw error;
                 }
@@ -160,6 +181,11 @@ export class HttpClient {
     }
 
     /**
+     * Handle 401 Unauthorized responses by clearing session and redirecting
+     */
+    private static async handleUnauthorized(): Promise<void> {
+        await AuthUtils.clearSessionAndRedirect();
+    }    /**
      * Utility function to delay execution
      */
     private static delay(ms: number): Promise<void> {

@@ -10,10 +10,10 @@ import type {
  */
 export class CommentService {
     private static readonly ENDPOINTS = {
-        GET_COMMENTS: (valueKey: string) => `/comment/${valueKey}`,
-        CREATE: '/comment',
-        UPDATE: (id: string) => `/comment/${id}`,
-        DELETE: (id: string) => `/comment/${id}`
+        GET_COMMENTS: (valueKey: string) => `/property/${valueKey}/comment`,
+        CREATE: (valueKey: string) => `/property/${valueKey}/comment`,
+        UPDATE: (valueKey: string, id: string) => `/property/${valueKey}/comment/${id}`,
+        DELETE: (valueKey: string, id: string) => `/property/${valueKey}/comment/${id}`
     } as const;
 
     /**
@@ -28,22 +28,22 @@ export class CommentService {
      * Create a new comment
      */
     static async createComment(request: CreateCommentRequest): Promise<Comment> {
-        return HttpClient.post<Comment>(this.ENDPOINTS.CREATE, request);
+        return HttpClient.post<Comment>(this.ENDPOINTS.CREATE(request.valueKey), request);
     }
 
     /**
      * Update an existing comment
      */
     static async updateComment(id: string, request: UpdateCommentRequest): Promise<Comment> {
-        const endpoint = this.ENDPOINTS.UPDATE(id);
+        const endpoint = this.ENDPOINTS.UPDATE(request.valueKey, id);
         return HttpClient.put<Comment>(endpoint, request);
     }
 
     /**
      * Delete a comment
      */
-    static async deleteComment(id: string): Promise<void> {
-        const endpoint = this.ENDPOINTS.DELETE(id);
+    static async deleteComment(valueKey: string, id: string): Promise<void> {
+        const endpoint = this.ENDPOINTS.DELETE(valueKey, id);
         return HttpClient.delete<void>(endpoint);
     }
 }

@@ -1,18 +1,19 @@
 'use client'
 
-import { useAuth } from '../contexts/AuthContext'
+import { useSession, signOut } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { CompanyService } from '../services/CompanyService'
 import { ProjectService } from '../services/ProjectService'
 import { InvitationService } from '../services/InvitationService'
-import type { Company, Project } from '../types/domain'
+import type { Company, Project, User } from '../types/domain'
 import './configuration.css'
 
 export default function ConfigurationPage() {
-    const { user, logout, refreshCurrentUser, loading: authLoading } = useAuth()
+    const { data: session, status, update } = useSession()
+    const user = session?.user as User || null
+    const authLoading = status === 'loading'
     const [company, setCompany] = useState<Company | null>(null)
     const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState<boolean>(true)
     const [creating, setCreating] = useState<boolean>(false)
     const [creatingProject, setCreatingProject] = useState<boolean>(false)
     const [settingMainProject, setSettingMainProject] = useState<number | null>(null)
@@ -24,6 +25,16 @@ export default function ConfigurationPage() {
     const [creatingInvitation, setCreatingInvitation] = useState<boolean>(false)
     const [invitationError, setInvitationError] = useState<string | null>(null)
 
+    // Function to refresh user session after company/project changes
+    const refreshUserSession = async () => {
+        try {
+            // NextAuth refresh the session
+            await update();
+        } catch (error) {
+            console.error('Failed to refresh user session:', error);
+        }
+    };
+
     useEffect(() => {
         const load = async () => {
             // Wait for auth to be ready and user to be available
@@ -32,7 +43,6 @@ export default function ConfigurationPage() {
             }
 
             try {
-                setLoading(true)
                 // Only call services when companyId is not null/undefined
                 if (user?.companyId != null) {
                     const data = await CompanyService.getCompany(user.companyId)
@@ -47,8 +57,6 @@ export default function ConfigurationPage() {
                 // If no company found, that's expected for new users
                 setCompany(null)
                 setProjects([])
-            } finally {
-                setLoading(false)
             }
         }
         load()
@@ -75,12 +83,9 @@ export default function ConfigurationPage() {
             setCreating(true)
             const created = await CompanyService.createCompany(form)
             setCompany(created)
-            // refresh auth user so user.companyId is up-to-date
-            try {
-                await refreshCurrentUser()
-            } catch (err) {
-                console.error('Failed to refresh user after creating company', err)
-            }
+
+            // Refresh session to update user's companyId and companyName
+            await refreshUserSession()
         } catch (err) {
             console.error('Failed to create company', err)
             setError('Failed to create company')
@@ -105,12 +110,7 @@ export default function ConfigurationPage() {
             const created = await ProjectService.createProject(company.id, projectForm)
             setProjects(prev => [...prev, created])
             setProjectForm({ name: '', description: '' })
-            // refresh auth user in case project creation affects user state elsewhere
-            try {
-                await refreshCurrentUser()
-            } catch (err) {
-                console.error('Failed to refresh user after creating project', err)
-            }
+            // NextAuth automatically manages session refreshing
         } catch (err) {
             console.error('Failed to create project', err)
             setProjectError('Failed to create project')
@@ -125,12 +125,9 @@ export default function ConfigurationPage() {
         try {
             setSettingMainProject(projectId)
             await ProjectService.setMainProject(company.id, projectId)
-            // refresh auth user to update mainProjectId
-            try {
-                await refreshCurrentUser()
-            } catch (err) {
-                console.error('Failed to refresh user after setting main project', err)
-            }
+
+            // Refresh session to update user's mainProjectId and mainProjectName
+            await refreshUserSession()
         } catch (err) {
             console.error('Failed to set main project', err)
             // Could add error state here if needed
@@ -167,10 +164,6 @@ export default function ConfigurationPage() {
         }
     }
 
-    if (authLoading) return <div className="configuration-container">Loading authentication...</div>
-
-    if (loading) return <div className="configuration-container">Loading configuration...</div>
-
     return (
         <div className="configuration-container">
             <header className="home-header">
@@ -186,7 +179,7 @@ export default function ConfigurationPage() {
                     <button onClick={() => window.location.href = '/home'} className="back-btn">
                         ← Dashboard
                     </button>
-                    <button onClick={() => logout()} className="logout-btn">
+                    <button onClick={() => signOut({ redirect: false }).then(() => window.location.href = '/login')} className="logout-btn">
                         Logout
                     </button>
                 </div>

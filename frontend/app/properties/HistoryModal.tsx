@@ -32,12 +32,10 @@ export default function HistoryModal({
     }, [isOpen, valueKey])
 
     const loadHistory = async () => {
-        console.log('Loading history for valueKey:', valueKey)
         setLoading(true)
         setError(null)
         try {
             const historyData = await HistoryService.getHistoryByValueId(valueKey)
-            console.log('History data received:', historyData)
             // Sort by timestamp descending (newest first)
             const sortedHistory = historyData.sort((a, b) =>
                 new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()

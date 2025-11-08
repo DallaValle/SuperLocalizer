@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '../contexts/AuthContext'
+import { useSession, signOut } from 'next-auth/react'
 import { PropertyService } from '../services/PropertyService'
 import CommentsModal from './CommentsModal'
 import HistoryModal from './HistoryModal'
 import './Properties.css'
-import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest } from '../types/domain'
+import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest, User } from '../types/domain'
 
 function PropertiesContent() {
-    const { logout, user } = useAuth()
+    const { data: session } = useSession()
+    const user = session?.user as User || null
     const router = useRouter()
     const searchParams = useSearchParams()
     const [properties, setProperties] = useState<Property[]>([])
@@ -61,8 +62,18 @@ function PropertiesContent() {
     // Auto-save functionality - FIXED VERSION
     const autoSaveTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout }>({})
     const pendingChangesRef = useRef<{ [key: string]: PropertyValue }>({})
+    // Track last saved values to avoid duplicate PATCH calls
+    const lastSavedValuesRef = useRef<{ [key: string]: PropertyValue }>({})
+    // Track in-flight saves to prevent concurrent PATCHes for the same field
+    const inFlightSaveRef = useRef<{ [key: string]: boolean }>({})
 
     const debouncedAutoSave = useCallback((propertyKey: string, language: string, value: PropertyValue, delay: number = 2000) => {
+        // Don't save if user is not ready
+        if (!user || user.mainProjectId == null) {
+            console.log('debouncedAutoSave: User not ready, skipping save')
+            return
+        }
+
         const editKey = getEditKey(propertyKey, language)
 
         // Store the latest value for this field
@@ -82,9 +93,15 @@ function PropertiesContent() {
             }
             delete autoSaveTimeoutRef.current[editKey]
         }, delay)
-    }, [])
+    }, [user])
 
     const immediateAutoSave = useCallback((propertyKey: string, language: string, value: PropertyValue) => {
+        // Don't save if user is not ready
+        if (!user || user.mainProjectId == null) {
+            console.log('immediateAutoSave: User not ready, skipping save')
+            return
+        }
+
         const editKey = getEditKey(propertyKey, language)
 
         // Clear any pending debounced save
@@ -98,7 +115,7 @@ function PropertiesContent() {
 
         // Save immediately
         setTimeout(() => commitChanges(propertyKey, language, value), 100)
-    }, [])
+    }, [user])
 
     // Toast notification function
     const showToast = useCallback((message: string) => {
@@ -169,10 +186,10 @@ function PropertiesContent() {
     }, [searchParams])
 
     useEffect(() => {
-        if (isInitialized) {
+        if (isInitialized && user && user.mainProjectId) {
             loadProperties()
         }
-    }, [currentPage, pageSize, searchTerm, selectedLanguage, verifiedFilter, reviewedFilter, orderBy, orderDirection, isInitialized])
+    }, [currentPage, pageSize, searchTerm, selectedLanguage, verifiedFilter, reviewedFilter, orderBy, orderDirection, isInitialized, user])
 
     // Update URL when filters change (but not during initialization)
     useEffect(() => {
@@ -198,12 +215,20 @@ function PropertiesContent() {
             property.values.forEach(value => {
                 const editKey = getEditKey(property.key, value.language)
                 newEditingValues[editKey] = { ...value }
+                // Initialize last-saved value from loaded properties
+                lastSavedValuesRef.current[editKey] = { ...value }
             })
         })
         setEditingValues(newEditingValues)
     }, [properties])
 
     const loadProperties = async () => {
+        // Early return if user is not ready or mainProjectId is not set
+        if (!user || user.mainProjectId == null) {
+            console.log('loadProperties: User or mainProjectId not available', { user, mainProjectId: user?.mainProjectId })
+            return
+        }
+
         setLoading(true)
         setError(null)
 
@@ -218,7 +243,6 @@ function PropertiesContent() {
                 orderBy,
                 orderDirection
             }
-            if (user?.mainProjectId == null) throw new Error("User's main project ID is not set.")
 
             const response: PropertySearchResponse = await new PropertyService(user.mainProjectId).searchProperties(request)
 
@@ -245,7 +269,9 @@ function PropertiesContent() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
         setCurrentPage(1) // Reset to first page
-        loadProperties()
+        if (user && user.mainProjectId) {
+            loadProperties()
+        }
     }
 
     const clearFilters = () => {
@@ -291,6 +317,20 @@ function PropertiesContent() {
             return
         }
 
+        // Prevent duplicate saves: if value is identical to last saved, skip
+        const lastSaved = lastSavedValuesRef.current[editKey]
+        if (lastSaved && lastSaved.text === editingValue.text && lastSaved.isVerified === editingValue.isVerified && lastSaved.isReviewed === editingValue.isReviewed) {
+            console.log('commitChanges: No changes since last save for', editKey)
+            return
+        }
+
+        // Prevent concurrent saves for same field
+        if (inFlightSaveRef.current[editKey]) {
+            console.log('commitChanges: Save already in progress for', editKey)
+            return
+        }
+        inFlightSaveRef.current[editKey] = true
+
         setSavingValues(prev => ({ ...prev, [editKey]: true }))
 
         try {
@@ -319,6 +359,9 @@ function PropertiesContent() {
                 return property
             }))
 
+            // Update last-saved after successful save
+            lastSavedValuesRef.current[editKey] = { ...editingValue }
+
             // Show success toast
             showToast('Saved')
 
@@ -331,6 +374,8 @@ function PropertiesContent() {
                 delete newState[editKey]
                 return newState
             })
+            // Mark in-flight save as finished
+            inFlightSaveRef.current[editKey] = false
         }
     }
 
@@ -472,14 +517,14 @@ function PropertiesContent() {
                     <button onClick={() => window.location.href = '/home'} className="back-btn">
                         ← Dashboard
                     </button>
-                    <button onClick={logout} className="logout-btn">
+                    <button onClick={() => signOut({ redirect: false }).then(() => window.location.href = '/login')} className="logout-btn">
                         Logout
                     </button>
                 </div>
             </header>
 
             <div className="properties-content">
-                {/* Filtri e Ricerca */}
+                {/* Filters */}
                 <div className="filters-section">
                     <form onSubmit={handleSearch} className="search-form">
                         <div className="search-group">
@@ -583,7 +628,7 @@ function PropertiesContent() {
                     </div>
                 )}
 
-                {/* Lista Properties */}
+                {/* Properties */}
                 {!loading && !error && (
                     <div className="properties-list">
                         {properties.map((property) => (
@@ -660,7 +705,7 @@ function PropertiesContent() {
                     </div>
                 )}
 
-                {/* Paginazione */}
+                {/* Pagination */}
                 {!loading && !error && totalPages > 1 && (
                     <div className="pagination-section">
                         {renderPagination()}

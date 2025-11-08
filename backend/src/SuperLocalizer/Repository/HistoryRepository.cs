@@ -1,21 +1,22 @@
+using System.Threading.Tasks;
 using SuperLocalizer.Model;
 
 namespace SuperLocalizer.Repository;
 
 public interface IHistoryRepository
 {
-    void SaveHistory(string valueKey, Value previousValue, Value newValue);
-    SearchResponse<HistoryItem> SearchHistory(SearchHistoryRequest request);
+    Task SaveHistory(int projectId, string valueKey, CurrentUser user, Value previousValue, Value newValue);
+    Task<SearchResponse<HistoryItem>> SearchHistory(int projectId, SearchHistoryRequest request);
 }
 
 public class HistoryRepository : IHistoryRepository
 {
-    public void SaveHistory(string valueKey, Value previousValue, Value newValue)
+    public Task SaveHistory(int projectId, string valueKey, CurrentUser user, Value previousValue, Value newValue)
     {
         throw new System.NotImplementedException();
     }
 
-    public SearchResponse<HistoryItem> SearchHistory(SearchHistoryRequest request)
+    public Task<SearchResponse<HistoryItem>> SearchHistory(int projectId, SearchHistoryRequest request)
     {
         throw new System.NotImplementedException();
     }

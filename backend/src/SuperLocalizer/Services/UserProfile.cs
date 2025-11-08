@@ -14,7 +14,7 @@ namespace SuperLocalizer.Services;
 public interface IUserProfile
 {
     Task<CurrentUser> GetCurrentUser();
-    string GenerateJwtToken(string username);
+    Task<string> GenerateJwtToken(string username);
 }
 
 public class UserProfile : IUserProfile
@@ -30,11 +30,18 @@ public class UserProfile : IUserProfile
         _configuration = configuration;
     }
 
-    public string GenerateJwtToken(string username)
+    public async Task<string> GenerateJwtToken(string username)
     {
+        var user = await _userRepository.GetByUsername(username);
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
+            new Claim(ClaimTypes.NameIdentifier, username),
+            new Claim("id", user.Id.ToString()),
+            new Claim("companyId", user?.CompanyId.ToString() ?? string.Empty),
+            new Claim("companyName", user?.CompanyName ?? string.Empty),
+            new Claim("mainProjectId", user?.MainProjectId.ToString() ?? string.Empty),
+            new Claim("mainProjectName", user?.MainProjectName ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 

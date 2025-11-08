@@ -8,4 +8,5 @@ public static class CacheKeys
     public static string AllProperties(int projectId) => $"all_properties_{projectId}";
     // public static string AllValues(int propertyId) => $"all_values_{propertyId}";
     public static string AllComments(string valueKey) => $"all_comments_{valueKey}";
+    public static string AllHistories(int projectId) => $"all_histories_{projectId}";
 }

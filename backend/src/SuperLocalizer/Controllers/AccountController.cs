@@ -70,11 +70,10 @@ public class AccountController : ControllerBase
             return this.Unauthorized();
         }
 
-        var token = _userProfile.GenerateJwtToken(user.Username);
+        var token = await _userProfile.GenerateJwtToken(user.Username);
         return Ok(new LoginResponse
         {
             Token = token,
-            User = null,
         });
     }
 
@@ -82,7 +81,7 @@ public class AccountController : ControllerBase
     /// Registers a new user with the provided credentials.
     /// </summary>
     [HttpPost("signup")]
-    public async Task<IActionResult> Signup([FromBody] LoginRequest request, string invitationToken)
+    public async Task<IActionResult> Signup([FromBody] LoginRequest request, [FromQuery] string invitationToken)
     {
         var user = new User
         {
@@ -128,6 +127,49 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
+    /// Handles social login (Google OAuth) by creating or retrieving user and returning JWT token.
+    /// </summary>
+    /// <param name="request">The social login request containing Google user info.</param>
+    /// <returns>An IActionResult containing the JWT token and user info.</returns>
+    [HttpPost("social-signin")]
+    public async Task<IActionResult> SocialLogin([FromBody] SocialLoginRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.Email))
+        {
+            return BadRequest("Invalid social login request");
+        }
+
+        // Check if user exists by email
+        var existingUser = await _userRepository.GetByUsername(request.Email);
+
+        if (existingUser == null)
+        {
+            // Create new user from social login
+            var newUser = new User
+            {
+                Username = request.Email,
+                Email = request.Email,
+                // No password hash for social login users
+                PasswordHash = null,
+                // You might want to add additional fields for social login
+                // SocialProvider = "google",
+                // SocialId = request.Id
+            };
+
+            await _userRepository.CreateAsync(newUser);
+            existingUser = newUser;
+        }
+
+        var token = _userProfile.GenerateJwtToken(existingUser.Username);
+        var currentUser = await _userProfile.GetCurrentUser();
+
+        return Ok(new LoginResponse
+        {
+            Token = await token,
+        });
+    }
+
+    /// <summary>
     /// Gets the currently authenticated user's profile.
     /// </summary>
     [HttpGet("user")]
@@ -161,5 +203,30 @@ public class LoginRequest
 public class LoginResponse
 {
     public string Token { get; set; }
-    public CurrentUser User { get; set; }
+}
+
+/// <summary>
+/// Represents a social login request from OAuth providers like Google.
+/// </summary>
+public class SocialLoginRequest
+{
+    /// <summary>
+    /// Gets or sets the user's email from the OAuth provider.
+    /// </summary>
+    public string Email { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user's name from the OAuth provider.
+    /// </summary>
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the OAuth provider (e.g., "google").
+    /// </summary>
+    public string Provider { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user's ID from the OAuth provider.
+    /// </summary>
+    public string ProviderId { get; set; }
 }

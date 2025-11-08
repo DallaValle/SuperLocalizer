@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -8,17 +10,20 @@ namespace SuperLocalizer.Repository;
 public class HistoryRepositoryInMemory : IHistoryRepository
 {
     private readonly IFusionCache _fusionCache;
-    private readonly Dictionary<string, Stack<HistoryItem>> _historyStorage = new();
 
     public HistoryRepositoryInMemory(IFusionCache fusionCache)
     {
         _fusionCache = fusionCache;
     }
 
-    public SearchResponse<HistoryItem> SearchHistory(SearchHistoryRequest request)
+    public Task<SearchResponse<HistoryItem>> SearchHistory(int projectId, SearchHistoryRequest request)
     {
+        var allHistories = _fusionCache.GetOrSet(
+            key: CacheKeys.AllHistories(projectId),
+            new Dictionary<string, Stack<HistoryItem>>()
+        );
         var allItems = new List<HistoryItem>();
-        foreach (var itemList in _historyStorage.Values)
+        foreach (var itemList in allHistories.Values)
         {
             allItems.AddRange(itemList);
         }
@@ -52,24 +57,28 @@ public class HistoryRepositoryInMemory : IHistoryRepository
             pagedItems = allItems.GetRange((request.Page.Value - 1) * request.Size.Value, Math.Min(request.Size.Value, totalItems - (request.Page.Value - 1) * request.Size.Value));
         }
 
-        return new SearchResponse<HistoryItem>
+        return Task.FromResult(new SearchResponse<HistoryItem>
         {
             Items = pagedItems,
             Page = request.Page ?? 1,
             Size = request.Size ?? totalItems,
             TotalItems = totalItems,
             TotalPages = (int)Math.Ceiling((double)totalItems / (request.Size ?? totalItems))
-        };
+        });
     }
 
-    public void SaveHistory(string valueKey, Value previousValue, Value newValue)
+    public Task SaveHistory(int projectId, string valueKey, CurrentUser user, Value previousValue, Value newValue)
     {
+        var allHistories = _fusionCache.GetOrSet(
+            key: CacheKeys.AllHistories(projectId),
+            new Dictionary<string, Stack<HistoryItem>>()
+        );
         previousValue.Comments = null; // Exclude comments from history
         newValue.Comments = null; // Exclude comments from history
 
         if (previousValue == newValue)
         {
-            return; // No changes detected
+            return Task.CompletedTask; // No changes detected
         }
 
         var historyItem = new HistoryItem
@@ -78,33 +87,36 @@ public class HistoryRepositoryInMemory : IHistoryRepository
             PreviousValue = previousValue,
             NewValue = newValue,
             Timestamp = DateTime.UtcNow,
-            UserName = "Admin" // Replace with actual user retrieval logic
+            UserName = user.Username,
+            UserId = user.Id,
         };
 
-        if (!_historyStorage.ContainsKey(valueKey))
+        if (!allHistories.ContainsKey(valueKey))
         {
-            _historyStorage[valueKey] = new Stack<HistoryItem>();
+            allHistories[valueKey] = new Stack<HistoryItem>();
         }
         // Add the new history item or merge changes arrived in the similar time
-        if (_historyStorage[valueKey].Count == 0)
+        if (allHistories[valueKey].Count == 0)
         {
-            _historyStorage[valueKey].Push(historyItem);
+            allHistories[valueKey].Push(historyItem);
         }
         else
         {
-            var last = _historyStorage[key: valueKey].Pop();
+            var last = allHistories[key: valueKey].Pop();
             if (last.Timestamp.AddMilliseconds(2000) < historyItem.Timestamp)
             {
-                _historyStorage[valueKey].Push(last); // Put back the last item
-                _historyStorage[valueKey].Push(historyItem); // Add the new item
+                allHistories[valueKey].Push(last); // Put back the last item
+                allHistories[valueKey].Push(historyItem); // Add the new item
             }
             else
             {
                 // Merge timestamps if no significant changes
                 last.Timestamp = historyItem.Timestamp;
                 last.NewValue = historyItem.NewValue;
-                _historyStorage[valueKey].Push(last);
+                allHistories[valueKey].Push(last);
             }
         }
+        _fusionCache.Set(key: CacheKeys.AllHistories(projectId), value: allHistories);
+        return Task.CompletedTask;
     }
 }

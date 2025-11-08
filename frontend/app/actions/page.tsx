@@ -1,9 +1,10 @@
 'use client'
 
-import { useAuth } from '../contexts/AuthContext'
 import { SettingService } from '../services/SettingService'
 import { useEffect, useState } from 'react'
+import { useSession, signOut } from 'next-auth/react'
 import './Actions.css'
+import { User } from '../types/domain'
 
 interface ImportStatus {
     isLoading: boolean;
@@ -25,7 +26,8 @@ const SUPPORTED_LANGUAGES = [
 ];
 
 export default function ActionsPage() {
-    const { logout, user } = useAuth()
+    const { data: session } = useSession()
+    const user = session?.user as User || null
     const [settingService, setSettingService] = useState<SettingService | null>(null)
 
     // Import states
@@ -49,10 +51,6 @@ export default function ActionsPage() {
             setSettingService(new SettingService(user.mainProjectId))
         }
     }, [user])
-
-    const handleLogout = () => {
-        logout()
-    }
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0] || null
@@ -132,24 +130,16 @@ export default function ActionsPage() {
 
     return (
         <div className="actions-page">
-            <header className="actions-header">
+            <header className="properties-header">
                 <div className="header-title">
                     <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
                 </div>
-                <div className="header-nav">
-                    <button onClick={() => window.location.href = '/home'} className="nav-btn">
-                        Dashboard
+                <div className="header-actions">
+                    <div className="account-tab">{user && user.username ? user.username : ''}</div>
+                    <button onClick={() => window.location.href = '/home'} className="back-btn">
+                        ← Dashboard
                     </button>
-                    <button onClick={() => window.location.href = '/properties'} className="nav-btn">
-                        Properties
-                    </button>
-                    <button onClick={() => window.location.href = '/configuration'} className="nav-btn">
-                        Configuration
-                    </button>
-                </div>
-                <div className="user-info">
-                    <span>{user && user.username ? user.username : ''}</span>
-                    <button onClick={handleLogout} className="logout-btn">
+                    <button onClick={() => signOut({ redirect: false }).then(() => window.location.href = '/login')} className="logout-btn">
                         Logout
                     </button>
                 </div>

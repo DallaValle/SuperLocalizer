@@ -2,11 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CommentService } from '../services/CommentService'
-import type {
-    Comment,
-    CreateCommentRequest,
-    UpdateCommentRequest
-} from '../types/domain';
+import type { Comment, CreateCommentRequest, UpdateCommentRequest } from '../types/domain';
 import './CommentsModal.css'
 
 interface CommentsModalProps {
@@ -128,7 +124,7 @@ export default function CommentsModal({
         setLoading(true)
         setError(null)
         try {
-            await CommentService.deleteComment(comment.id)
+            await CommentService.deleteComment(valueKey, comment.id)
             setComments(prev => prev.filter(c => c.id !== comment.id))
             onCommentsUpdated?.()
         } catch (err) {
@@ -170,7 +166,6 @@ export default function CommentsModal({
 
                     {loading && <div className="loading-message">Loading...</div>}
 
-                    {/* Lista commenti esistenti */}
                     <div className="comments-list">
                         {comments.length === 0 && !loading ? (
                             <p className="no-comments">No comments available</p>
@@ -239,7 +234,6 @@ export default function CommentsModal({
                         )}
                     </div>
 
-                    {/* Form per nuovo commento */}
                     <div className="add-comment-section">
                         <h4>Add new comment</h4>
                         <div className="add-comment-field">

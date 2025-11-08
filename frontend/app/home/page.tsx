@@ -3,14 +3,12 @@
 import { useAuth } from '../contexts/AuthContext'
 import { PropertyService } from '../services/PropertyService'
 import { HistoryService } from '../services/HistoryService'
-import { AuthService } from '../services/AuthService'
 import type { HistoryItem, PropertySearchRequest } from '../types/domain'
 import { useEffect, useState } from 'react'
 import './Home.css'
 
 export default function HomePage() {
-    const { logout, token, user } = useAuth()
-    const [fetchedUser, setFetchedUser] = useState<typeof user | null>(null)
+    const { logout, user } = useAuth()
     const [pendingReviews, setPendingReviews] = useState<string>("0")
     const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
     const [supportedLanguages, setSupportedLanguages] = useState<string>("0")
@@ -46,14 +44,7 @@ export default function HomePage() {
         }
     }
 
-    const fetchCurrentUser = async () => {
-        try {
-            const u = await AuthService.getCurrentUser()
-            if (u) setFetchedUser(u)
-        } catch (error) {
-            console.error('Error fetching current user:', error)
-        }
-    }
+
 
     const fetchSupportedLanguages = async () => {
         try {
@@ -76,12 +67,19 @@ export default function HomePage() {
     const fetchTodayActivity = async () => {
         try {
             setIsActivityLoading(true)
+            if (user?.mainProjectId == null) {
+                // No project selected — nothing to load
+                setRecentActivity([])
+                return
+            }
             const today = new Date()
             // Format: YYYY-MM-DDTHH:mm:ss (start of day)
             const todayStart = new Date(today.setHours(0, 0, 0, 0)).toISOString().slice(0, 19)
             const todayEnd = new Date(today.setHours(23, 59, 59, 999)).toISOString().slice(0, 19)
 
+            const projectId = user.mainProjectId!
             const response = await HistoryService.searchHistory({
+                projectId,
                 fromDate: todayStart,
                 toDate: todayEnd,
                 page: 1,
@@ -132,11 +130,12 @@ export default function HomePage() {
     }
 
     useEffect(() => {
-        fetchPendingReviews()
-        fetchTodayActivity()
-        fetchCurrentUser()
-        fetchSupportedLanguages()
-    }, [])
+        if (user) {
+            fetchPendingReviews()
+            fetchTodayActivity()
+            fetchSupportedLanguages()
+        }
+    }, [user])
 
     return (
         <div className="home-container">
@@ -156,32 +155,30 @@ export default function HomePage() {
                 {/* Navigation Cards */}
                 <div className="navigation-section">
                     <div className="user-info-tab">
-                        {((fetchedUser || user)?.companyName == null && (fetchedUser || user)?.mainProjectName == null) ? (
+                        {(user?.companyName == null && user?.mainProjectName == null) ? (
                             <>
                                 <div className="account-line"><strong>Hey! Not ready yet? Go to configuration to create your first Company and Project! ↓ ↓ ↓ ↓ ↓</strong></div>
-                                <div className='account-line'>:)</div>
                             </>
                         ) : (
                             <>
-                                <div className="account-line"><strong>Company:</strong> {(fetchedUser || user)?.companyName ?? '—'}</div>
-                                <div className="account-line"><strong>Project:</strong> {((fetchedUser || user) && (fetchedUser || user)!.mainProjectName) ?? '—'}</div>
+                                <div className="account-line"><strong>Company:</strong> {user?.companyName ?? '—'}</div>
+                                <div className="account-line"><strong>Project:</strong> {user?.mainProjectName ?? '—'}</div>
                             </>
                         )}
                     </div>
                     <div className="navigation-cards">
                         {/* If mainProjectId is not set, prevent navigation to /properties */}
                         <a
-                            href={((fetchedUser || user)?.mainProjectId == null) ? '#'
-                                : '/properties'}
-                            className={"nav-card" + (((fetchedUser || user)?.mainProjectId == null) ? ' disabled' : '')}
-                            aria-disabled={((fetchedUser || user)?.mainProjectId == null) ? 'true' : undefined}
-                            aria-describedby={((fetchedUser || user)?.mainProjectId == null) ? 'manage-translations-tooltip' : undefined}
+                            href={user?.mainProjectId == null ? '#' : '/properties'}
+                            className={"nav-card" + (user?.mainProjectId == null ? ' disabled' : '')}
+                            aria-disabled={user?.mainProjectId == null ? 'true' : undefined}
+                            aria-describedby={user?.mainProjectId == null ? 'manage-translations-tooltip' : undefined}
                         >
                             <div className="nav-card-icon">📝</div>
                             <h3>Manage Translations</h3>
                             <p>View and edit all translations</p>
 
-                            {((fetchedUser || user)?.mainProjectId == null) && (
+                            {user?.mainProjectId == null && (
                                 <span id="manage-translations-tooltip" className="nav-tooltip" role="tooltip">
                                     🏃‍♂️ Kick things off! Create your first project in Configuration!
                                 </span>
@@ -219,7 +216,7 @@ export default function HomePage() {
 
                     <div className="dashboard-card">
                         <h3>Completed Translations</h3>
-                        <p className="card-number">1,247</p>
+                        <p className="card-number">{recentActivity.length}</p>
                         <p className="card-description">Keys translated this month</p>
                     </div>
 

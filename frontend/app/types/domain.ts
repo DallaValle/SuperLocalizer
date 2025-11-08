@@ -89,6 +89,7 @@ export interface HistoryItem {
 }
 
 export interface HistorySearchRequest {
+    projectId: number;
     page: number;
     size: number;
     propertyKey?: string;

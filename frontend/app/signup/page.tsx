@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
-import { AuthService } from '../services/AuthService'
+import { AccountService } from '../services/AccoutService'
 import Link from 'next/link'
 import '../login/Login.css'
 
@@ -29,16 +29,15 @@ export default function SignupPage() {
         setLoading(true)
         try {
             // attempt signup via service
-            await AuthService.signUp(username, password)
+            const searchParams = new URLSearchParams(window.location.search)
+            const invitationToken = searchParams.get('invitationToken')
+            await AccountService.signUp(username, password, invitationToken || undefined)
 
             // If signup succeeded, try to sign in automatically
             try {
-                const data = await AuthService.signIn(username, password)
-                if (data && data.token) {
-                    login(data)
-                    router.push('/home')
-                    return
-                }
+                await login(username, password)
+                router.push('/home')
+                return
             } catch (signinErr) {
                 // Signin after signup failed; continue to fallback to login page
                 console.warn('Signin after signup failed', signinErr)
