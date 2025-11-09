@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,17 +23,6 @@ namespace SuperLocalizer.Controllers
             _propertyRepository = propertyRepository;
             _historyRepository = historyRepository;
             _userProfile = userProfile;
-        }
-
-        /// <summary>
-        /// Get all supported languages for a project
-        /// </summary>
-        [HttpGet("all-languages")]
-        public IActionResult GetAllSupportedLanguages(int projectId)
-        {
-            var allProperties = _propertyRepository.GetProperties(projectId, new SearchPropertyRequest() { Page = 1, Size = 1 });
-            var current = allProperties.Items.FirstOrDefault();
-            return Ok(current?.Values?.Select(_ => _.Language)?.ToList() ?? new List<string>());
         }
 
         /// <summary>

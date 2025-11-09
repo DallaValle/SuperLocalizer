@@ -11,5 +11,5 @@ public class Project
     public DateTime InsertDate { get; set; }
     public DateTime? UpdateDate { get; set; }
     public int CompanyId { get; set; }
-    public List<string> Languages { get; set; }
+    public List<string> Languages { get; set; } = new List<string>();
 }

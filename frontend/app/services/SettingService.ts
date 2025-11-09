@@ -1,5 +1,4 @@
 import { HttpClient } from '../utils/HttpClient';
-import { API_CONFIG } from '../types/api';
 
 /**
  * Service for managing import/export operations for localization files
@@ -35,24 +34,7 @@ export class SettingService {
 
         const url = `${this.endpointUpload()}?language=${encodeURIComponent(language)}`;
 
-        // Use direct fetch for file upload since HttpClient doesn't handle FormData properly
-        const token = localStorage.getItem('auth-token');
-        const headers: Record<string, string> = {};
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
-            method: 'POST',
-            headers,
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`Import failed: ${response.statusText}`);
-        }
-
-        return response.text();
+        return HttpClient.postFormData<string>(url, formData);
     }
 
     /**
@@ -61,26 +43,9 @@ export class SettingService {
      * @returns Promise<Blob> The file data as a blob
      */
     async exportFile(language: string): Promise<Blob> {
-        const url = `${this.endpointDownload()}?targetLanguage=${encodeURIComponent(language)}`;
+        const url = `${this.endpointDownload()}?language=${encodeURIComponent(language)}`;
 
-        const token = localStorage.getItem('auth-token');
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json'
-        };
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
-            method: 'POST',
-            headers
-        });
-
-        if (!response.ok) {
-            throw new Error(`Export failed: ${response.statusText}`);
-        }
-
-        return response.blob();
+        return HttpClient.download(url, { method: 'POST' });
     }
 
     /**

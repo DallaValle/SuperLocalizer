@@ -17,6 +17,12 @@ interface ExportStatus {
     error: string | null;
 }
 
+interface SnapshotStatus {
+    isLoading: boolean;
+    message: string | null;
+    error: string | null;
+}
+
 const SUPPORTED_LANGUAGES = [
     { code: 'en', name: 'English' },
     { code: 'de-CH', name: 'German (Switzerland)' },
@@ -43,6 +49,13 @@ export default function ActionsPage() {
     const [exportLanguage, setExportLanguage] = useState<string>('en')
     const [exportStatus, setExportStatus] = useState<ExportStatus>({
         isLoading: false,
+        error: null
+    })
+
+    // Snapshot states
+    const [snapshotStatus, setSnapshotStatus] = useState<SnapshotStatus>({
+        isLoading: false,
+        message: null,
         error: null
     })
 
@@ -120,11 +133,21 @@ export default function ActionsPage() {
     const handleSaveSnapshot = async () => {
         if (!settingService) return
 
+        setSnapshotStatus({ isLoading: true, message: null, error: null })
+
         try {
             const result = await settingService.saveSnapshot()
-            alert(result || 'Snapshot saved successfully')
+            setSnapshotStatus({
+                isLoading: false,
+                message: result || 'Snapshot saved successfully',
+                error: null
+            })
         } catch (error) {
-            alert(`Failed to save snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            setSnapshotStatus({
+                isLoading: false,
+                message: null,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            })
         }
     }
 
@@ -267,10 +290,23 @@ export default function ActionsPage() {
                         <div className="action-content">
                             <button
                                 onClick={handleSaveSnapshot}
+                                disabled={snapshotStatus.isLoading}
                                 className="action-btn snapshot-btn"
                             >
-                                Save Snapshot
+                                {snapshotStatus.isLoading ? 'Saving...' : 'Save Snapshot'}
                             </button>
+
+                            {snapshotStatus.message && (
+                                <div className="status-message success">
+                                    {snapshotStatus.message}
+                                </div>
+                            )}
+
+                            {snapshotStatus.error && (
+                                <div className="status-message error">
+                                    {snapshotStatus.error}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

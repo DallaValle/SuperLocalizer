@@ -46,6 +46,6 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export interface RequestOptions {
     method: HttpMethod;
     headers?: Record<string, string>;
-    body?: string;
+    body?: string | FormData;
     timeout?: number;
 }

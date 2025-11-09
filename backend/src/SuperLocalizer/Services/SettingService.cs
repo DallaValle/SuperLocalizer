@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
+using SuperLocalizer.Repository;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace SuperLocalizer.Services;
@@ -15,7 +15,7 @@ public interface ISettingService
 {
     Task<List<MergeError>> ImportAsync(int projectId, IFormFile file, string language);
     Task<byte[]> ExportAsync(int projectId, string targetLanguage);
-    Task SaveSnapshotAsync(int projectId);
+    Task SaveSnapshotAsync(int projectId, List<string> languages);
 }
 
 public class SettingService : ISettingService
@@ -23,14 +23,18 @@ public class SettingService : ISettingService
     private readonly IPropertyReaderService _propertyReader;
     private readonly IFusionCache _fusionCache;
     private readonly FileService _fileService;
-    private readonly string _connectionString;
+    private readonly ISnapshotRepository _snapshotRepository;
 
-    public SettingService(IPropertyReaderService propertyReader, IFusionCache fusionCache, FileService fileService, IConfiguration configuration)
+    public SettingService(
+        IPropertyReaderService propertyReader,
+        IFusionCache fusionCache,
+        FileService fileService,
+        ISnapshotRepository snapshotRepository)
     {
         _propertyReader = propertyReader;
         _fusionCache = fusionCache;
         _fileService = fileService;
-        _connectionString = configuration.GetConnectionString("DefaultConnection");
+        _snapshotRepository = snapshotRepository;
     }
 
     public async Task<List<MergeError>> ImportAsync(int projectId, IFormFile file, string language)
@@ -55,22 +59,18 @@ public class SettingService : ISettingService
         return Task.FromResult(fileBytes);
     }
 
-    public Task SaveSnapshotAsync(int projectId)
+    public async Task SaveSnapshotAsync(int projectId, List<string> languages)
     {
         var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new Dictionary<string, Property>());
-        var json = _propertyReader.UnLoad(allProperties.Values.ToList(), "all");
+        var snapshot = new Dictionary<string, JObject>();
+        foreach (var lang in languages)
+        {
+            var langProperties = allProperties.Values.ToList().FindAll(p => p.Values.Exists(v => v.Language == lang));
+            var langJson = _propertyReader.UnLoad(langProperties, lang);
+            snapshot[lang] = langJson;
+        }
         // save snapshot inside my sql for now
-        using var connection = new MySql.Data.MySqlClient.MySqlConnection(_connectionString);
-        connection.Open();
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-            INSERT INTO ProjectSnapshot (ProjectId, SnapshotData, InsertDate)
-            VALUES (@ProjectId, @SnapshotData, @InsertDate)";
-        command.Parameters.AddWithValue("@ProjectId", projectId);
-        command.Parameters.AddWithValue("@SnapshotData", json.ToString());
-        command.Parameters.AddWithValue("@InsertDate", System.DateTime.UtcNow);
-        command.ExecuteNonQuery();
-        return Task.CompletedTask;
+        await _snapshotRepository.SaveSnapshotAsync(projectId, snapshot.ToString());
     }
 }
 

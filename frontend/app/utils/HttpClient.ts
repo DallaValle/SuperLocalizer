@@ -67,7 +67,7 @@ export class HttpClient {
                 // Handle empty responses
                 const contentType = response.headers.get('content-type');
                 if (!contentType?.includes('application/json')) {
-                    return {} as T;
+                    return response.text() as unknown as T;
                 }
 
                 return await response.json() as T;
@@ -94,12 +94,70 @@ export class HttpClient {
     }
 
     /**
-     * GET request
+     * Makes an HTTP request without default headers (for FormData uploads)
      */
-    static async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
-        const options: RequestOptions = { method: 'GET' };
-        if (headers) options.headers = headers;
-        return this.request<T>(endpoint, options);
+    static async requestWithoutDefaults<T>(
+        endpoint: string,
+        options: RequestOptions = { method: 'GET' }
+    ): Promise<T> {
+        const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[HttpClient] Request URL:', url, 'Options:', options);
+        }
+        const timeout = options.timeout ?? API_CONFIG.TIMEOUT;
+        const authHeaders = await this.getAuthHeaders();
+
+        let lastError: Error;
+
+        for (let attempt = 1; attempt <= API_CONFIG.RETRY_ATTEMPTS; attempt++) {
+            try {
+                const response = await this.fetchWithTimeout(url, {
+                    ...options,
+                    headers: {
+                        ...authHeaders,
+                        ...options.headers,
+                    },
+                }, timeout);
+
+                if (!response.ok) {
+                    // Handle 401 Unauthorized - token expired or invalid
+                    if (response.status === 401) {
+                        await this.handleUnauthorized();
+                    }
+
+                    throw new ApiRequestError(
+                        `HTTP ${response.status}: ${response.statusText}`,
+                        response.status
+                    );
+                }
+
+                // Handle empty responses
+                const contentType = response.headers.get('content-type');
+                if (!contentType?.includes('application/json')) {
+                    return response.text() as unknown as T;
+                }
+
+                return await response.json() as T;
+            } catch (error) {
+                if (process.env.NODE_ENV !== 'production') {
+                    // eslint-disable-next-line no-console
+                    console.error('[HttpClient] Error for URL:', url, error);
+                }
+                lastError = error instanceof Error ? error : new Error('Unknown error');
+
+                // Don't retry for client errors (4xx), especially 401 Unauthorized
+                if (error instanceof ApiRequestError && error.status >= 400 && error.status < 500) {
+                    throw error;
+                }
+
+                // Wait before retry (except on last attempt)
+                if (attempt < API_CONFIG.RETRY_ATTEMPTS) {
+                    await this.delay(API_CONFIG.RETRY_DELAY * attempt);
+                }
+            }
+        }
+
+        throw lastError!;
     }
 
     /**
@@ -145,12 +203,74 @@ export class HttpClient {
     }
 
     /**
-     * DELETE request
+     * POST request with FormData (for file uploads)
      */
-    static async delete<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
-        const options: RequestOptions = { method: 'DELETE' };
-        if (headers) options.headers = headers;
-        return this.request<T>(endpoint, options);
+    static async postFormData<T>(
+        endpoint: string,
+        formData: FormData,
+        headers?: Record<string, string>
+    ): Promise<T> {
+        const options: RequestOptions = {
+            method: 'POST',
+            body: formData,
+            headers: {
+                // Don't set Content-Type for FormData, let browser set it with boundary
+                ...headers
+            }
+        };
+        // For FormData, we need to skip the default JSON headers
+        return this.requestWithoutDefaults<T>(endpoint, options);
+    }
+
+    static async download(
+        endpoint: string,
+        options: RequestOptions = { method: 'GET' }
+    ): Promise<Blob> {
+        const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+        const timeout = options.timeout ?? API_CONFIG.TIMEOUT;
+        const authHeaders = await this.getAuthHeaders();
+
+        let lastError: Error;
+
+        for (let attempt = 1; attempt <= API_CONFIG.RETRY_ATTEMPTS; attempt++) {
+            try {
+                const response = await this.fetchWithTimeout(url, {
+                    ...options,
+                    headers: {
+                        ...authHeaders,
+                        ...options.headers,
+                    },
+                }, timeout);
+
+                if (!response.ok) {
+                    // Handle 401 Unauthorized - token expired or invalid
+                    if (response.status === 401) {
+                        await this.handleUnauthorized();
+                    }
+
+                    throw new ApiRequestError(
+                        `HTTP ${response.status}: ${response.statusText}`,
+                        response.status
+                    );
+                }
+
+                return await response.blob();
+            } catch (error) {
+                lastError = error instanceof Error ? error : new Error('Unknown error');
+
+                // Don't retry for client errors (4xx), especially 401 Unauthorized
+                if (error instanceof ApiRequestError && error.status >= 400 && error.status < 500) {
+                    throw error;
+                }
+
+                // Wait before retry (except on last attempt)
+                if (attempt < API_CONFIG.RETRY_ATTEMPTS) {
+                    await this.delay(API_CONFIG.RETRY_DELAY * attempt);
+                }
+            }
+        }
+
+        throw lastError!;
     }
 
     /**

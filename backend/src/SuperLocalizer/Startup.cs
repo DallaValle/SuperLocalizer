@@ -140,6 +140,7 @@ namespace SuperLocalizer
 
             services.AddSingleton<IPropertyReaderService, PropertyReaderService>();
             services.AddSingleton<ISettingService, SettingService>();
+            services.AddSingleton<ISnapshotRepository, SnapshotRepository>();
             services.AddSingleton<FileService>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IUserProfile, UserProfile>();

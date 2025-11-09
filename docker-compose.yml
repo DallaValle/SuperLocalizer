@@ -4,10 +4,8 @@ services:
     container_name: superlocalizer-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: SuperLocalizer123!
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: superlocalizer
-      MYSQL_USER: superlocalizer
-      MYSQL_PASSWORD: SuperLocalizer123!
     ports:
       - "3306:3306"
     volumes:
@@ -40,8 +38,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - "ASPNETCORE_URLS=http://+:5000"
       - "Cors__AllowedOrigins=http://localhost:3000"
-      - "ConnectionStrings__DefaultConnection=Server=mysql;Database=superlocalizer;User=superlocalizer;Password=SuperLocalizer123!;"
-      - "DistributedCache__ConnectionString=redis:6379"
+      - "ConnectionStrings__DefaultConnection=Server=mysql;Database=superlocalizer;User=root;Password=root;"
+      - "ConnectionStrings__DistributedCache=redis:6379"
     depends_on:
       - mysql
     networks:
