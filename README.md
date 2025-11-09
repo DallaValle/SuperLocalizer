@@ -7,8 +7,9 @@ A localization management web application built as a full-stack solution for man
 
 - **Backend**: .NET 9.0 ASP.NET Core Web API
 - **Frontend**: Next.js 14 with TypeScript
-- **Architecture**: MVC pattern with Controllers, Models, Services, and Repository layers
-- **Testing**: NUnit framework with coverlet for code coverage
+- **Databases**:
+  - Redis with FusionCache .net library: [FusionCache Step by Step Guide](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md). (ready to use )
+  - MySql
 
 ## Features
 

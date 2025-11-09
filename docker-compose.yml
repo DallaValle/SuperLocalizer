@@ -17,6 +17,19 @@ services:
       - superlocalizer-network
     command: --default-authentication-plugin=mysql_native_password
 
+  redis:
+    image: redis:7.0-alpine
+    container_name: superlocalizer-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./db/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - superlocalizer-network
+
   backend:
     build:
       context: ./backend
@@ -25,9 +38,10 @@ services:
       - "5001:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:5000
-      - Cors__AllowedOrigins=http://localhost:3000
-      - ConnectionStrings__DefaultConnection=Server=mysql;Database=superlocalizer;User=superlocalizer;Password=SuperLocalizer123!;
+      - "ASPNETCORE_URLS=http://+:5000"
+      - "Cors__AllowedOrigins=http://localhost:3000"
+      - "ConnectionStrings__DefaultConnection=Server=mysql;Database=superlocalizer;User=superlocalizer;Password=SuperLocalizer123!;"
+      - "DistributedCache__ConnectionString=redis:6379"
     depends_on:
       - mysql
     networks:
@@ -55,4 +69,5 @@ networks:
 
 volumes:
   mysql-data:
+  redis-data:
   localization-data:

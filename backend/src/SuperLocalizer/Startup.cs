@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace SuperLocalizer
 {
@@ -105,11 +107,37 @@ namespace SuperLocalizer
                 });
             });
 
-            services.AddFusionCache()
-                .WithDefaultEntryOptions(options =>
-                {
-                    options.Duration = TimeSpan.FromMinutes(3000);
-                });
+            var distributedCacheConnection = Configuration["ConnectionStrings:DistributedCache"];
+
+            if (string.IsNullOrEmpty(distributedCacheConnection))
+            {
+                services.AddFusionCache()
+                    .WithDefaultEntryOptions(new FusionCacheEntryOptions
+                    {
+                        Duration = TimeSpan.FromMinutes(int.MaxValue),
+                    });
+            }
+            else
+            {
+                services.AddFusionCache()
+                    .WithDefaultEntryOptions(new FusionCacheEntryOptions
+                    {
+                        Duration = TimeSpan.FromMinutes(int.MaxValue),
+                        IsFailSafeEnabled = true,
+                        FailSafeMaxDuration = TimeSpan.FromHours(2),
+                        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+                        EagerRefreshThreshold = 0.9f,
+                        FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+                        FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
+                    })
+                    .WithSerializer(
+                        new FusionCacheSystemTextJsonSerializer()
+                    )
+                    .WithDistributedCache(
+                        new RedisCache(new RedisCacheOptions() { Configuration = distributedCacheConnection })
+                    );
+            }
+
             services.AddSingleton<IPropertyReaderService, PropertyReaderService>();
             services.AddSingleton<ISettingService, SettingService>();
             services.AddSingleton<FileService>();
