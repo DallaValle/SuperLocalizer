@@ -6,6 +6,7 @@ import { HistoryService } from '../services/HistoryService'
 import type { HistoryItem, PropertySearchRequest } from '../types/domain'
 import { useEffect, useState } from 'react'
 import './Home.css'
+import { ProjectService } from '../services/ProjectService'
 
 export default function HomePage() {
     const { logout, user } = useAuth()
@@ -49,12 +50,12 @@ export default function HomePage() {
     const fetchSupportedLanguages = async () => {
         try {
             setIsLanguagesLoading(true)
-            if (user?.mainProjectId == null) {
+            if (user?.mainProjectId == null || user?.companyId == null) {
                 setSupportedLanguages("-")
                 return
             }
 
-            const languages = await new PropertyService(user.mainProjectId).getAllLanguages()
+            const languages = await new ProjectService().getAllLanguages(user.companyId, user.mainProjectId)
             setSupportedLanguages(languages.length.toString())
         } catch (error) {
             console.error('Error fetching supported languages:', error)

@@ -1,4 +1,5 @@
 import { HttpClient } from '../utils/HttpClient';
+import { SnapshotItem } from '../types/domain';
 
 /**
  * Service for managing import/export operations for localization files
@@ -54,6 +55,26 @@ export class SettingService {
      */
     async saveSnapshot(): Promise<string> {
         return HttpClient.post<string>(this.endpointSnapshot());
+    }
+
+    /**
+     * Get snapshots for the project
+     * @param limit Maximum number of snapshots to retrieve
+     * @returns Promise<SnapshotItem[]> List of snapshots
+     */
+    async getSnapshots(limit: number = 10): Promise<SnapshotItem[]> {
+        const url = `${this.endpointSnapshot()}s?limit=${encodeURIComponent(limit)}`;
+        return HttpClient.get<SnapshotItem[]>(url);
+    }
+
+    /**
+     * Rollback to a specific snapshot
+     * @param snapshotId The ID of the snapshot to rollback to
+     * @returns Promise<string> Success message
+     */
+    async rollbackToSnapshot(snapshotId: number): Promise<string> {
+        const url = `${this.endpointSnapshot()}/rollback/${encodeURIComponent(snapshotId)}`;
+        return HttpClient.post<string>(url);
     }
 
     /**

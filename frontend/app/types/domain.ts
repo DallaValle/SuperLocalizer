@@ -188,3 +188,12 @@ export interface LoginResponse {
     token: string;
     user: User;
 }
+
+// Snapshot Types
+export interface SnapshotItem {
+    id: number;
+    projectId: number;
+    snapshotData: string;
+    description?: string;
+    insertDate: string;
+}

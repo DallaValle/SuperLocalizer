@@ -27,7 +27,7 @@ Content-Type: application/json
   "isReviewed": true
 }
 ###
-GET http://localhost:5000/project/1/property/all-languages
+GET http://localhost:5000/company/1/project/1/all-languages
 Authorization: Bearer {{login.response.body.token}}
 accept: application/json
 ###

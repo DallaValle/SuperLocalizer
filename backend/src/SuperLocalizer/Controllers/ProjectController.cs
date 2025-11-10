@@ -25,6 +25,18 @@ public class ProjectController : ControllerBase
     }
 
     /// <summary>
+    /// Get all supported languages for a project id
+    /// </summary>
+    [HttpGet("{id}/all-languages")]
+    public async Task<IActionResult> GetAllSupportedLanguages(int companyId, int id)
+    {
+        var project = await _projectRepository.GetByIdAsync(companyId, id);
+        if (project == null) return NotFound("Project not found.");
+        return Ok(project.Languages);
+    }
+
+
+    /// <summary>
     /// Set main project for current user
     /// </summary>
     [HttpPut("{id}/user")]

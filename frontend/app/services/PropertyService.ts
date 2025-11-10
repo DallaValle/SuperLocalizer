@@ -29,17 +29,6 @@ export class PropertyService {
         return `/project/${encodeURIComponent(this.projectId)}/property/${encodeURIComponent(propertyKey)}/${encodeURIComponent(language)}`;
     }
 
-    private endpointAllLanguages(): string {
-        return `/project/${encodeURIComponent(this.projectId)}/property/all-languages`;
-    }
-
-    /**
-     * Get all available languages for the project
-     */
-    async getAllLanguages(): Promise<string[]> {
-        return HttpClient.get<string[]>(this.endpointAllLanguages());
-    }
-
     /**
      * Search properties with filtering and pagination
      */

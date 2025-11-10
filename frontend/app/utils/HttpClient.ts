@@ -175,6 +175,15 @@ export class HttpClient {
     }
 
     /**
+     * GET request
+     */
+    static async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
+        const options: RequestOptions = { method: 'GET' };
+        if (headers) options.headers = headers;
+        return this.request<T>(endpoint, options);
+    }
+
+    /**
      * PUT request
      */
     static async put<T>(
@@ -222,6 +231,18 @@ export class HttpClient {
         return this.requestWithoutDefaults<T>(endpoint, options);
     }
 
+    /**
+     * DELETE request
+     */
+    static async delete<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
+        const options: RequestOptions = { method: 'DELETE' };
+        if (headers) options.headers = headers;
+        return this.request<T>(endpoint, options);
+    }
+
+    /**
+     * Download a file as Blob
+     */
     static async download(
         endpoint: string,
         options: RequestOptions = { method: 'GET' }

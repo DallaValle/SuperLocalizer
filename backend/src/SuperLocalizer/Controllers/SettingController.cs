@@ -81,4 +81,49 @@ public class SettingController : ControllerBase
         await _settingService.SaveSnapshotAsync(projectId, project.Languages);
         return Ok("Snapshot saved successfully.");
     }
+
+    /// <summary>
+    /// get snapshots for a project
+    /// </summary>
+    /// <param name="projectId"></param>
+    /// <param name="limit"></param>
+    /// <returns></returns>
+    [HttpGet("snapshots")]
+    public async Task<IActionResult> GetSnapshots(int projectId, int limit = 10)
+    {
+        var user = await _userProfile.GetCurrentUser();
+        if (user?.CompanyId == null)
+        {
+            return Unauthorized("User not authorized. Or company not found.");
+        }
+        var project = await _projectRepository.GetByIdAsync(user.CompanyId.Value, projectId);
+        if (project == null)
+        {
+            return NotFound("Project not found.");
+        }
+        var snapshots = await _settingService.GetSnapshotsAsync(projectId, limit);
+        return Ok(snapshots);
+    }
+
+    /// <summary>
+    /// rollback to a specific snapshot
+    /// </summary>
+    [HttpPost("snapshot/rollback/{snapshotId}")]
+    public async Task<IActionResult> RollbackToSnapshot(int projectId, int snapshotId)
+    {
+        var user = await _userProfile.GetCurrentUser();
+        if (user?.CompanyId == null)
+        {
+            return Unauthorized("User not authorized. Or company not found.");
+        }
+
+        var project = await _projectRepository.GetByIdAsync(user.CompanyId.Value, projectId);
+        if (project == null)
+        {
+            return NotFound("Project not found.");
+        }
+
+        await _settingService.RollbackToSnapshotAsync(snapshotId);
+        return Ok("Rollback completed successfully.");
+    }
 }

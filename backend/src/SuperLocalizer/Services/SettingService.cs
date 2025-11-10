@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
@@ -16,6 +17,8 @@ public interface ISettingService
     Task<List<MergeError>> ImportAsync(int projectId, IFormFile file, string language);
     Task<byte[]> ExportAsync(int projectId, string targetLanguage);
     Task SaveSnapshotAsync(int projectId, List<string> languages);
+    Task<List<SnapshotItem>> GetSnapshotsAsync(int projectId, int limit);
+    Task RollbackToSnapshotAsync(int snapshotId);
 }
 
 public class SettingService : ISettingService
@@ -70,7 +73,30 @@ public class SettingService : ISettingService
             snapshot[lang] = langJson;
         }
         // save snapshot inside my sql for now
-        await _snapshotRepository.SaveSnapshotAsync(projectId, snapshot.ToString());
+        await _snapshotRepository.SaveSnapshotAsync(projectId, JsonConvert.SerializeObject(snapshot));
+    }
+
+    public Task<List<SnapshotItem>> GetSnapshotsAsync(int projectId, int limit)
+    {
+        return _snapshotRepository.GetSnapshotsByProjectIdAsync(projectId, limit);
+    }
+
+    public async Task RollbackToSnapshotAsync(int snapshotId)
+    {
+        var snapshot = await _snapshotRepository.RollbackToSnapshotAsync(snapshotId);
+        var snapshotData = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(snapshot.SnapshotData);
+        if (snapshotData == null) return;
+
+        var allProperties = new Dictionary<string, Property>();
+        foreach (var (lang, json) in snapshotData)
+        {
+            var properties = _propertyReader.Load(json, lang, false, false);
+            foreach (var prop in properties)
+            {
+                allProperties[prop.Key] = prop;
+            }
+        }
+        _fusionCache.Set(CacheKeys.AllProperties(snapshot.ProjectId), allProperties);
     }
 }
 

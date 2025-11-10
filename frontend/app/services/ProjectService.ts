@@ -8,6 +8,7 @@ export class ProjectService {
         CREATE: (companyId: number) => `/company/${companyId}/project`,
         UPDATE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
         DELETE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
+        ALL_LANGUAGES: (companyId: number, id: number) => `/company/${companyId}/project/${id}/all-languages`,
         SET_MAIN: (companyId: number, id: number) => `/company/${companyId}/project/${id}/user`
     } as const;
 
@@ -34,6 +35,14 @@ export class ProjectService {
     static async deleteProject(companyId: number, id: number): Promise<void> {
         const endpoint = this.ENDPOINTS.DELETE(companyId, id);
         return HttpClient.delete<void>(endpoint);
+    }
+
+    /**
+     * Get all available languages for the project
+     */
+    async getAllLanguages(companyId: number, id: number): Promise<string[]> {
+        const endpoint = ProjectService.ENDPOINTS.ALL_LANGUAGES(companyId, id);
+        return HttpClient.get<string[]>(endpoint);
     }
 
     static async setMainProject(companyId: number, projectId: number): Promise<void> {

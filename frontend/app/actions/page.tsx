@@ -4,7 +4,7 @@ import { SettingService } from '../services/SettingService'
 import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import './Actions.css'
-import { User } from '../types/domain'
+import { User, SnapshotItem } from '../types/domain'
 
 interface ImportStatus {
     isLoading: boolean;
@@ -20,6 +20,17 @@ interface ExportStatus {
 interface SnapshotStatus {
     isLoading: boolean;
     message: string | null;
+    error: string | null;
+}
+
+interface SnapshotsStatus {
+    isLoading: boolean;
+    snapshots: SnapshotItem[];
+    error: string | null;
+}
+
+interface RollbackStatus {
+    isLoading: boolean;
     error: string | null;
 }
 
@@ -56,6 +67,19 @@ export default function ActionsPage() {
     const [snapshotStatus, setSnapshotStatus] = useState<SnapshotStatus>({
         isLoading: false,
         message: null,
+        error: null
+    })
+
+    // Snapshots list states
+    const [snapshotsStatus, setSnapshotsStatus] = useState<SnapshotsStatus>({
+        isLoading: false,
+        snapshots: [],
+        error: null
+    })
+
+    // Rollback states
+    const [rollbackStatus, setRollbackStatus] = useState<RollbackStatus>({
+        isLoading: false,
         error: null
     })
 
@@ -147,6 +171,46 @@ export default function ActionsPage() {
                 isLoading: false,
                 message: null,
                 error: error instanceof Error ? error.message : 'Unknown error'
+            })
+        }
+    }
+
+    const handleLoadSnapshots = async () => {
+        if (!settingService) return
+
+        setSnapshotsStatus({ isLoading: true, snapshots: [], error: null })
+
+        try {
+            const snapshots = await settingService.getSnapshots(10)
+            setSnapshotsStatus({
+                isLoading: false,
+                snapshots,
+                error: null
+            })
+        } catch (error) {
+            setSnapshotsStatus({
+                isLoading: false,
+                snapshots: [],
+                error: error instanceof Error ? error.message : 'Failed to load snapshots'
+            })
+        }
+    }
+
+    const handleRollback = async (snapshotId: number) => {
+        if (!settingService) return
+
+        setRollbackStatus({ isLoading: true, error: null })
+
+        try {
+            const result = await settingService.rollbackToSnapshot(snapshotId)
+            setRollbackStatus({ isLoading: false, error: null })
+            alert(result || 'Rollback completed successfully')
+            // Reload snapshots after rollback
+            await handleLoadSnapshots()
+        } catch (error) {
+            setRollbackStatus({
+                isLoading: false,
+                error: error instanceof Error ? error.message : 'Rollback failed'
             })
         }
     }
@@ -305,6 +369,65 @@ export default function ActionsPage() {
                             {snapshotStatus.error && (
                                 <div className="status-message error">
                                     {snapshotStatus.error}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Snapshots List & Rollback Section */}
+                    <div className="action-card">
+                        <div className="action-header">
+                            <h2>📋 Snapshots & Rollback</h2>
+                            <p>View saved snapshots and rollback to previous states</p>
+                        </div>
+
+                        <div className="action-content">
+                            <button
+                                onClick={handleLoadSnapshots}
+                                disabled={snapshotsStatus.isLoading}
+                                className="action-btn snapshot-btn"
+                            >
+                                {snapshotsStatus.isLoading ? 'Loading...' : 'Load Snapshots'}
+                            </button>
+
+                            {snapshotsStatus.error && (
+                                <div className="status-message error">
+                                    {snapshotsStatus.error}
+                                </div>
+                            )}
+
+                            {rollbackStatus.error && (
+                                <div className="status-message error">
+                                    {rollbackStatus.error}
+                                </div>
+                            )}
+
+                            {snapshotsStatus.snapshots.length > 0 && (
+                                <div className="snapshots-list">
+                                    <h3>Available Snapshots:</h3>
+                                    <div className="snapshots-container">
+                                        {snapshotsStatus.snapshots.map(snapshot => (
+                                            <div key={snapshot.id} className="snapshot-item">
+                                                <div className="snapshot-info">
+                                                    <div className="snapshot-date">
+                                                        {new Date(snapshot.insertDate).toLocaleString()}
+                                                    </div>
+                                                    {snapshot.description && (
+                                                        <div className="snapshot-description">
+                                                            {snapshot.description}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRollback(snapshot.id)}
+                                                    disabled={rollbackStatus.isLoading}
+                                                    className="action-btn rollback-btn"
+                                                >
+                                                    {rollbackStatus.isLoading ? 'Rolling back...' : 'Rollback'}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
