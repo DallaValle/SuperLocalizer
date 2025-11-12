@@ -1,0 +1,49 @@
+.plans-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.plans-row {
+    display: table-row;
+}
+
+.plans-cell {
+    display: table-cell;
+    padding: 12px;
+    border: 1px solid #e6e6e6;
+    vertical-align: middle;
+}
+
+.plans-header .plans-cell {
+    font-weight: 700;
+    background: #f7f7f7;
+}
+
+.plans-col {
+    text-align: center;
+}
+
+.get-started-button {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #78FFAF;
+    color: #002629;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+
+    .plans-table,
+    .plans-row,
+    .plans-cell {
+        display: block;
+        width: 100%;
+    }
+
+    .plans-cell {
+        border: none;
+        padding: 8px 0;
+    }
+}

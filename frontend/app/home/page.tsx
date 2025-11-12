@@ -156,52 +156,47 @@ export default function HomePage() {
                 {/* Navigation Cards */}
                 <div className="navigation-section">
                     <div className="user-info-tab">
-                        {(user?.companyName == null && user?.mainProjectName == null) ? (
-                            <>
-                                <div className="account-line"><strong>Hey! Not ready yet? Go to configuration to create your first Company and Project! ↓ ↓ ↓ ↓ ↓</strong></div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="account-line"><strong>Company:</strong> {user?.companyName ?? '—'}</div>
-                                <div className="account-line"><strong>Project:</strong> {user?.mainProjectName ?? '—'}</div>
-                            </>
-                        )}
+                        <>
+                            <div className="account-line"><strong>Company:</strong> {user?.companyName ?? '—'}</div>
+                            <div className="account-line"><strong>Project:</strong> {user?.mainProjectName ?? '—'}</div>
+                        </>
                     </div>
                     <div className="navigation-cards">
-                        {/* If mainProjectId is not set, prevent navigation to /properties */}
-                        <a
-                            href={user?.mainProjectId == null ? '#' : '/properties'}
-                            className={"nav-card" + (user?.mainProjectId == null ? ' disabled' : '')}
-                            aria-disabled={user?.mainProjectId == null ? 'true' : undefined}
-                            aria-describedby={user?.mainProjectId == null ? 'manage-translations-tooltip' : undefined}
-                        >
+
+                        <a href="/properties" className="nav-card">
                             <div className="nav-card-icon">📝</div>
                             <h3>Manage Translations</h3>
                             <p>View and edit all translations</p>
-
-                            {user?.mainProjectId == null && (
-                                <span id="manage-translations-tooltip" className="nav-tooltip" role="tooltip">
-                                    🏃‍♂️ Kick things off! Create your first project in Configuration!
-                                </span>
-                            )}
-                        </a>
-
-                        <a href="/configuration" className="nav-card">
-                            <div className="nav-card-icon">⚙️</div>
-                            <h3>Configuration</h3>
-                            <p>Configure projects and more</p>
                         </a>
 
                         <a href="/actions" className="nav-card">
+                            <div className="nav-card-icon">👨‍👩‍👧‍👦</div>
+                            <h3>User and roles</h3>
+                            <p>Set your company roles</p>
+                        </a>
+
+                        <a href="/configuration" className="nav-card">
                             <div className="nav-card-icon">🚀</div>
-                            <h3>Bulk actions</h3>
-                            <p>Fast is best!</p>
+                            <h3>Configuration</h3>
+                            <p>Configure projects and more</p>
                         </a>
 
                         <a href="/automation" className="nav-card">
                             <div className="nav-card-icon">🤖</div>
                             <h3>Automation</h3>
                             <p>Configure import, export, merge and triggers!</p>
+                        </a>
+
+                        <a href="/subscriptions" className="nav-card">
+                            <div className="nav-card-icon">💌</div>
+                            <h3>Subscription</h3>
+                            <p>Became a family member and unlock all power!</p>
+                        </a>
+
+                        <a href="/settings" className="nav-card">
+                            <div className="nav-card-icon">⚙️</div>
+                            <h3>Settings</h3>
+                            <p>Import, export and snapshot</p>
                         </a>
                     </div>
                 </div>
@@ -217,7 +212,7 @@ export default function HomePage() {
 
                     <div className="dashboard-card">
                         <h3>Completed Translations</h3>
-                        <p className="card-number">{recentActivity.length}</p>
+                        <p className="card-number">{recentActivity.length == 0 ? '-' : recentActivity.length}</p>
                         <p className="card-description">Keys translated this month</p>
                     </div>
 
@@ -227,6 +222,14 @@ export default function HomePage() {
                             {isLoading ? '...' : pendingReviews.toLocaleString()}
                         </p>
                         <p className="card-description">Translations awaiting review</p>
+                    </div>
+
+                    <div className="dashboard-card">
+                        <h3>Pending Verify</h3>
+                        <p className="card-number">
+                            {isLoading ? '...' : pendingReviews.toLocaleString()}
+                        </p>
+                        <p className="card-description">Translations awaiting verify</p>
                     </div>
                 </div>
 

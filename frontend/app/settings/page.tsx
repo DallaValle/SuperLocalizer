@@ -32,6 +32,7 @@ interface SnapshotsStatus {
 interface RollbackStatus {
     isLoading: boolean;
     error: string | null;
+    message?: string | null;
 }
 
 const SUPPORTED_LANGUAGES = [
@@ -80,7 +81,8 @@ export default function ActionsPage() {
     // Rollback states
     const [rollbackStatus, setRollbackStatus] = useState<RollbackStatus>({
         isLoading: false,
-        error: null
+        error: null,
+        message: null
     })
 
     useEffect(() => {
@@ -203,14 +205,14 @@ export default function ActionsPage() {
 
         try {
             const result = await settingService.rollbackToSnapshot(snapshotId)
-            setRollbackStatus({ isLoading: false, error: null })
-            alert(result || 'Rollback completed successfully')
+            setRollbackStatus({ isLoading: false, error: null, message: result || 'Rollback completed successfully' })
             // Reload snapshots after rollback
             await handleLoadSnapshots()
         } catch (error) {
             setRollbackStatus({
                 isLoading: false,
-                error: error instanceof Error ? error.message : 'Rollback failed'
+                error: error instanceof Error ? error.message : 'Rollback failed',
+                message: null
             })
         }
     }
@@ -399,6 +401,12 @@ export default function ActionsPage() {
                             {rollbackStatus.error && (
                                 <div className="status-message error">
                                     {rollbackStatus.error}
+                                </div>
+                            )}
+
+                            {rollbackStatus.message && (
+                                <div className="status-message success">
+                                    {rollbackStatus.message}
                                 </div>
                             )}
 

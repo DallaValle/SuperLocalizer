@@ -139,9 +139,9 @@
 }
 
 .form__button--primary {
-    color: #fff;
-    background-color: #007bff;
-    border-color: #007bff;
+    color: #002629;
+    background-color: #78FFAF;
+    border-color: #78FFAF;
 }
 
 .form__button--primary:hover:not(:disabled) {

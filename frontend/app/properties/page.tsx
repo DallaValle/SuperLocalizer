@@ -3,11 +3,13 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { PropertyService } from '../services/PropertyService'
+import { PropertyService, CreatePropertyRequest, CreateLanguageRequest } from '../services/PropertyService'
 import CommentsModal from './CommentsModal'
 import HistoryModal from './HistoryModal'
+import ManagementTab from './ManagementTab'
 import './Properties.css'
 import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest, User } from '../types/domain'
+import { ProjectService } from '../services/ProjectService'
 
 function PropertiesContent() {
     const { data: session } = useSession()
@@ -53,6 +55,11 @@ function PropertiesContent() {
         valueKey: ''
     })
     const [toastMessage, setToastMessage] = useState<string | null>(null)
+    const [activeTab, setActiveTab] = useState<'search' | 'management'>('search')
+    const [bulkVerified, setBulkVerified] = useState<boolean | null>(null)
+    const [bulkReviewed, setBulkReviewed] = useState<boolean | null>(null)
+    const [newPropertyName, setNewPropertyName] = useState('')
+    const [actionError, setActionError] = useState<string | null>(null)
 
     // Helper function
     const getEditKey = (propertyKey: string, language: string) => {
@@ -451,6 +458,113 @@ function PropertiesContent() {
         })
     }
 
+    // Management tab functions
+    const handleCreateProperty = async (request: CreatePropertyRequest) => {
+        if (!user?.mainProjectId || !user?.companyId) {
+            throw new Error("User's main project ID or company ID is not set.")
+        }
+
+        await new PropertyService(user.mainProjectId).createProperty(request)
+        showToast('Property created successfully!')
+        // Reload properties to show the new one
+        await loadProperties()
+    }
+
+    const handleCreateLanguage = async (request: CreateLanguageRequest) => {
+        if (!user?.mainProjectId || !user?.companyId) {
+            throw new Error("User's main project ID or company ID is not set.")
+        }
+
+        await new ProjectService().createLanguage(user.companyId, user.mainProjectId, request)
+        showToast('Language created successfully!')
+        // Reload properties to show the new language
+        await loadProperties()
+    }
+
+    const handleBulkUpdateFlags = async () => {
+        if (bulkVerified === null && bulkReviewed === null) {
+            setActionError('Please select at least one flag to update')
+            return;
+        }
+
+        if (!user?.mainProjectId) {
+            throw new Error("User's main project ID is not set.")
+        }
+
+        try {
+            // Create current search request
+            const searchRequest: PropertySearchRequest = {
+                page: currentPage,
+                size: pageSize,
+                ...(searchTerm && { searchTerm }),
+                ...(selectedLanguage && { language: selectedLanguage }),
+                ...(verifiedFilter !== null && { isVerified: verifiedFilter }),
+                ...(reviewedFilter !== null && { isReviewed: reviewedFilter }),
+                orderBy,
+                orderDirection
+            }
+
+            await new PropertyService(user.mainProjectId).bulkUpdateFlags(searchRequest, bulkVerified, bulkReviewed)
+            showToast('Flags updated successfully!')
+
+            // Reset the bulk flag selections
+            setBulkVerified(null)
+            setBulkReviewed(null)
+
+            // Reload properties to show the updated flags
+            await loadProperties()
+        } catch (error) {
+            console.error('Error updating flags:', error)
+            setActionError('Error updating flags. Please try again.')
+        }
+    }
+
+    const handleCreatePropertyQuick = async () => {
+        if (!newPropertyName.trim()) {
+            setActionError('Property name is required')
+            return;
+        }
+
+        if (!user?.mainProjectId) {
+            throw new Error("User's main project ID is not set.")
+        }
+
+        try {
+            // clear previous action errors
+            if (actionError) setActionError(null)
+            // Get all available languages from the LANGUAGES constant
+            const { LANGUAGES } = await import('../types/domain');
+
+            const propertyKey = newPropertyName.trim();
+
+            const request: CreatePropertyRequest = {
+                key: propertyKey,
+                values: LANGUAGES.map(language => ({
+                    propertyKey: propertyKey, // Add the propertyKey field required by backend
+                    language,
+                    text: '', // Empty text, users will fill it in later
+                    isVerified: false,
+                    isReviewed: false,
+                    insertDate: new Date().toISOString(),
+                    updateDate: new Date().toISOString(),
+                    comments: []
+                }))
+            };
+
+            await new PropertyService(user.mainProjectId).createProperty(request);
+            showToast(`Property "${newPropertyName}" created successfully!`);
+
+            // Reset the property name input
+            setNewPropertyName('');
+
+            // Reload properties to show the new one
+            await loadProperties();
+        } catch (error) {
+            console.error('Error creating property:', error);
+            setActionError('Error creating property. Please try again.')
+        }
+    }
+
     const handleCommentsUpdated = () => {
         // Reload properties to get updated comment counts
         loadProperties()
@@ -524,195 +638,318 @@ function PropertiesContent() {
             </header>
 
             <div className="properties-content">
-                {/* Filters */}
-                <div className="filters-section">
-                    <form onSubmit={handleSearch} className="search-form">
-                        <div className="search-group">
-                            <input
-                                type="text"
-                                placeholder="Search by key..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="search-input"
-                            />
-                            <button type="button" onClick={clearFilters} className="clear-btn">
-                                Clear
-                            </button>
-                        </div>
-
-                        <div className="filter-group">
-                            <select
-                                value={verifiedFilter === null ? '' : verifiedFilter.toString()}
-                                onChange={(e) => setVerifiedFilter(e.target.value === '' ? null : e.target.value === 'true')}
-                                className="status-select"
-                            >
-                                <option value="">All verification status</option>
-                                <option value="true">✓ Verified only</option>
-                                <option value="false">⚠ Unverified only</option>
-                            </select>
-
-                            <select
-                                value={reviewedFilter === null ? '' : reviewedFilter.toString()}
-                                onChange={(e) => setReviewedFilter(e.target.value === '' ? null : e.target.value === 'true')}
-                                className="status-select"
-                            >
-                                <option value="">All review status</option>
-                                <option value="true">👁 Reviewed only</option>
-                                <option value="false">📝 Unreviewed only</option>
-                            </select>
-
-                            <select
-                                value={orderBy}
-                                onChange={(e) => setOrderBy(e.target.value as 'Key' | 'InsertDate' | 'UpdateDate')}
-                                className="sort-select"
-                            >
-                                <option value="Key">Sort by Key</option>
-                                <option value="InsertDate">Sort by Insert Date</option>
-                                <option value="UpdateDate">Sort by Update Date</option>
-                            </select>
-
-                            <select
-                                value={orderDirection}
-                                onChange={(e) => setOrderDirection(e.target.value as 'asc' | 'desc')}
-                                className="sort-select"
-                            >
-                                <option value="asc">↑ Ascending</option>
-                                <option value="desc">↓ Descending</option>
-                            </select>
-
-                            <select
-                                value={pageSize}
-                                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                                className="pagesize-select"
-                            >
-                                <option value={10}>10 per page</option>
-                                <option value={25}>25 per page</option>
-                                <option value={50}>50 per page</option>
-                                <option value={100}>100 per page</option>
-                            </select>
-                        </div>
-                    </form>
-
-                    {/* Stats */}
-                    <div className="stats-section">
-                        <div className="stats-item">
-                            <span className="stats-label">Total items:</span>
-                            <span className="stats-value">{totalItems.toLocaleString()}</span>
-                        </div>
-                        <div className="stats-item">
-                            <span className="stats-label">Page:</span>
-                            <span className="stats-value">{currentPage} of {totalPages}</span>
-                        </div>
-                        <div className="stats-item">
-                            <span className="stats-label">Items displayed:</span>
-                            <span className="stats-value">{properties.length}</span>
-                        </div>
-                    </div>
+                {/* Tab Navigation */}
+                <div className="tab-navigation">
+                    <button
+                        className={`tab-button ${activeTab === 'search' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('search')}
+                    >
+                        🔍 Search & View Properties
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'management' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('management')}
+                    >
+                        ⚙️ Management
+                    </button>
                 </div>
 
-                {/* Loading */}
-                {loading && (
-                    <div className="loading-section">
-                        <div className="loading-spinner"></div>
-                        <p>Loading properties...</p>
-                    </div>
-                )}
+                {/* Search Tab Content */}
+                {activeTab === 'search' && (
+                    <>
+                        {/* Filters */}
+                        <div className="filters-section">
+                            <form onSubmit={handleSearch} className="search-form">
+                                <div className="search-group">
+                                    <input
+                                        type="text"
+                                        placeholder="Search by key..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="search-input"
+                                    />
+                                    <button type="button" onClick={clearFilters} className="clear-btn">
+                                        Clear
+                                    </button>
+                                </div>
 
-                {/* Error */}
-                {error && (
-                    <div className="error-section">
-                        <p>{error}</p>
-                        <button onClick={loadProperties} className="retry-btn">
-                            Retry
-                        </button>
-                    </div>
-                )}
+                                <div className="filter-group">
+                                    <select
+                                        value={verifiedFilter === null ? '' : verifiedFilter.toString()}
+                                        onChange={(e) => setVerifiedFilter(e.target.value === '' ? null : e.target.value === 'true')}
+                                        className="status-select"
+                                    >
+                                        <option value="">All verification status</option>
+                                        <option value="true">✓ Verified only</option>
+                                        <option value="false">⚠ Unverified only</option>
+                                    </select>
 
-                {/* Properties */}
-                {!loading && !error && (
-                    <div className="properties-list">
-                        {properties.map((property) => (
-                            <div key={property.key} className="property-card">
-                                <div className="property-header">
-                                    <h3 className="property-key">{property.key}</h3>
-                                    <div className="property-dates">
-                                        <span className="date-info">
-                                            Created: {formatDate(property.insertDate)}
-                                        </span>
-                                        <span className="date-info">
-                                            Updated: {formatDate(property.updateDate)}
-                                        </span>
+                                    <select
+                                        value={reviewedFilter === null ? '' : reviewedFilter.toString()}
+                                        onChange={(e) => setReviewedFilter(e.target.value === '' ? null : e.target.value === 'true')}
+                                        className="status-select"
+                                    >
+                                        <option value="">All review status</option>
+                                        <option value="true">👁 Reviewed only</option>
+                                        <option value="false">📝 Unreviewed only</option>
+                                    </select>
+
+                                    <select
+                                        value={orderBy}
+                                        onChange={(e) => setOrderBy(e.target.value as 'Key' | 'InsertDate' | 'UpdateDate')}
+                                        className="sort-select"
+                                    >
+                                        <option value="Key">Sort by Key</option>
+                                        <option value="InsertDate">Sort by Insert Date</option>
+                                        <option value="UpdateDate">Sort by Update Date</option>
+                                    </select>
+
+                                    <select
+                                        value={orderDirection}
+                                        onChange={(e) => setOrderDirection(e.target.value as 'asc' | 'desc')}
+                                        className="sort-select"
+                                    >
+                                        <option value="asc">↑ Ascending</option>
+                                        <option value="desc">↓ Descending</option>
+                                    </select>
+
+                                    <select
+                                        value={pageSize}
+                                        onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                                        className="pagesize-select"
+                                    >
+                                        <option value={10}>10 per page</option>
+                                        <option value={25}>25 per page</option>
+                                        <option value={50}>50 per page</option>
+                                        <option value={100}>100 per page</option>
+                                        <option value={1000}>1000 per page</option>
+                                    </select>
+                                </div>
+                            </form>
+
+                            {/* Stats */}
+                            <div className="stats-section">
+                                <div className="stats-item">
+                                    <span className="stats-label">Total items:</span>
+                                    <span className="stats-value">{totalItems.toLocaleString()}</span>
+                                </div>
+                                <div className="stats-item">
+                                    <span className="stats-label">Page:</span>
+                                    <span className="stats-value">{currentPage} of {totalPages}</span>
+                                </div>
+                                <div className="stats-item">
+                                    <span className="stats-label">Items displayed:</span>
+                                    <span className="stats-value">{properties.length}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Property Management & Bulk Updates */}
+                        <div className="bulk-update-section">
+                            <div className="section-row">
+                                {/* Create Property Section */}
+                                <div className="create-property-group">
+                                    <h4 className="action-title">➕ Create Property</h4>
+                                    <div className="property-creation-controls">
+                                        <input
+                                            placeholder="Property key (e.g., button.submit)"
+                                            className="property-name-input"
+                                            type="text"
+                                            value={newPropertyName}
+                                            onChange={(e) => {
+                                                setNewPropertyName(e.target.value)
+                                                if (actionError) setActionError(null)
+                                            }}
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            className="create-property-btn"
+                                            onClick={handleCreatePropertyQuick}
+                                            disabled={loading || !newPropertyName.trim()}
+                                        >
+                                            {loading ? 'Creating...' : 'Create Property'}
+                                        </button>
+
+                                        {actionError && (
+                                            <div className="error-section" role="alert">
+                                                {actionError}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="property-values">
-                                    {property.values.map((value, index) => {
-                                        const editKey = getEditKey(property.key, value.language)
-                                        const isSaving = savingValues[editKey] || false
-                                        const editingValue = editingValues[editKey] || value
+                                {/* Bulk Flag Update Section */}
+                                <div className="bulk-flags-group">
+                                    <h4 className="action-title">📝 Bulk Update Flags</h4>
+                                    <div className="bulk-flag-controls">
+                                        <div className="bulk-flag-group">
+                                            <label htmlFor="bulkVerifiedSelect" className="bulk-flag-label">
+                                                Verified Status
+                                            </label>
+                                            <select
+                                                id="bulkVerifiedSelect"
+                                                className="bulk-flag-select"
+                                                value={bulkVerified === null ? '' : bulkVerified.toString()}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setBulkVerified(value === '' ? null : value === 'true');
+                                                    if (actionError) setActionError(null)
+                                                }}
+                                                disabled={loading}
+                                            >
+                                                <option value="">No change</option>
+                                                <option value="true">✓ Set as Verified</option>
+                                                <option value="false">⚠ Set as Not Verified</option>
+                                            </select>
+                                        </div>
 
-                                        return (
-                                            <div key={index} className="value-row">
-                                                <span className="language-flag">{getLanguageFlag(value.language)}</span>
-                                                <span className="language-code">{value.language}</span>
-                                                <textarea
-                                                    value={editingValue.text}
-                                                    onChange={(e) => updateEditingValue(property.key, value.language, 'text', e.target.value)}
-                                                    onClick={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
-                                                    onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
-                                                    className="edit-text-input"
-                                                    rows={1}
-                                                    disabled={isSaving}
-                                                />
-                                                <label className="flag-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={editingValue.isVerified}
-                                                        onChange={(e) => updateEditingValue(property.key, value.language, 'isVerified', e.target.checked)}
-                                                        disabled={isSaving}
-                                                    />
-                                                    <span>✓</span>
-                                                </label>
-                                                <label className="flag-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={editingValue.isReviewed}
-                                                        onChange={(e) => updateEditingValue(property.key, value.language, 'isReviewed', e.target.checked)}
-                                                        disabled={isSaving}
-                                                    />
-                                                    <span>👁</span>
-                                                </label>
-                                                <button
-                                                    onClick={() => openCommentsModal(property.key, value.language, `${property.key}_${value.language}`)}
-                                                    className="comments-btn"
-                                                    title={`Comments (${(editingValue.comments || []).length})`}
-                                                >
-                                                    💬{/* ({(editingValue.comments || []).length}) */}
-                                                </button>
-                                                <button
-                                                    onClick={() => openHistoryModal(property.key, value.language, `${property.key}_${value.language}`)}
-                                                    className="history-btn"
-                                                    title="View history"
-                                                >
-                                                    🕓
-                                                </button>
-                                            </div>
-                                        )
-                                    })}
+                                        <div className="bulk-flag-group">
+                                            <label htmlFor="bulkReviewedSelect" className="bulk-flag-label">
+                                                Reviewed Status
+                                            </label>
+                                            <select
+                                                id="bulkReviewedSelect"
+                                                className="bulk-flag-select"
+                                                value={bulkReviewed === null ? '' : bulkReviewed.toString()}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setBulkReviewed(value === '' ? null : value === 'true');
+                                                    if (actionError) setActionError(null)
+                                                }}
+                                                disabled={loading}
+                                            >
+                                                <option value="">No change</option>
+                                                <option value="true">👁 Set as Reviewed</option>
+                                                <option value="false">📝 Set as Not Reviewed</option>
+                                            </select>
+                                        </div>
+
+                                        <button
+                                            className="bulk-update-btn"
+                                            onClick={handleBulkUpdateFlags}
+                                            disabled={loading || (bulkVerified === null && bulkReviewed === null)}
+                                        >
+                                            {loading ? 'Updating...' : 'Update Flags'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+
+                        {/* Loading */}
+                        {loading && (
+                            <div className="loading-section">
+                                <div className="loading-spinner"></div>
+                                <p>Loading properties...</p>
+                            </div>
+                        )}
+
+                        {/* Error */}
+                        {error && (
+                            <div className="error-section">
+                                <p>{error}</p>
+                                <button onClick={loadProperties} className="retry-btn">
+                                    Retry
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Properties */}
+                        {!loading && !error && (
+                            <div className="properties-list">
+                                {properties.map((property) => (
+                                    <div key={property.key} className="property-card">
+                                        <div className="property-header">
+                                            <h3 className="property-key">{property.key}</h3>
+                                            <div className="property-dates">
+                                                <span className="date-info">
+                                                    Created: {formatDate(property.insertDate)}
+                                                </span>
+                                                <span className="date-info">
+                                                    Updated: {formatDate(property.updateDate)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="property-values">
+                                            {property.values.map((value, index) => {
+                                                const editKey = getEditKey(property.key, value.language)
+                                                const isSaving = savingValues[editKey] || false
+                                                const editingValue = editingValues[editKey] || value
+
+                                                return (
+                                                    <div key={index} className="value-row">
+                                                        <span className="language-flag">{getLanguageFlag(value.language)}</span>
+                                                        <span className="language-code">{value.language}</span>
+                                                        <textarea
+                                                            value={editingValue.text}
+                                                            onChange={(e) => updateEditingValue(property.key, value.language, 'text', e.target.value)}
+                                                            onClick={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
+                                                            onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
+                                                            className="edit-text-input"
+                                                            rows={1}
+                                                            disabled={isSaving}
+                                                        />
+                                                        <label className="flag-checkbox">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={editingValue.isVerified}
+                                                                onChange={(e) => updateEditingValue(property.key, value.language, 'isVerified', e.target.checked)}
+                                                                disabled={isSaving}
+                                                            />
+                                                            <span>✓</span>
+                                                        </label>
+                                                        <label className="flag-checkbox">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={editingValue.isReviewed}
+                                                                onChange={(e) => updateEditingValue(property.key, value.language, 'isReviewed', e.target.checked)}
+                                                                disabled={isSaving}
+                                                            />
+                                                            <span>👁</span>
+                                                        </label>
+                                                        <button
+                                                            onClick={() => openCommentsModal(property.key, value.language, `${property.key}_${value.language}`)}
+                                                            className="comments-btn"
+                                                            title={`Comments (${(editingValue.comments || []).length})`}
+                                                        >
+                                                            💬{/* ({(editingValue.comments || []).length}) */}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openHistoryModal(property.key, value.language, `${property.key}_${value.language}`)}
+                                                            className="history-btn"
+                                                            title="View history"
+                                                        >
+                                                            🕓
+                                                        </button>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {!loading && !error && totalPages > 1 && (
+                            <div className="pagination-section">
+                                {renderPagination()}
+                                <div className="pagination-info">
+                                    Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} of {totalItems.toLocaleString()} items
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
 
-                {/* Pagination */}
-                {!loading && !error && totalPages > 1 && (
-                    <div className="pagination-section">
-                        {renderPagination()}
-                        <div className="pagination-info">
-                            Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} of {totalItems.toLocaleString()} items
-                        </div>
-                    </div>
+                {/* Management Tab Content */}
+                {activeTab === 'management' && (
+                    <ManagementTab
+                        onCreateProperty={handleCreateProperty}
+                        onCreateLanguage={handleCreateLanguage}
+                        loading={loading}
+                    />
                 )}
             </div>
 

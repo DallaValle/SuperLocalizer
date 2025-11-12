@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
 using ZiggyCreatures.Caching.Fusion;
@@ -181,5 +182,19 @@ public class PropertyRepositoryInMemory : IPropertyRepository
     {
         // For simplicity, returning an empty dictionary now.
         return new Dictionary<string, Property>();
+    }
+
+    public Task AddProperty(int projectId, Property newProperty)
+    {
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => ReadFilesFromSnapshot());
+        if (allProperties.ContainsKey(newProperty.Key))
+        {
+            throw new ArgumentException($"Property with key '{newProperty.Key}' already exists.");
+        }
+
+        newProperty.InsertDate = DateTime.UtcNow;
+        allProperties[newProperty.Key] = newProperty;
+        _fusionCache.Set(CacheKeys.AllProperties(projectId), allProperties);
+        return Task.CompletedTask;
     }
 }

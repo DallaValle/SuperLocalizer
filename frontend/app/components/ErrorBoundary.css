@@ -75,9 +75,9 @@
 }
 
 .error-boundary__retry-button {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+    background-color: #78FFAF;
+    color: #002629;
+    border-color: #78FFAF;
 }
 
 .error-boundary__retry-button:hover {

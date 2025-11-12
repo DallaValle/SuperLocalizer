@@ -51,6 +51,54 @@
     margin: 0 auto;
 }
 
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    gap: 0;
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    background: white;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tab-button {
+    flex: 1;
+    padding: clamp(0.75rem, 3vw, 1rem) clamp(1rem, 4vw, 1.5rem);
+    background: #f8f9fa;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    color: #6c757d;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tab-button:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.tab-button.active {
+    background: white;
+    color: #002629;
+    border-bottom-color: #002629;
+    font-weight: 600;
+}
+
+.tab-button:first-child {
+    border-radius: 10px 0 0 0;
+}
+
+.tab-button:last-child {
+    border-radius: 0 10px 0 0;
+}
+
 /* Filtri e Ricerca */
 .filters-section {
     background: white;
@@ -182,6 +230,207 @@
     color: #002629;
     font-weight: bold;
     font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+}
+
+/* Bulk Update Section */
+.bulk-update-section {
+    background: white;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    border-left: 4px solid #ffc107;
+}
+
+.bulk-update-title {
+    margin: 0 0 0.5rem 0;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    font-weight: 600;
+    color: #002629;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bulk-update-description {
+    margin: 0 0 1rem 0;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    color: #666;
+    line-height: 1.4;
+}
+
+.bulk-update-controls {
+    display: flex;
+    gap: clamp(0.75rem, 3vw, 1rem);
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.bulk-flag-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 180px;
+    flex: 1;
+}
+
+.bulk-flag-label {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    font-weight: 500;
+    color: #002629;
+}
+
+.bulk-flag-select {
+    padding: clamp(0.5rem, 2vw, 0.75rem);
+    border: 2px solid #e1e5e9;
+    border-radius: 5px;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    background: white;
+    transition: border-color 0.3s ease;
+}
+
+.bulk-flag-select:focus {
+    outline: none;
+    border-color: #002629;
+}
+
+.bulk-flag-select:disabled {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.bulk-update-btn {
+    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
+    background: #ffc107;
+    color: #002629;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    transition: all 0.3s ease;
+    height: fit-content;
+    white-space: nowrap;
+}
+
+.bulk-update-btn:hover:not(:disabled) {
+    background: #ffb300;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+.bulk-update-btn:disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* New Layout for Combined Section */
+.section-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.5rem, 4vw, 2rem);
+    align-items: start;
+}
+
+/* Create Property Section */
+.create-property-group {
+    border: 2px solid #10b981;
+    border-radius: 8px;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.action-title {
+    margin: 0 0 0.75rem 0;
+    font-size: clamp(1rem, 3vw, 1.1rem);
+    font-weight: 600;
+    color: #002629;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-description {
+    margin: 0 0 1rem 0;
+    font-size: clamp(0.8rem, 2.2vw, 0.85rem);
+    color: #666;
+    line-height: 1.4;
+}
+
+.property-creation-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.property-name-input {
+    flex: 1;
+    min-width: 200px;
+    padding: clamp(0.5rem, 2vw, 0.75rem);
+    border: 2px solid #e1e5e9;
+    border-radius: 5px;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    transition: border-color 0.3s ease;
+    background: white;
+}
+
+.property-name-input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+.property-name-input:disabled {
+    background-color: #f7fafc;
+    border-color: #e2e8f0;
+    color: #a0aec0;
+    cursor: not-allowed;
+}
+
+.create-property-btn {
+    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.25rem);
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.create-property-btn:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.create-property-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Bulk Flags Section */
+.bulk-flags-group {
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem;
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+
+.bulk-flag-controls {
+    display: flex;
+    gap: clamp(0.75rem, 2.5vw, 1rem);
+    align-items: end;
+    flex-wrap: wrap;
 }
 
 /* Loading */
@@ -607,6 +856,46 @@
     .stats-item {
         padding: 0.75rem;
         font-size: 0.9rem;
+    }
+
+    .bulk-update-section {
+        padding: 1rem;
+    }
+
+    .section-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .property-creation-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .property-name-input {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .create-property-btn {
+        width: 100%;
+    }
+
+    .bulk-update-controls,
+    .bulk-flag-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .bulk-flag-group {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .bulk-update-btn {
+        width: 100%;
+        padding: 0.75rem;
     }
 
     .property-header {

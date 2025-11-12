@@ -222,3 +222,22 @@ select:focus {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
 }
+
+
+.page-title {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-title h1 {
+    color: #333;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+}
+
+.page-title p {
+    color: #666;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    margin: 0;
+}

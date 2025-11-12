@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SuperLocalizer.Model;
 
 namespace SuperLocalizer.Repository;
@@ -9,6 +10,7 @@ public interface IPropertyRepository
     Property GetPropertyByKey(int projectId, string key);
     void UpdateProperty(int projectId, Property property);
     bool MergeProperties(int projectId, List<Property> newProperties);
+    Task AddProperty(int projectId, Property newProperty);
 }
 
 public class PropertyRepository : IPropertyRepository
@@ -18,6 +20,11 @@ public class PropertyRepository : IPropertyRepository
     public PropertyRepository(string connectionString)
     {
         _connectionString = connectionString;
+    }
+
+    public Task AddProperty(int projectId, Property newProperty)
+    {
+        throw new System.NotImplementedException();
     }
 
     public SearchResponse<Property> GetProperties(int projectId, SearchPropertyRequest request)

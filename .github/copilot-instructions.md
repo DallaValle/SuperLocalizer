@@ -65,6 +65,7 @@ SuperLocalizer/
 - **Important Note**: Hard-coded file path in `Startup.cs` - needs update for production deployment
 
 ### Frontend (Next.js)
+- **Don't use alert**: Replaced with custom modal components
 - **App Router**: Uses Next.js 13+ app directory structure
 - **TypeScript**: Strict mode disabled, allowing flexible typing
 - **Routing**: Root redirects to `/login` via `next.config.js`

@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // If accessing login page with valid token, redirect to home
-    if (pathname === '/login' && token) {
+    if ((pathname === '/login' || pathname == '/signup') && token) {
         return NextResponse.redirect(new URL('/home', request.url))
     }
 

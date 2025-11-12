@@ -54,4 +54,49 @@ export class PropertyService {
         const endpoint = this.endpointUpdateValue(propertyKey, language);
         return HttpClient.patch<PropertyValue>(endpoint, updateRequest);
     }
+
+    /**
+     * Create a new property with values for specified languages
+     */
+    async createProperty(request: CreatePropertyRequest): Promise<Property> {
+        const endpoint = `/project/${encodeURIComponent(this.projectId)}/property`;
+        return HttpClient.put<Property>(endpoint, request);
+    }
+
+    /**
+     * Bulk update flags for properties matching current search criteria
+     */
+    async bulkUpdateFlags(
+        searchRequest: PropertySearchRequest,
+        isVerified: boolean | null,
+        isReviewed: boolean | null
+    ): Promise<void> {
+        const endpoint = `/project/${encodeURIComponent(this.projectId)}/property/bulk-update`;
+        const request = {
+            query: searchRequest,
+            isVerified,
+            isReviewed
+        };
+        return HttpClient.post<void>(endpoint, request);
+    }
+}
+
+// Types for the management functionality
+export interface CreatePropertyRequest {
+    key: string;
+    values: Array<{
+        propertyKey: string;
+        language: string;
+        text: string;
+        isVerified: boolean;
+        isReviewed: boolean;
+        insertDate: string;
+        updateDate: string;
+        comments: any[];
+    }>;
+}
+
+export interface CreateLanguageRequest {
+    language: string;
+    autoFill: boolean;
 }

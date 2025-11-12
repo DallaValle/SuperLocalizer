@@ -35,7 +35,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const API_CONFIG = {
     BASE_URL: API_BASE_URL,
     TIMEOUT: 10000, // 10 seconds
-    RETRY_ATTEMPTS: 3,
+    RETRY_ATTEMPTS: 1, // TODO: ensure idempotent requests
     RETRY_DELAY: 1000, // 1 second
 } as const;
 

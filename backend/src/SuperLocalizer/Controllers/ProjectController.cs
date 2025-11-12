@@ -16,6 +16,7 @@ public class ProjectController : ControllerBase
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUserProfile _userProfile;
+    private readonly IPropertyRepository _propertyRepository;
 
     public ProjectController(IProjectRepository companyRepository, IUserRepository userRepository, IUserProfile userProfile)
     {
@@ -34,6 +35,34 @@ public class ProjectController : ControllerBase
         if (project == null) return NotFound("Project not found.");
         return Ok(project.Languages);
     }
+
+    /// <summary>
+    /// Create a new language for a project
+    /// </summary>
+    [HttpPost("{id}/language")]
+    public async Task<IActionResult> CreateLanguage(int companyId, int id, [FromBody] CreateLanguageRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.Language))
+            return BadRequest("Invalid request.");
+
+        var project = await _projectRepository.GetByIdAsync(companyId, id);
+        if (project == null)
+        {
+            return NotFound("Project not found.");
+        }
+
+        if (project.Languages.Contains(request.Language))
+        {
+            return Conflict("Language already exists in the project.");
+        }
+
+        project.Languages.Add(request.Language);
+        await _projectRepository.UpdateAsync(project);
+        // Create a default property for the new language
+
+        return Ok(project.Languages);
+    }
+
 
 
     /// <summary>
@@ -69,7 +98,7 @@ public class ProjectController : ControllerBase
     /// <summary>
     /// Get project by id
     /// </summary>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int companyId, int id)
     {
         var project = await _projectRepository.GetByIdAsync(companyId, id);
@@ -115,7 +144,7 @@ public class ProjectController : ControllerBase
     /// <summary>
     /// Update an existing project
     /// </summary>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> Update(int companyId, int id, [FromBody] Project project)
     {
         if (project == null || id != project.Id) return BadRequest();

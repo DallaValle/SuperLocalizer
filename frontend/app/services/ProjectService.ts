@@ -1,5 +1,6 @@
 import { HttpClient } from '../utils/HttpClient';
 import type { Project } from '../types/domain';
+import { CreateLanguageRequest } from './PropertyService';
 
 export class ProjectService {
     private static readonly ENDPOINTS = {
@@ -8,8 +9,9 @@ export class ProjectService {
         CREATE: (companyId: number) => `/company/${companyId}/project`,
         UPDATE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
         DELETE: (companyId: number, id: number) => `/company/${companyId}/project/${id}`,
+        SET_MAIN: (companyId: number, id: number) => `/company/${companyId}/project/${id}/user`,
         ALL_LANGUAGES: (companyId: number, id: number) => `/company/${companyId}/project/${id}/all-languages`,
-        SET_MAIN: (companyId: number, id: number) => `/company/${companyId}/project/${id}/user`
+        LANGUAGE: (companyId: number, id: number) => `/company/${companyId}/project/${id}/language`,
     } as const;
 
     static async getAllProjects(companyId: number): Promise<Project[]> {
@@ -37,16 +39,21 @@ export class ProjectService {
         return HttpClient.delete<void>(endpoint);
     }
 
+    static async setMainProject(companyId: number, projectId: number): Promise<void> {
+        const endpoint = this.ENDPOINTS.SET_MAIN(companyId, projectId);
+        return HttpClient.put<void>(endpoint, {});
+    }
+
     /**
-     * Get all available languages for the project
+     * Languages associated with a project
      */
     async getAllLanguages(companyId: number, id: number): Promise<string[]> {
         const endpoint = ProjectService.ENDPOINTS.ALL_LANGUAGES(companyId, id);
         return HttpClient.get<string[]>(endpoint);
     }
 
-    static async setMainProject(companyId: number, projectId: number): Promise<void> {
-        const endpoint = this.ENDPOINTS.SET_MAIN(companyId, projectId);
-        return HttpClient.put<void>(endpoint, {});
+    async createLanguage(companyId: number, id: number, request: CreateLanguageRequest): Promise<void> {
+        const endpoint = ProjectService.ENDPOINTS.LANGUAGE(companyId, id);
+        return HttpClient.post<void>(endpoint, request);
     }
 }
