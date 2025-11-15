@@ -10,14 +10,13 @@ namespace SuperLocalizer.Repository;
 
 public interface IUserRepository
 {
-    Task<User> GetByIdAsync(int id);
+    Task<User> Create(User user);
+    Task<User> Read(Guid id);
+    Task<User> Update(User user);
+    Task<bool> Delete(Guid id);
+    Task<bool> Exists(Guid id);
     Task<User> GetByUsername(string username);
-    Task<User> GetByUserAndPasswordAsync(string username, string passwordHash);
-    Task<IEnumerable<User>> GetAllAsync();
-    Task<User> CreateAsync(User user);
-    Task<User> PartialUpdateAsync(User user);
-    Task<bool> DeleteAsync(int id);
-    Task<bool> ExistsAsync(int id);
+    Task<IEnumerable<User>> GetByCompanyId(Guid companyId);
 }
 
 public class UserRepository : IUserRepository
@@ -29,7 +28,7 @@ public class UserRepository : IUserRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
-    public async Task<User> GetByIdAsync(int id)
+    public async Task<User> Read(Guid id)
     {
         const string query = @"
             SELECT Id, Username, Email, PasswordHash, CompanyId
@@ -54,7 +53,7 @@ public class UserRepository : IUserRepository
     public async Task<User> GetByUsername(string username)
     {
         const string query = @"
-            SELECT Id, Username, Email, PasswordHash, CompanyId
+            SELECT *
             FROM `User`
             WHERE Username = @Username OR Email = @Username
             LIMIT 1";
@@ -70,42 +69,16 @@ public class UserRepository : IUserRepository
         return null;
     }
 
-    public async Task<User> GetByUserAndPasswordAsync(string username, string passwordHash)
+    public async Task<IEnumerable<User>> GetByCompanyId(Guid companyId)
     {
         const string query = @"
             SELECT Id, Username, Email, PasswordHash, CompanyId
             FROM `User`
-            WHERE (Username = @Username OR Email = @Username)
-            AND PasswordHash = @PasswordHash
-            LIMIT 1";
+            WHERE CompanyId = @CompanyId";
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-
-        command.Parameters.AddWithValue("@Username", username ?? string.Empty);
-        command.Parameters.AddWithValue("@PasswordHash", passwordHash ?? string.Empty);
-
-        await connection.OpenAsync();
-        using var reader = await command.ExecuteReaderAsync();
-
-        if (await reader.ReadAsync())
-        {
-            return MapToUser(reader);
-        }
-
-        return null;
-    }
-
-    public async Task<IEnumerable<User>> GetAllAsync()
-    {
-        const string query = @"
-            SELECT Id, Username, Email, PasswordHash, CompanyId
-            FROM `User`
-            ORDER BY Username";
-
-        using var connection = new MySqlConnection(_connectionString);
-        using var command = new MySqlCommand(query, connection);
-
+        command.Parameters.AddWithValue("@CompanyId", companyId);
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
 
@@ -118,7 +91,7 @@ public class UserRepository : IUserRepository
         return users;
     }
 
-    public async Task<User> CreateAsync(User user)
+    public async Task<User> Create(User user)
     {
         const string query = @"
             INSERT INTO `User` (Username, Email, PasswordHash, CompanyId)
@@ -129,22 +102,18 @@ public class UserRepository : IUserRepository
         using var command = new MySqlCommand(query, connection);
 
         // Map parameters according to User model
-        command.Parameters.AddWithValue("@Username", user.Username ?? string.Empty);
+        command.Parameters.AddWithValue("@Username", user.Username ?? user.Email ?? string.Empty);
         command.Parameters.AddWithValue("@Email", user.Email ?? string.Empty);
         command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? string.Empty);
         command.Parameters.AddWithValue("@CompanyId", user.CompanyId);
 
         await connection.OpenAsync();
-        var newId = Convert.ToInt32(await command.ExecuteScalarAsync());
-
+        var newId = (Guid)await command.ExecuteScalarAsync();
         user.Id = newId;
-        // Created user gets assigned new Id. No InsertDate/UpdateDate on model.
-        user.Id = newId;
-
         return user;
     }
 
-    public async Task<User> PartialUpdateAsync(User user)
+    public async Task<User> Update(User user)
     {
         // Build a partial update query: only set columns for properties that are not null.
         var setClauses = new List<string>();
@@ -201,7 +170,7 @@ public class UserRepository : IUserRepository
         if (setClauses.Count == 0)
         {
             // Nothing to update
-            return await GetByIdAsync(user.Id);
+            return await Read(user.Id);
         }
 
         var query = $"UPDATE `User` SET {string.Join(", ", setClauses)} WHERE Id = @Id";
@@ -216,10 +185,10 @@ public class UserRepository : IUserRepository
         }
 
         // Return the current state of the user from DB
-        return await GetByIdAsync(user.Id);
+        return await Read(user.Id);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> Delete(Guid id)
     {
         const string query = "DELETE FROM `User` WHERE Id = @Id";
 
@@ -233,7 +202,7 @@ public class UserRepository : IUserRepository
         return rowsAffected > 0;
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> Exists(Guid id)
     {
         const string query = "SELECT COUNT(1) FROM `User` WHERE Id = @Id";
 
@@ -261,13 +230,13 @@ public class UserRepository : IUserRepository
 
         return new User
         {
-            Id = !reader.IsDBNull(idOrd) ? reader.GetInt32(idOrd) : 0,
+            Id = !reader.IsDBNull(idOrd) ? reader.GetGuid(idOrd) : Guid.Empty,
             Username = !reader.IsDBNull(usernameOrd) ? reader.GetString(usernameOrd) : string.Empty,
             Email = !reader.IsDBNull(emailOrd) ? reader.GetString(emailOrd) : string.Empty,
             PasswordHash = !reader.IsDBNull(passwordHashOrd) ? reader.GetString(passwordHashOrd) : string.Empty,
-            CompanyId = !reader.IsDBNull(companyIdOrd) ? reader.GetInt32(companyIdOrd) : null,
+            CompanyId = !reader.IsDBNull(companyIdOrd) ? reader.GetGuid(companyIdOrd) : null,
             CompanyName = !reader.IsDBNull(companyNameOrd) ? reader.GetString(companyNameOrd) : null,
-            MainProjectId = !reader.IsDBNull(mainProjectIdOrd) ? reader.GetInt32(mainProjectIdOrd) : null,
+            MainProjectId = !reader.IsDBNull(mainProjectIdOrd) ? reader.GetGuid(mainProjectIdOrd) : null,
             MainProjectName = !reader.IsDBNull(mainProjectNameOrd) ? reader.GetString(mainProjectNameOrd) : null,
         };
     }

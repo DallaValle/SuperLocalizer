@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,9 +31,9 @@ namespace SuperLocalizer.Controllers
         /// Get property by key
         /// </summary>
         [HttpGet("{key}")]
-        public ActionResult<Property> GetPropertyByKey(int projectId, string key)
+        public async Task<ActionResult<Property>> GetPropertyByKey(Guid projectId, string key)
         {
-            var property = _propertyRepository.GetPropertyByKey(projectId, key);
+            var property = await _propertyRepository.Read(projectId, key);
             if (property == null)
             {
                 return NotFound($"Property with key '{key}' not found");
@@ -47,27 +48,27 @@ namespace SuperLocalizer.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("search")]
-        public ActionResult<SearchResponse<Property>> Search(int projectId, [FromBody] SearchPropertyRequest request)
+        public async Task<ActionResult<SearchResponse<Property>>> Search(Guid projectId, [FromBody] SearchPropertyRequest request)
         {
             if (request == null)
             {
                 return BadRequest("Search request is required");
             }
 
-            var result = _propertyRepository.GetProperties(projectId, request);
+            var result = await _propertyRepository.Search(projectId, request);
 
             return Ok(result);
         }
 
         [HttpPost("bulk-update")]
-        public ActionResult BulkUpdateProperties(int projectId, [FromBody] BulkUpdatePropertiesRequest request)
+        public async Task<ActionResult> BulkUpdateProperties(Guid projectId, [FromBody] BulkUpdatePropertiesRequest request)
         {
             if (request == null || request.Query == null)
             {
                 return BadRequest("Bulk update request and query are required");
             }
 
-            var properties = _propertyRepository.GetProperties(projectId, request.Query).Items;
+            var properties = (await _propertyRepository.Search(projectId, request.Query)).Items;
 
             foreach (var property in properties)
             {
@@ -82,8 +83,8 @@ namespace SuperLocalizer.Controllers
                         value.IsVerified = request.IsVerified.Value;
                     }
                 }
-                property.UpdateDate = System.DateTime.UtcNow;
-                _propertyRepository.UpdateProperty(projectId, property);
+                property.UpdateDate = DateTime.UtcNow;
+                await _propertyRepository.Update(projectId, property);
             }
 
             return Ok(new { UpdatedCount = properties.Count });
@@ -93,28 +94,26 @@ namespace SuperLocalizer.Controllers
         /// Update a property's value for a specific language
         /// </summary>
         /// <param name="projectId"></param>
-        /// <param name="id"></param>
-        /// <param name="language"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        [HttpPatch("{id}/{language}")]
-        public async Task<ActionResult> UpdatePropertyValue(int projectId, string id, string language, [FromBody] UpdateValueRequest request)
+        [HttpPatch]
+        public async Task<ActionResult> UpdatePropertyValue(Guid projectId, [FromBody] UpdateValueRequest request)
         {
             if (request == null)
             {
                 return BadRequest("Update request is required");
             }
 
-            var property = _propertyRepository.GetPropertyByKey(projectId, id);
+            var property = await _propertyRepository.Read(projectId, request.Key);
             if (property == null)
             {
-                return NotFound($"Property with key '{id}' not found");
+                return NotFound($"Property with key '{request.Key}' not found");
             }
 
-            var value = property.Values.FirstOrDefault(v => v.Language.Equals(language, System.StringComparison.OrdinalIgnoreCase));
+            var value = property.Values.FirstOrDefault(v => v.Language.Equals(request.Language, System.StringComparison.OrdinalIgnoreCase));
             if (value == null)
             {
-                return NotFound($"Value for language '{language}' not found in property '{id}'");
+                return NotFound($"Value for language '{request.Language}' not found in property '{request.Key}'");
             }
 
             // Capture previous values for history
@@ -136,11 +135,11 @@ namespace SuperLocalizer.Controllers
                 value.IsReviewed = request.IsReviewed.Value;
             }
 
-            property.UpdateDate = System.DateTime.UtcNow;
+            property.UpdateDate = DateTime.UtcNow;
 
-            _propertyRepository.UpdateProperty(projectId, property);
+            await _propertyRepository.Update(projectId, property);
             // Save history -> TODO can be done in background
-            await _historyRepository.SaveHistory(
+            await _historyRepository.Create(
                 projectId,
                 value.Key,
                 await _userProfile.GetCurrentUser(),
@@ -152,15 +151,15 @@ namespace SuperLocalizer.Controllers
         /// <summary>
         /// Create a new property
         /// </summary>
-        [HttpPut()]
-        public ActionResult<Property> CreateProperty(int projectId, [FromBody] CreatePropertyRequest request)
+        [HttpPut]
+        public async Task<ActionResult<Property>> CreateProperty(Guid projectId, [FromBody] CreatePropertyRequest request)
         {
             if (request == null)
             {
                 return BadRequest("Create request is required");
             }
 
-            var existingProperty = _propertyRepository.GetPropertyByKey(projectId, request.Key);
+            var existingProperty = await _propertyRepository.Read(projectId, request.Key);
             if (existingProperty != null)
             {
                 return Conflict($"Property with key '{request.Key}' already exists");
@@ -170,13 +169,25 @@ namespace SuperLocalizer.Controllers
             {
                 Key = request.Key,
                 Values = request.Values ?? new List<Value>(),
-                InsertDate = System.DateTime.UtcNow,
-                UpdateDate = System.DateTime.UtcNow
+                InsertDate = DateTime.UtcNow,
+                UpdateDate = DateTime.UtcNow
             };
 
-            _propertyRepository.AddProperty(projectId, newProperty);
+            await _propertyRepository.Create(projectId, newProperty);
 
             return CreatedAtAction(nameof(GetPropertyByKey), new { projectId = projectId, key = newProperty.Key }, newProperty);
+        }
+
+        [HttpDelete("{key}")]
+        public async Task<ActionResult> DeleteProperty(Guid projectId, string key)
+        {
+            var existingProperty = await _propertyRepository.Read(projectId, key);
+            if (existingProperty == null)
+            {
+                return NotFound($"Property with key '{key}' not found");
+            }
+            await _propertyRepository.Delete(projectId, key);
+            return NoContent();
         }
     }
 }

@@ -16,7 +16,7 @@ export default function ConfigurationPage() {
     const [projects, setProjects] = useState<Project[]>([])
     const [creating, setCreating] = useState<boolean>(false)
     const [creatingProject, setCreatingProject] = useState<boolean>(false)
-    const [settingMainProject, setSettingMainProject] = useState<number | null>(null)
+    const [settingMainProject, setSettingMainProject] = useState<string | null>(null)
     const [form, setForm] = useState<Partial<Company>>({ name: '', address: '', email: '', phone: '' })
     const [projectForm, setProjectForm] = useState<Partial<Project>>({ name: '', description: '' })
     const [error, setError] = useState<string | null>(null)
@@ -119,7 +119,7 @@ export default function ConfigurationPage() {
         }
     }
 
-    const handleSetMainProject = async (projectId: number) => {
+    const handleSetMainProject = async (projectId: string) => {
         if (!company?.id) return
 
         try {

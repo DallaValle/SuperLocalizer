@@ -11,9 +11,9 @@ import type {
  * Service for managing property-related API operations
  */
 export class PropertyService {
-    private readonly projectId: number;
+    private readonly projectId: string;
 
-    constructor(projectId: number) {
+    constructor(projectId: string) {
         this.projectId = projectId;
     }
 
@@ -25,8 +25,8 @@ export class PropertyService {
         return `/project/${encodeURIComponent(this.projectId)}/property`;
     }
 
-    private endpointUpdateValue(propertyKey: string, language: string): string {
-        return `/project/${encodeURIComponent(this.projectId)}/property/${encodeURIComponent(propertyKey)}/${encodeURIComponent(language)}`;
+    private endpointUpdateValue(): string {
+        return `/project/${encodeURIComponent(this.projectId)}/property`;
     }
 
     /**
@@ -47,11 +47,9 @@ export class PropertyService {
      * Update a specific property value
      */
     async updatePropertyValue(
-        propertyKey: string,
-        language: string,
         updateRequest: PropertyValueUpdateRequest
     ): Promise<PropertyValue> {
-        const endpoint = this.endpointUpdateValue(propertyKey, language);
+        const endpoint = this.endpointUpdateValue();
         return HttpClient.patch<PropertyValue>(endpoint, updateRequest);
     }
 

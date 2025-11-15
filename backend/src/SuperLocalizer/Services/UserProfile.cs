@@ -13,7 +13,7 @@ namespace SuperLocalizer.Services;
 
 public interface IUserProfile
 {
-    Task<CurrentUser> GetCurrentUser();
+    Task<SessionUser> GetCurrentUser();
     Task<string> GenerateJwtToken(string username);
 }
 
@@ -36,7 +36,7 @@ public class UserProfile : IUserProfile
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(ClaimTypes.NameIdentifier, username),
+            new Claim("email", user?.Email ?? string.Empty),
             new Claim("id", user.Id.ToString()),
             new Claim("companyId", user?.CompanyId.ToString() ?? string.Empty),
             new Claim("companyName", user?.CompanyName ?? string.Empty),
@@ -61,7 +61,7 @@ public class UserProfile : IUserProfile
     /// <summary>
     /// Gets the current user from the JWT token / ClaimsPrincipal attached to the HttpContext
     /// </summary>
-    public async Task<CurrentUser> GetCurrentUser()
+    public async Task<SessionUser> GetCurrentUser()
     {
         var user = _httpContext?.User;
         if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
@@ -73,7 +73,7 @@ public class UserProfile : IUserProfile
 
         var dbUser = await _userRepository.GetByUsername(username);
         if (dbUser == null) return null;
-        return new CurrentUser
+        return new SessionUser
         {
             Id = dbUser.Id,
             Username = dbUser.Username,

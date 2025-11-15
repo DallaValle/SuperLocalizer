@@ -16,24 +16,12 @@ public class ProjectRepositoryInMemory : IProjectRepository
         _fusionCache = fusionCache;
     }
 
-    public Task<Project> CreateAsync(Project project)
+    public Task<Project> Create(Project project)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(project.CompanyId), _ => new Dictionary<int, Project>());
-
-        // generate new id (max existing id + 1)
-        var newId = 1;
-        if (allProjects.Count > 0)
-        {
-            newId = 0;
-            foreach (var k in allProjects.Keys)
-            {
-                if (k > newId) newId = k;
-            }
-            newId += 1;
-        }
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(project.CompanyId), _ => GetFromDb());
 
         var now = DateTime.UtcNow;
-        project.Id = newId;
+        project.Id = Guid.NewGuid();
         project.InsertDate = now;
         project.UpdateDate = now;
 
@@ -43,9 +31,9 @@ public class ProjectRepositoryInMemory : IProjectRepository
         return Task.FromResult(project);
     }
 
-    public Task<bool> DeleteAsync(int companyId, int id)
+    public Task<bool> Delete(Guid companyId, Guid id)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => GetFromDb());
         if (allProjects.TryGetValue(id, out var existing) && existing.CompanyId == companyId)
         {
             var removed = allProjects.Remove(id);
@@ -56,9 +44,9 @@ public class ProjectRepositoryInMemory : IProjectRepository
         return Task.FromResult(false);
     }
 
-    public Task<bool> ExistsAsync(int companyId, int id)
+    public Task<bool> Exists(Guid companyId, Guid id)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => GetFromDb());
         if (allProjects.TryGetValue(id, out var existing))
         {
             return Task.FromResult(existing.CompanyId == companyId);
@@ -67,15 +55,15 @@ public class ProjectRepositoryInMemory : IProjectRepository
         return Task.FromResult(false);
     }
 
-    public Task<IEnumerable<Project>> GetAllAsync(int companyId)
+    public Task<IEnumerable<Project>> GetByCompanyId(Guid companyId)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => GetFromDb());
         return Task.FromResult<IEnumerable<Project>>(allProjects.Values);
     }
 
-    public Task<Project> GetByIdAsync(int companyId, int id)
+    public Task<Project> Read(Guid companyId, Guid id)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(companyId), _ => GetFromDb());
         if (allProjects.TryGetValue(id, out var project) && project.CompanyId == companyId)
         {
             return Task.FromResult(project);
@@ -84,9 +72,9 @@ public class ProjectRepositoryInMemory : IProjectRepository
         return Task.FromResult<Project>(null);
     }
 
-    public Task<Project> UpdateAsync(Project project)
+    public Task<Project> Update(Project project)
     {
-        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(project.CompanyId), _ => new Dictionary<int, Project>());
+        var allProjects = _fusionCache.GetOrSet(CacheKeys.AllProjects(project.CompanyId), _ => GetFromDb());
 
         if (!allProjects.TryGetValue(project.Id, out var existing) || existing.CompanyId != project.CompanyId)
         {
@@ -103,4 +91,6 @@ public class ProjectRepositoryInMemory : IProjectRepository
 
         return Task.FromResult(existing);
     }
+
+    private static Dictionary<Guid, Project> GetFromDb() => new Dictionary<Guid, Project>();
 }

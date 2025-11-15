@@ -11,10 +11,10 @@ import type {
  */
 export class HistoryService {
     private static readonly ENDPOINTS = {
-        SEARCH: (projectId: number) => `/project/${projectId}/history/search`
+        SEARCH: (projectId: string) => `/project/${projectId}/history/search`
     } as const;
 
-    private static async getProjectIdFromSession(): Promise<number | undefined> {
+    private static async getProjectIdFromSession(): Promise<string | undefined> {
         const session = await getSession();
         const user = session?.user as any;
         return user?.mainProjectId;
@@ -24,7 +24,11 @@ export class HistoryService {
      * Search history with filtering and pagination
      */
     static async searchHistory(request: HistorySearchRequest): Promise<HistorySearchResponse> {
-        return HttpClient.post<HistorySearchResponse>(this.ENDPOINTS.SEARCH(request.projectId || 1), request);
+        if (!request.projectId) {
+            throw new Error("Project ID is required for searching history.");
+        }
+
+        return HttpClient.post<HistorySearchResponse>(this.ENDPOINTS.SEARCH(request.projectId), request);
     }
 
     /**
@@ -102,9 +106,12 @@ export class HistoryService {
      */
     static async getAllHistory(page: number = 1, size: number = 100): Promise<HistorySearchResponse> {
         const projectId = await this.getProjectIdFromSession();
-        // If there's no projectId in session, fall back to project 1
+        if (!projectId) {
+            return { items: [], totalItems: 0, totalPages: 0, page: page, size: size };
+        }
+
         return this.searchHistory({
-            projectId: projectId ?? 1,
+            projectId: projectId,
             page,
             size
         });

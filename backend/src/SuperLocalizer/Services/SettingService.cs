@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,11 +15,11 @@ namespace SuperLocalizer.Services;
 
 public interface ISettingService
 {
-    Task<List<MergeError>> ImportAsync(int projectId, IFormFile file, string language);
-    Task<byte[]> ExportAsync(int projectId, string targetLanguage);
-    Task SaveSnapshotAsync(int projectId, List<string> languages);
-    Task<List<SnapshotItem>> GetSnapshotsAsync(int projectId, int limit);
-    Task RollbackToSnapshotAsync(int snapshotId);
+    Task<List<MergeError>> ImportAsync(Guid projectId, IFormFile file, string language);
+    Task<byte[]> ExportAsync(Guid projectId, string targetLanguage);
+    Task SaveSnapshotAsync(Guid projectId, List<string> languages);
+    Task<List<SnapshotItem>> GetSnapshotsAsync(Guid projectId, int limit);
+    Task RollbackToSnapshotAsync(Guid snapshotId);
 }
 
 public class SettingService : ISettingService
@@ -40,7 +41,7 @@ public class SettingService : ISettingService
         _snapshotRepository = snapshotRepository;
     }
 
-    public async Task<List<MergeError>> ImportAsync(int projectId, IFormFile file, string language)
+    public async Task<List<MergeError>> ImportAsync(Guid projectId, IFormFile file, string language)
     {
         using var stream = file.OpenReadStream();
         using var reader = new StreamReader(stream);
@@ -53,7 +54,7 @@ public class SettingService : ISettingService
         return new List<MergeError>();
     }
 
-    public Task<byte[]> ExportAsync(int projectId, string targetLanguage)
+    public Task<byte[]> ExportAsync(Guid projectId, string targetLanguage)
     {
         var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new Dictionary<string, Property>());
         var targetLanguageProperties = allProperties.Values.ToList().FindAll(p => p.Values.Exists(v => v.Language == targetLanguage));
@@ -62,7 +63,7 @@ public class SettingService : ISettingService
         return Task.FromResult(fileBytes);
     }
 
-    public async Task SaveSnapshotAsync(int projectId, List<string> languages)
+    public async Task SaveSnapshotAsync(Guid projectId, List<string> languages)
     {
         var allProperties = _fusionCache.GetOrDefault(CacheKeys.AllProperties(projectId), new Dictionary<string, Property>());
         var snapshot = new Dictionary<string, JObject>();
@@ -76,12 +77,12 @@ public class SettingService : ISettingService
         await _snapshotRepository.SaveSnapshotAsync(projectId, JsonConvert.SerializeObject(snapshot));
     }
 
-    public Task<List<SnapshotItem>> GetSnapshotsAsync(int projectId, int limit)
+    public Task<List<SnapshotItem>> GetSnapshotsAsync(Guid projectId, int limit)
     {
         return _snapshotRepository.GetSnapshotsByProjectIdAsync(projectId, limit);
     }
 
-    public async Task RollbackToSnapshotAsync(int snapshotId)
+    public async Task RollbackToSnapshotAsync(Guid snapshotId)
     {
         var snapshot = await _snapshotRepository.RollbackToSnapshotAsync(snapshotId);
         var snapshotData = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(snapshot.SnapshotData);

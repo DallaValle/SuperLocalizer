@@ -27,6 +27,8 @@ public class SearchResponse<T>
 
 public class UpdateValueRequest
 {
+    public string Key { get; set; }
+    public string Language { get; set; }
     public string Text { get; set; }
     public bool? IsVerified { get; set; }
     public bool? IsReviewed { get; set; }

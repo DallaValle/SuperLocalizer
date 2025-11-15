@@ -6,7 +6,7 @@ namespace SuperLocalizer.Repository;
 
 public interface ICommentRepository
 {
-    List<Comment> GetComments(string key);
+    List<Comment> GetCommentsByPropertyKey(string key);
     void Create(Comment comment);
     void Delete(string valueKey, Guid id);
     void Update(Comment comment);
@@ -31,7 +31,7 @@ public class CommentRepository : ICommentRepository
         throw new NotImplementedException();
     }
 
-    public List<Comment> GetComments(string key)
+    public List<Comment> GetCommentsByPropertyKey(string key)
     {
         throw new NotImplementedException();
     }

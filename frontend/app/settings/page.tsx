@@ -198,7 +198,7 @@ export default function ActionsPage() {
         }
     }
 
-    const handleRollback = async (snapshotId: number) => {
+    const handleRollback = async (snapshotId: string) => {
         if (!settingService) return
 
         setRollbackStatus({ isLoading: true, error: null })

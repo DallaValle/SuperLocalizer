@@ -1,13 +1,19 @@
+using System;
+
 namespace SuperLocalizer.Model;
 
-public class User
+public class SessionUser
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string Username { get; set; }
     public string Email { get; set; }
-    public string PasswordHash { get; set; }
-    public int? CompanyId { get; set; }
+    public Guid? CompanyId { get; set; }
     public string CompanyName { get; set; }
-    public int? MainProjectId { get; set; }
+    public Guid? MainProjectId { get; set; }
     public string MainProjectName { get; set; }
+}
+
+public class User : SessionUser
+{
+    public string PasswordHash { get; set; }
 }

@@ -16,7 +16,7 @@ public class CommentRepositoryInMemory : ICommentRepository
         _fusionCache = fusionCache;
     }
 
-    public List<Comment> GetComments(string key)
+    public List<Comment> GetCommentsByPropertyKey(string key)
     {
         var allComments = _fusionCache.GetOrSet(CacheKeys.AllComments(key), new List<Comment>());
         return allComments.Where(c => c.ValueKey == key).ToList();

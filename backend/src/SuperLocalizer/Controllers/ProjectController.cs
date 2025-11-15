@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,6 @@ public class ProjectController : ControllerBase
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUserProfile _userProfile;
-    private readonly IPropertyRepository _propertyRepository;
 
     public ProjectController(IProjectRepository companyRepository, IUserRepository userRepository, IUserProfile userProfile)
     {
@@ -29,9 +29,9 @@ public class ProjectController : ControllerBase
     /// Get all supported languages for a project id
     /// </summary>
     [HttpGet("{id}/all-languages")]
-    public async Task<IActionResult> GetAllSupportedLanguages(int companyId, int id)
+    public async Task<IActionResult> GetAllSupportedLanguages(Guid companyId, Guid id)
     {
-        var project = await _projectRepository.GetByIdAsync(companyId, id);
+        var project = await _projectRepository.Read(companyId, id);
         if (project == null) return NotFound("Project not found.");
         return Ok(project.Languages);
     }
@@ -40,12 +40,12 @@ public class ProjectController : ControllerBase
     /// Create a new language for a project
     /// </summary>
     [HttpPost("{id}/language")]
-    public async Task<IActionResult> CreateLanguage(int companyId, int id, [FromBody] CreateLanguageRequest request)
+    public async Task<IActionResult> CreateLanguage(Guid companyId, Guid id, [FromBody] CreateLanguageRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.Language))
             return BadRequest("Invalid request.");
 
-        var project = await _projectRepository.GetByIdAsync(companyId, id);
+        var project = await _projectRepository.Read(companyId, id);
         if (project == null)
         {
             return NotFound("Project not found.");
@@ -57,7 +57,7 @@ public class ProjectController : ControllerBase
         }
 
         project.Languages.Add(request.Language);
-        await _projectRepository.UpdateAsync(project);
+        await _projectRepository.Update(project);
         // Create a default property for the new language
 
         return Ok(project.Languages);
@@ -66,17 +66,17 @@ public class ProjectController : ControllerBase
 
 
     /// <summary>
-    /// Set main project for current user
+    /// Set the specified project as the main project for the current user
     /// </summary>
-    [HttpPut("{id}/user")]
-    public async Task<IActionResult> SetMainProject(int companyId, int id)
+    [HttpPut("{id}/set-main")]
+    public async Task<IActionResult> SetMainProject(Guid companyId, Guid id)
     {
         var current = await _userProfile.GetCurrentUser();
         if (current == null) return Unauthorized();
-        var projects = await _projectRepository.GetAllAsync(companyId);
+        var projects = await _projectRepository.GetByCompanyId(companyId);
         var project = projects.FirstOrDefault(p => p.Id == id);
         if (project == null) return NotFound();
-        await _userRepository.PartialUpdateAsync(new User
+        await _userRepository.Update(new User
         {
             Id = current.Id,
             MainProjectId = project.Id,
@@ -89,9 +89,9 @@ public class ProjectController : ControllerBase
     /// Get all projects for a company
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll(int companyId)
+    public async Task<IActionResult> GetAll(Guid companyId)
     {
-        var projects = await _projectRepository.GetAllAsync(companyId);
+        var projects = await _projectRepository.GetByCompanyId(companyId);
         return Ok(projects);
     }
 
@@ -99,9 +99,9 @@ public class ProjectController : ControllerBase
     /// Get project by id
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int companyId, int id)
+    public async Task<IActionResult> GetById(Guid companyId, Guid id)
     {
-        var project = await _projectRepository.GetByIdAsync(companyId, id);
+        var project = await _projectRepository.Read(companyId, id);
         if (project == null) return NotFound();
 
         var currentUser = await _userProfile.GetCurrentUser();
@@ -119,18 +119,18 @@ public class ProjectController : ControllerBase
     /// Create a new project
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create(int companyId, [FromBody] Project project)
+    public async Task<IActionResult> Create(Guid companyId, [FromBody] Project project)
     {
         if (project == null) return BadRequest();
 
         project.CompanyId = companyId;
-        var created = await _projectRepository.CreateAsync(project);
+        var created = await _projectRepository.Create(project);
 
         // Associate the company with the current user
         var currentUser = await _userProfile.GetCurrentUser();
         if (currentUser.MainProjectId == null)
         {
-            await _userRepository.PartialUpdateAsync(new User
+            await _userRepository.Update(new User
             {
                 Id = currentUser.Id,
                 MainProjectId = created.Id,
@@ -145,15 +145,15 @@ public class ProjectController : ControllerBase
     /// Update an existing project
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int companyId, int id, [FromBody] Project project)
+    public async Task<IActionResult> Update(Guid companyId, Guid id, [FromBody] Project project)
     {
         if (project == null || id != project.Id) return BadRequest();
 
-        var exists = await _projectRepository.ExistsAsync(companyId, id);
+        var exists = await _projectRepository.Exists(companyId, id);
         if (!exists) return NotFound();
 
         project.CompanyId = companyId;
-        var updated = await _projectRepository.UpdateAsync(project);
+        var updated = await _projectRepository.Update(project);
         if (updated == null) return StatusCode(500, "Update failed");
         return Ok(updated);
     }
@@ -161,13 +161,13 @@ public class ProjectController : ControllerBase
     /// <summary>
     /// Delete a project
     /// </summary>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int companyId, int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid companyId, Guid id)
     {
-        var exists = await _projectRepository.ExistsAsync(companyId, id);
+        var exists = await _projectRepository.Exists(companyId, id);
         if (!exists) return NotFound();
 
-        var deleted = await _projectRepository.DeleteAsync(companyId, id);
+        var deleted = await _projectRepository.Delete(companyId, id);
         if (!deleted) return StatusCode(500, "Delete failed");
         return NoContent();
     }

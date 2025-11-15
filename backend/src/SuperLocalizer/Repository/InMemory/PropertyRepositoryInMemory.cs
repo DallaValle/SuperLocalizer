@@ -17,9 +17,9 @@ public class PropertyRepositoryInMemory : IPropertyRepository
         _fusionCache = fusionCache;
     }
 
-    public SearchResponse<Property> GetProperties(int projectId, SearchPropertyRequest request)
+    public Task<SearchResponse<Property>> Search(Guid projectId, SearchPropertyRequest request)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => ReadFilesFromSnapshot());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => GetFromDb());
 
         var query = allProperties.Values.AsQueryable();
 
@@ -100,30 +100,31 @@ public class PropertyRepositoryInMemory : IPropertyRepository
             TotalItems = totalItems,
             TotalPages = (int)System.Math.Ceiling((double)totalItems / size)
         };
-        return result;
+        return Task.FromResult(result);
     }
 
-    public Property GetPropertyByKey(int projectId, string key)
+    public Task<Property> Read(Guid projectId, string key)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => ReadFilesFromSnapshot());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => GetFromDb());
         allProperties.TryGetValue(key, out var property);
-        return property;
+        return Task.FromResult(property);
     }
 
-    public void UpdateProperty(int projectId, Property property)
+    public Task Update(Guid projectId, Property property)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => ReadFilesFromSnapshot());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => GetFromDb());
 
         // Update the property in the dictionary
         property.UpdateDate = DateTime.UtcNow;
         allProperties[property.Key] = property;
 
         _fusionCache.Set(CacheKeys.AllProperties(projectId), allProperties);
+        return Task.CompletedTask;
     }
 
-    public bool MergeProperties(int projectId, List<Property> newProperties)
+    public Task<bool> MergeProperties(Guid projectId, List<Property> newProperties)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => ReadFilesFromSnapshot());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => GetFromDb());
         var updated = false;
 
         foreach (var newProp in newProperties)
@@ -174,19 +175,14 @@ public class PropertyRepositoryInMemory : IPropertyRepository
             _fusionCache.Set(CacheKeys.AllProperties(projectId), allProperties);
         }
 
-        return updated;
+        return Task.FromResult(updated);
     }
 
-    // property key -> property
-    private Dictionary<string, Property> ReadFilesFromSnapshot()
-    {
-        // For simplicity, returning an empty dictionary now.
-        return new Dictionary<string, Property>();
-    }
+    private static Dictionary<string, Property> GetFromDb() => new();
 
-    public Task AddProperty(int projectId, Property newProperty)
+    public Task Create(Guid projectId, Property newProperty)
     {
-        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => ReadFilesFromSnapshot());
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => GetFromDb());
         if (allProperties.ContainsKey(newProperty.Key))
         {
             throw new ArgumentException($"Property with key '{newProperty.Key}' already exists.");
@@ -196,5 +192,16 @@ public class PropertyRepositoryInMemory : IPropertyRepository
         allProperties[newProperty.Key] = newProperty;
         _fusionCache.Set(CacheKeys.AllProperties(projectId), allProperties);
         return Task.CompletedTask;
+    }
+
+    public Task<bool> Delete(Guid projectId, string key)
+    {
+        var allProperties = _fusionCache.GetOrSet(CacheKeys.AllProperties(projectId), _ => GetFromDb());
+        var removed = allProperties.Remove(key);
+        if (removed)
+        {
+            _fusionCache.Set(CacheKeys.AllProperties(projectId), allProperties);
+        }
+        return Task.FromResult(removed);
     }
 }

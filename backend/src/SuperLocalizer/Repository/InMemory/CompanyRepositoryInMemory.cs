@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
@@ -16,39 +17,33 @@ public class CompanyRepositoryInMemory : ICompanyRepository
         _fusionCache = fusionCache;
     }
 
-    public Task<Company> GetByIdAsync(int id)
+    public Task<Company> Read(Guid id)
     {
-        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => new Dictionary<int, Company>());
+        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => GetFromDb());
 
         allCompanies.TryGetValue(id, out var company);
         return Task.FromResult(company);
     }
 
-    public Task<IEnumerable<Company>> GetAllAsync()
+    public Task<Company> GetCompanyByUserId(Guid userId)
     {
-        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => new Dictionary<int, Company>());
-
-        return Task.FromResult<IEnumerable<Company>>(allCompanies.Values);
+        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => GetFromDb());
+        var allUsers = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new Dictionary<Guid, User>());
+        var companyId = allUsers.Values.FirstOrDefault(u => u.Id == userId)?.CompanyId;
+        if (companyId.HasValue)
+        {
+            allCompanies.TryGetValue(companyId.Value, out var company);
+            return Task.FromResult(company);
+        }
+        return Task.FromResult<Company>(null);
     }
 
-    public Task<Company> CreateAsync(Company company)
+    public Task<Company> Create(Company company)
     {
-        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => new Dictionary<int, Company>());
-
-        // generate new id (max existing id + 1)
-        var newId = 1;
-        if (allCompanies.Count > 0)
-        {
-            newId = 0;
-            foreach (var k in allCompanies.Keys)
-            {
-                if (k > newId) newId = k;
-            }
-            newId += 1;
-        }
+        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => GetFromDb());
 
         var now = DateTime.UtcNow;
-        company.Id = newId;
+        company.Id = Guid.NewGuid();
         company.InsertDate = now;
         company.UpdateDate = now;
 
@@ -57,9 +52,9 @@ public class CompanyRepositoryInMemory : ICompanyRepository
         return Task.FromResult(company);
     }
 
-    public Task<Company> UpdateAsync(Company company)
+    public Task<Company> Update(Company company)
     {
-        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => new Dictionary<int, Company>());
+        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => GetFromDb());
 
         if (allCompanies.TryGetValue(company.Id, out var existing))
         {
@@ -74,9 +69,9 @@ public class CompanyRepositoryInMemory : ICompanyRepository
         return Task.FromResult<Company>(null);
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public Task<bool> Delete(Guid id)
     {
-        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => new Dictionary<int, Company>());
+        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => GetFromDb());
         if (allCompanies.TryGetValue(id, out var existing))
         {
             var removed = allCompanies.Remove(id);
@@ -87,9 +82,11 @@ public class CompanyRepositoryInMemory : ICompanyRepository
         return Task.FromResult(false);
     }
 
-    public Task<bool> ExistsAsync(int id)
+    public Task<bool> Exists(Guid id)
     {
-        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => new Dictionary<int, Company>());
+        var allCompanies = _fusionCache.GetOrSet(CacheKeys.AllCompanies, _ => GetFromDb());
         return Task.FromResult(allCompanies.ContainsKey(id));
     }
+
+    private static Dictionary<Guid, Company> GetFromDb() => new();
 }

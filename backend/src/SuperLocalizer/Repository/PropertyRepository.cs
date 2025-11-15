@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SuperLocalizer.Model;
@@ -6,11 +7,12 @@ namespace SuperLocalizer.Repository;
 
 public interface IPropertyRepository
 {
-    SearchResponse<Property> GetProperties(int projectId, SearchPropertyRequest request);
-    Property GetPropertyByKey(int projectId, string key);
-    void UpdateProperty(int projectId, Property property);
-    bool MergeProperties(int projectId, List<Property> newProperties);
-    Task AddProperty(int projectId, Property newProperty);
+    Task Create(Guid projectId, Property newProperty);
+    Task<Property> Read(Guid projectId, string key);
+    Task Update(Guid projectId, Property property);
+    Task<bool> Delete(Guid projectId, string key);
+    Task<SearchResponse<Property>> Search(Guid projectId, SearchPropertyRequest request);
+    Task<bool> MergeProperties(Guid projectId, List<Property> newProperties);
 }
 
 public class PropertyRepository : IPropertyRepository
@@ -22,28 +24,33 @@ public class PropertyRepository : IPropertyRepository
         _connectionString = connectionString;
     }
 
-    public Task AddProperty(int projectId, Property newProperty)
+    public Task Create(Guid projectId, Property newProperty)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
-    public SearchResponse<Property> GetProperties(int projectId, SearchPropertyRequest request)
+    public Task<SearchResponse<Property>> Search(Guid projectId, SearchPropertyRequest request)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
-    public Property GetPropertyByKey(int projectId, string key)
+    public Task<Property> Read(Guid projectId, string key)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
-    public bool MergeProperties(int projectId, List<Property> newProperties)
+    public Task<bool> MergeProperties(Guid projectId, List<Property> newProperties)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
-    public void UpdateProperty(int projectId, Property property)
+    public Task Update(Guid projectId, Property property)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> Delete(Guid projectId, string key)
+    {
+        throw new NotImplementedException();
     }
 }

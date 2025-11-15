@@ -3,9 +3,9 @@ POST http://localhost:5000/auth/signup
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "admin",
-  "email": "admin"
+  "username": "admin123",
+  "password": "admin123",
+  "email": "admin123"
 }
 ###
 # @name login
@@ -13,10 +13,11 @@ POST http://localhost:5000/auth/signin
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "admin"
+  "username": "admin123",
+  "password": "admin123"
 }
 ### Create a new company
+# @name company
 POST http://localhost:5000/company
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
@@ -28,11 +29,12 @@ Authorization: Bearer {{login.response.body.token}}
   "phone": "1234567890"
 }
 ### Get the company by ID
-GET http://localhost:5000/company/1
+GET http://localhost:5000/company/{{company.response.body.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 ### Create a new project for the company
-POST http://localhost:5000/company/1/project
+# @name project
+POST http://localhost:5000/company/{{company.response.body.id}}/project
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 
@@ -41,11 +43,11 @@ Authorization: Bearer {{login.response.body.token}}
   "description": "This is a test project"
 }
 ### Get the project by ID
-GET http://localhost:5000/company/1/project/1
+GET http://localhost:5000/company/{{company.response.body.id}}/project/{{project.response.body.id}}
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 ### Setup main project for the user
-PUT http://localhost:5000/company/1/project/1/user
+PUT http://localhost:5000/company/{{company.response.body.id}}/project/{{project.response.body.id}}/set-main
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.token}}
 

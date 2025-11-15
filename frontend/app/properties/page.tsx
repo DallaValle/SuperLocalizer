@@ -60,6 +60,7 @@ function PropertiesContent() {
     const [bulkReviewed, setBulkReviewed] = useState<boolean | null>(null)
     const [newPropertyName, setNewPropertyName] = useState('')
     const [actionError, setActionError] = useState<string | null>(null)
+    const [isManagementExpanded, setIsManagementExpanded] = useState(false)
 
     // Helper function
     const getEditKey = (propertyKey: string, language: string) => {
@@ -344,11 +345,13 @@ function PropertiesContent() {
             const updateRequest: PropertyValueUpdateRequest = {
                 text: editingValue.text,
                 isVerified: editingValue.isVerified,
-                isReviewed: editingValue.isReviewed
+                isReviewed: editingValue.isReviewed,
+                key: propertyKey,
+                language: language
             }
             if (user?.mainProjectId == null) throw new Error("User's main project ID is not set.")
 
-            await new PropertyService(user.mainProjectId).updatePropertyValue(propertyKey, language, updateRequest)
+            await new PropertyService(user.mainProjectId).updatePropertyValue(updateRequest)
 
             setProperties(prev => prev.map(property => {
                 if (property.key === propertyKey) {
@@ -650,7 +653,7 @@ function PropertiesContent() {
                         className={`tab-button ${activeTab === 'management' ? 'active' : ''}`}
                         onClick={() => setActiveTab('management')}
                     >
-                        ⚙️ Management
+                        ⚙️ Languages Management
                     </button>
                 </div>
 
@@ -722,7 +725,6 @@ function PropertiesContent() {
                                         <option value={25}>25 per page</option>
                                         <option value={50}>50 per page</option>
                                         <option value={100}>100 per page</option>
-                                        <option value={1000}>1000 per page</option>
                                     </select>
                                 </div>
                             </form>
@@ -731,7 +733,7 @@ function PropertiesContent() {
                             <div className="stats-section">
                                 <div className="stats-item">
                                     <span className="stats-label">Total items:</span>
-                                    <span className="stats-value">{totalItems.toLocaleString()}</span>
+                                    <span className="stats-value">{(totalItems ?? 0).toLocaleString()}</span>
                                 </div>
                                 <div className="stats-item">
                                     <span className="stats-label">Page:</span>
@@ -746,94 +748,103 @@ function PropertiesContent() {
 
                         {/* Property Management & Bulk Updates */}
                         <div className="bulk-update-section">
-                            <div className="section-row">
-                                {/* Create Property Section */}
-                                <div className="create-property-group">
-                                    <h4 className="action-title">➕ Create Property</h4>
-                                    <div className="property-creation-controls">
-                                        <input
-                                            placeholder="Property key (e.g., button.submit)"
-                                            className="property-name-input"
-                                            type="text"
-                                            value={newPropertyName}
-                                            onChange={(e) => {
-                                                setNewPropertyName(e.target.value)
-                                                if (actionError) setActionError(null)
-                                            }}
-                                            disabled={loading}
-                                        />
-                                        <button
-                                            className="create-property-btn"
-                                            onClick={handleCreatePropertyQuick}
-                                            disabled={loading || !newPropertyName.trim()}
-                                        >
-                                            {loading ? 'Creating...' : 'Create Property'}
-                                        </button>
-
-                                        {actionError && (
-                                            <div className="error-section" role="alert">
-                                                {actionError}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Bulk Flag Update Section */}
-                                <div className="bulk-flags-group">
-                                    <h4 className="action-title">📝 Bulk Update Flags</h4>
-                                    <div className="bulk-flag-controls">
-                                        <div className="bulk-flag-group">
-                                            <label htmlFor="bulkVerifiedSelect" className="bulk-flag-label">
-                                                Verified Status
-                                            </label>
-                                            <select
-                                                id="bulkVerifiedSelect"
-                                                className="bulk-flag-select"
-                                                value={bulkVerified === null ? '' : bulkVerified.toString()}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setBulkVerified(value === '' ? null : value === 'true');
-                                                    if (actionError) setActionError(null)
-                                                }}
-                                                disabled={loading}
-                                            >
-                                                <option value="">No change</option>
-                                                <option value="true">✓ Set as Verified</option>
-                                                <option value="false">⚠ Set as Not Verified</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="bulk-flag-group">
-                                            <label htmlFor="bulkReviewedSelect" className="bulk-flag-label">
-                                                Reviewed Status
-                                            </label>
-                                            <select
-                                                id="bulkReviewedSelect"
-                                                className="bulk-flag-select"
-                                                value={bulkReviewed === null ? '' : bulkReviewed.toString()}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setBulkReviewed(value === '' ? null : value === 'true');
-                                                    if (actionError) setActionError(null)
-                                                }}
-                                                disabled={loading}
-                                            >
-                                                <option value="">No change</option>
-                                                <option value="true">👁 Set as Reviewed</option>
-                                                <option value="false">📝 Set as Not Reviewed</option>
-                                            </select>
-                                        </div>
-
-                                        <button
-                                            className="bulk-update-btn"
-                                            onClick={handleBulkUpdateFlags}
-                                            disabled={loading || (bulkVerified === null && bulkReviewed === null)}
-                                        >
-                                            {loading ? 'Updating...' : 'Update Flags'}
-                                        </button>
-                                    </div>
-                                </div>
+                            <div className="bulk-update-header" onClick={() => setIsManagementExpanded(!isManagementExpanded)}>
+                                <span className="management-title">⚙️ Manage Properties</span>
+                                <span className={`expand-icon ${isManagementExpanded ? 'expanded' : ''}`}>▼</span>
                             </div>
+
+                            {isManagementExpanded && (
+                                <div className="management-content">
+                                    <div className="section-row">
+                                        {/* Create Property Section */}
+                                        <div className="create-property-group">
+                                            <h4 className="action-title">➕ Create Property</h4>
+                                            <div className="property-creation-controls">
+                                                <input
+                                                    placeholder="Property key (e.g., button.submit)"
+                                                    className="property-name-input"
+                                                    type="text"
+                                                    value={newPropertyName}
+                                                    onChange={(e) => {
+                                                        setNewPropertyName(e.target.value)
+                                                        if (actionError) setActionError(null)
+                                                    }}
+                                                    disabled={loading}
+                                                />
+                                                <button
+                                                    className="create-property-btn"
+                                                    onClick={handleCreatePropertyQuick}
+                                                    disabled={loading || !newPropertyName.trim()}
+                                                >
+                                                    {loading ? 'Creating...' : 'Create Property'}
+                                                </button>
+
+                                                {actionError && (
+                                                    <div className="error-section" role="alert">
+                                                        {actionError}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Bulk Flag Update Section */}
+                                        <div className="bulk-flags-group">
+                                            <h4 className="action-title">📝 Bulk Update Flags</h4>
+                                            <div className="bulk-flag-controls">
+                                                <div className="bulk-flag-group">
+                                                    <label htmlFor="bulkVerifiedSelect" className="bulk-flag-label">
+                                                        Verified Status
+                                                    </label>
+                                                    <select
+                                                        id="bulkVerifiedSelect"
+                                                        className="bulk-flag-select"
+                                                        value={bulkVerified === null ? '' : bulkVerified.toString()}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setBulkVerified(value === '' ? null : value === 'true');
+                                                            if (actionError) setActionError(null)
+                                                        }}
+                                                        disabled={loading}
+                                                    >
+                                                        <option value="">No change</option>
+                                                        <option value="true">✓ Set as Verified</option>
+                                                        <option value="false">⚠ Set as Not Verified</option>
+                                                    </select>
+                                                </div>
+
+                                                <div className="bulk-flag-group">
+                                                    <label htmlFor="bulkReviewedSelect" className="bulk-flag-label">
+                                                        Reviewed Status
+                                                    </label>
+                                                    <select
+                                                        id="bulkReviewedSelect"
+                                                        className="bulk-flag-select"
+                                                        value={bulkReviewed === null ? '' : bulkReviewed.toString()}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setBulkReviewed(value === '' ? null : value === 'true');
+                                                            if (actionError) setActionError(null)
+                                                        }}
+                                                        disabled={loading}
+                                                    >
+                                                        <option value="">No change</option>
+                                                        <option value="true">👁 Set as Reviewed</option>
+                                                        <option value="false">📝 Set as Not Reviewed</option>
+                                                    </select>
+                                                </div>
+
+                                                <button
+                                                    className="bulk-update-btn"
+                                                    onClick={handleBulkUpdateFlags}
+                                                    disabled={loading || (bulkVerified === null && bulkReviewed === null)}
+                                                >
+                                                    {loading ? 'Updating...' : 'Update Flags'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Loading */}
@@ -936,7 +947,7 @@ function PropertiesContent() {
                             <div className="pagination-section">
                                 {renderPagination()}
                                 <div className="pagination-info">
-                                    Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems)} of {totalItems.toLocaleString()} items
+                                    Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalItems ?? 0)} of {(totalItems ?? 0).toLocaleString()} items
                                 </div>
                             </div>
                         )}

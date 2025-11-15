@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,8 +27,8 @@ public class CompanyController : ControllerBase
     /// <summary>
     /// Get company by id
     /// </summary>
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var currentUser = await _userProfile.GetCurrentUser();
         if (currentUser == null)
@@ -37,7 +38,7 @@ public class CompanyController : ControllerBase
         if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != id)
             return StatusCode(403, "Access denied to this company");
 
-        var company = await _companyRepository.GetByIdAsync(id);
+        var company = await _companyRepository.Read(id);
         if (company == null) return NotFound();
         return Ok(company);
     }
@@ -57,8 +58,10 @@ public class CompanyController : ControllerBase
             return BadRequest("User already has an associated company");
 
         // Associate the company with the current user
-        var created = await _companyRepository.CreateAsync(company);
-        await _userRepository.PartialUpdateAsync(new User
+        var created = await _companyRepository.Create(company);
+
+        // FIX the username is delete after this update
+        await _userRepository.Update(new User
         {
             Id = currentUser.Id,
             CompanyId = company.Id,
@@ -71,8 +74,8 @@ public class CompanyController : ControllerBase
     /// <summary>
     /// Update an existing company
     /// </summary>
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Company company)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] Company company)
     {
         if (company == null || id != company.Id) return BadRequest();
 
@@ -84,10 +87,10 @@ public class CompanyController : ControllerBase
         if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != id)
             return StatusCode(403, "Access denied to this company");
 
-        var exists = await _companyRepository.ExistsAsync(id);
+        var exists = await _companyRepository.Exists(id);
         if (!exists) return NotFound();
 
-        var updated = await _companyRepository.UpdateAsync(company);
+        var updated = await _companyRepository.Update(company);
         if (updated == null) return StatusCode(500, "Update failed");
         return Ok(updated);
     }
@@ -95,8 +98,8 @@ public class CompanyController : ControllerBase
     /// <summary>
     /// Delete a company
     /// </summary>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var currentUser = await _userProfile.GetCurrentUser();
         if (currentUser == null)
@@ -106,10 +109,10 @@ public class CompanyController : ControllerBase
         if (currentUser.CompanyId.HasValue && currentUser.CompanyId.Value != id)
             return StatusCode(403, "Access denied to this company");
 
-        var exists = await _companyRepository.ExistsAsync(id);
+        var exists = await _companyRepository.Exists(id);
         if (!exists) return NotFound();
 
-        var deleted = await _companyRepository.DeleteAsync(id);
+        var deleted = await _companyRepository.Delete(id);
         if (!deleted) return StatusCode(500, "Delete failed");
 
         // Remove company association from user

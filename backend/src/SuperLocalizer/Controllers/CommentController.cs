@@ -33,7 +33,7 @@ namespace SuperLocalizer.Controllers
         {
             try
             {
-                var comments = _commentRepository.GetComments(valueKey);
+                var comments = _commentRepository.GetCommentsByPropertyKey(valueKey);
                 return Ok(comments);
             }
             catch (Exception ex)

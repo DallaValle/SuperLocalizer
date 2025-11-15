@@ -45,11 +45,12 @@ const authOptions: AuthOptions = {
                                 );
 
                                 const user = {
-                                    id: parseInt(tokenPayload.companyId) || 0,
+                                    id: tokenPayload.id,
                                     username: tokenPayload.sub || credentials.username,
-                                    companyId: parseInt(tokenPayload.companyId) || undefined,
+                                    email: tokenPayload.email || undefined,
+                                    companyId: tokenPayload.companyId || undefined,
                                     companyName: tokenPayload.companyName || undefined,
-                                    mainProjectId: parseInt(tokenPayload.mainProjectId) || undefined,
+                                    mainProjectId: tokenPayload.mainProjectId || undefined,
                                     mainProjectName: tokenPayload.mainProjectName || undefined,
                                 };
 

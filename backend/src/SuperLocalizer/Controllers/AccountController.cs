@@ -111,7 +111,7 @@ public class AccountController : ControllerBase
             user.MainProjectName = invitation.MainProjectName;
         }
 
-        await this._userRepository.CreateAsync(user);
+        await this._userRepository.Create(user);
         return this.Ok("User created successfully.");
     }
 
@@ -122,7 +122,7 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> CreateInvitation()
     {
         var current = await _userProfile.GetCurrentUser();
-        var token = await this._invitationService.CreateInvitationAsync(current.ToUser());
+        var token = await this._invitationService.CreateInvitationAsync((User)current);
         return this.Ok(new { token = token, message = "Invitation created successfully." });
     }
 
@@ -156,7 +156,7 @@ public class AccountController : ControllerBase
                 // SocialId = request.Id
             };
 
-            await _userRepository.CreateAsync(newUser);
+            await _userRepository.Create(newUser);
             existingUser = newUser;
         }
 

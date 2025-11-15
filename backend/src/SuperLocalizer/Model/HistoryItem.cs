@@ -9,5 +9,5 @@ public class HistoryItem
     public Value PreviousValue { get; set; }
     public Value NewValue { get; set; }
     public string UserName { get; set; }
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 }

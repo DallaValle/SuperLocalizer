@@ -16,7 +16,7 @@ public class HistoryRepositoryInMemory : IHistoryRepository
         _fusionCache = fusionCache;
     }
 
-    public Task<SearchResponse<HistoryItem>> SearchHistory(int projectId, SearchHistoryRequest request)
+    public Task<SearchResponse<HistoryItem>> Search(Guid projectId, SearchHistoryRequest request)
     {
         var allHistories = _fusionCache.GetOrSet(
             key: CacheKeys.AllHistories(projectId),
@@ -67,7 +67,7 @@ public class HistoryRepositoryInMemory : IHistoryRepository
         });
     }
 
-    public Task SaveHistory(int projectId, string valueKey, CurrentUser user, Value previousValue, Value newValue)
+    public Task Create(Guid projectId, string valueKey, SessionUser user, Value previousValue, Value newValue)
     {
         var allHistories = _fusionCache.GetOrSet(
             key: CacheKeys.AllHistories(projectId),

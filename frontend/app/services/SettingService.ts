@@ -5,9 +5,9 @@ import { SnapshotItem } from '../types/domain';
  * Service for managing import/export operations for localization files
  */
 export class SettingService {
-    private readonly projectId: number;
+    private readonly projectId: string;
 
-    constructor(projectId: number) {
+    constructor(projectId: string) {
         this.projectId = projectId;
     }
 
@@ -72,7 +72,7 @@ export class SettingService {
      * @param snapshotId The ID of the snapshot to rollback to
      * @returns Promise<string> Success message
      */
-    async rollbackToSnapshot(snapshotId: number): Promise<string> {
+    async rollbackToSnapshot(snapshotId: string): Promise<string> {
         const url = `${this.endpointSnapshot()}/rollback/${encodeURIComponent(snapshotId)}`;
         return HttpClient.post<string>(url);
     }

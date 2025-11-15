@@ -10,12 +10,12 @@ namespace SuperLocalizer.Repository;
 
 public interface IProjectRepository
 {
-    Task<Project> GetByIdAsync(int companyId, int id);
-    Task<IEnumerable<Project>> GetAllAsync(int companyId);
-    Task<Project> CreateAsync(Project project);
-    Task<Project> UpdateAsync(Project project);
-    Task<bool> DeleteAsync(int companyId, int id);
-    Task<bool> ExistsAsync(int companyId, int id);
+    Task<Project> Create(Project project);
+    Task<Project> Read(Guid companyId, Guid id);
+    Task<Project> Update(Project project);
+    Task<bool> Delete(Guid companyId, Guid id);
+    Task<bool> Exists(Guid companyId, Guid id);
+    Task<IEnumerable<Project>> GetByCompanyId(Guid companyId);
 }
 
 public class ProjectRepository : IProjectRepository
@@ -27,7 +27,7 @@ public class ProjectRepository : IProjectRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
-    public async Task<Project> GetByIdAsync(int companyId, int id)
+    public async Task<Project> Read(Guid companyId, Guid id)
     {
         const string query = @"
             SELECT Id, Name, Description, CompanyId, InsertDate, UpdateDate
@@ -50,7 +50,7 @@ public class ProjectRepository : IProjectRepository
         return null;
     }
 
-    public async Task<IEnumerable<Project>> GetAllAsync(int companyId)
+    public async Task<IEnumerable<Project>> GetByCompanyId(Guid companyId)
     {
         const string query = @"
             SELECT Id, Name, Description, CompanyId, InsertDate, UpdateDate
@@ -74,7 +74,7 @@ public class ProjectRepository : IProjectRepository
         return projects;
     }
 
-    public async Task<Project> CreateAsync(Project project)
+    public async Task<Project> Create(Project project)
     {
         const string query = @"
             INSERT INTO Project (Name, Description, CompanyId, InsertDate, UpdateDate)
@@ -92,7 +92,7 @@ public class ProjectRepository : IProjectRepository
         command.Parameters.AddWithValue("@UpdateDate", now);
 
         await connection.OpenAsync();
-        var newId = Convert.ToInt32(await command.ExecuteScalarAsync());
+        var newId = Guid.NewGuid();
 
         project.Id = newId;
         project.InsertDate = now;
@@ -101,7 +101,7 @@ public class ProjectRepository : IProjectRepository
         return project;
     }
 
-    public async Task<Project> UpdateAsync(Project project)
+    public async Task<Project> Update(Project project)
     {
         const string query = @"
             UPDATE Project
@@ -133,7 +133,7 @@ public class ProjectRepository : IProjectRepository
         return null;
     }
 
-    public async Task<bool> DeleteAsync(int companyId, int id)
+    public async Task<bool> Delete(Guid companyId, Guid id)
     {
         const string query = "DELETE FROM Project WHERE Id = @Id AND CompanyId = @CompanyId";
 
@@ -148,7 +148,7 @@ public class ProjectRepository : IProjectRepository
         return rowsAffected > 0;
     }
 
-    public async Task<bool> ExistsAsync(int companyId, int id)
+    public async Task<bool> Exists(Guid companyId, Guid id)
     {
         const string query = "SELECT COUNT(1) FROM Project WHERE Id = @Id AND CompanyId = @CompanyId";
 
@@ -167,12 +167,12 @@ public class ProjectRepository : IProjectRepository
     {
         var project = new Project
         {
-            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+            Id = reader.GetGuid(reader.GetOrdinal("Id")),
             Name = reader.GetString(reader.GetOrdinal("Name")),
             Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
             InsertDate = reader.GetDateTime(reader.GetOrdinal("InsertDate")),
             UpdateDate = reader.IsDBNull(reader.GetOrdinal("UpdateDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("UpdateDate")),
-            CompanyId = reader.GetInt32(reader.GetOrdinal("CompanyId"))
+            CompanyId = reader.GetGuid(reader.GetOrdinal("CompanyId"))
         };
 
         return project;

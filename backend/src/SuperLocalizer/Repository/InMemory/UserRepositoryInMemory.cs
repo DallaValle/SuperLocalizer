@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SuperLocalizer.Configuration;
 using SuperLocalizer.Model;
@@ -16,7 +17,7 @@ public class UserRepositoryInMemory : IUserRepository
         _fusionCache = fusionCache;
     }
 
-    public Task<User> GetByIdAsync(int id)
+    public Task<User> Read(Guid id)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
         return Task.FromResult(allUser.Find(u => u.Id == id));
@@ -32,47 +33,24 @@ public class UserRepositoryInMemory : IUserRepository
         return Task.FromResult(found);
     }
 
-    public Task<User> GetByUserAndPasswordAsync(string username, string passwordHash)
+    public Task<IEnumerable<User>> GetByCompanyId(Guid companyId)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
-        if (string.IsNullOrEmpty(username) || passwordHash == null) return Task.FromResult<User>(null);
-
-        var found = allUser.Find(u => (string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase)
-                                       || string.Equals(u.Email, username, StringComparison.OrdinalIgnoreCase))
-                                      && u.PasswordHash == passwordHash);
-        return Task.FromResult(found);
+        return Task.FromResult(allUser.Where(u => u.CompanyId == companyId));
     }
 
-    public Task<IEnumerable<User>> GetAllAsync()
+    public Task<User> Create(User user)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
-        return Task.FromResult<IEnumerable<User>>(allUser);
-    }
-
-    public Task<User> CreateAsync(User user)
-    {
-        var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
-
-        // generate new id (max existing id + 1)
-        var newId = 1;
-        if (allUser.Count > 0)
-        {
-            newId = 0;
-            foreach (var u in allUser)
-            {
-                if (u.Id > newId) newId = u.Id;
-            }
-            newId += 1;
-        }
-
-        user.Id = newId;
+        user.Username = user.Username ?? user.Email;
+        user.Id = Guid.NewGuid();
         allUser.Add(user);
         _fusionCache.Set(CacheKeys.AllUsers, allUser);
 
         return Task.FromResult(user);
     }
 
-    public Task<User> PartialUpdateAsync(User user)
+    public Task<User> Update(User user)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
 
@@ -98,7 +76,7 @@ public class UserRepositoryInMemory : IUserRepository
         return Task.FromResult<User>(null);
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public Task<bool> Delete(Guid id)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
         var existing = allUser.Find(u => u.Id == id);
@@ -112,7 +90,7 @@ public class UserRepositoryInMemory : IUserRepository
         return Task.FromResult(false);
     }
 
-    public Task<bool> ExistsAsync(int id)
+    public Task<bool> Exists(Guid id)
     {
         var allUser = _fusionCache.GetOrSet(CacheKeys.AllUsers, _ => new List<User>());
         return Task.FromResult(allUser.Exists(u => u.Id == id));

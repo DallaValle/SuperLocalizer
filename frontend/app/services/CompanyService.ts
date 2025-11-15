@@ -3,11 +3,11 @@ import type { Company } from '../types/domain';
 
 export class CompanyService {
     private static readonly ENDPOINTS = {
-        GET: (id: number) => `/company/${id}`,
+        GET: (id: string) => `/company/${id}`,
         CREATE: '/company'
     } as const;
 
-    static async getCompany(id: number): Promise<Company> {
+    static async getCompany(id: string): Promise<Company> {
         const endpoint = this.ENDPOINTS.GET(id);
         return HttpClient.get<Company>(endpoint);
     }

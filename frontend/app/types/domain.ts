@@ -44,6 +44,8 @@ export interface PropertyValueUpdateRequest {
     text: string;
     isVerified: boolean;
     isReviewed: boolean;
+    key: string;
+    language: string;
 }
 
 // Search and Pagination Types
@@ -89,7 +91,7 @@ export interface HistoryItem {
 }
 
 export interface HistorySearchRequest {
-    projectId: number;
+    projectId: string;
     page: number;
     size: number;
     propertyKey?: string;
@@ -156,7 +158,7 @@ export const SORT_DIRECTIONS: SortDirection[] = ['asc', 'desc'];
 
 // Company
 export interface Company {
-    id: number;
+    id: string;
     name: string;
     address?: string;
     email?: string;
@@ -167,20 +169,20 @@ export interface Company {
 
 // Project
 export interface Project {
-    id: number;
+    id: string;
     name: string;
     description?: string;
     insertDate?: string;
     updateDate?: string;
-    companyId: number;
+    companyId: string;
 }
 
 export interface User {
-    id: number;
+    id: string;
     username: string;
-    companyId?: number;
+    companyId?: string;
     companyName?: string;
-    mainProjectId?: number;
+    mainProjectId?: string;
     mainProjectName?: string;
 }
 
@@ -191,8 +193,8 @@ export interface LoginResponse {
 
 // Snapshot Types
 export interface SnapshotItem {
-    id: number;
-    projectId: number;
+    id: string;
+    projectId: string;
     snapshotData: string;
     description?: string;
     insertDate: string;
