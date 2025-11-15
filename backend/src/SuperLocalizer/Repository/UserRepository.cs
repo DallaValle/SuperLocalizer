@@ -37,7 +37,7 @@ public class UserRepository : IUserRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
 
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
@@ -78,7 +78,7 @@ public class UserRepository : IUserRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@CompanyId", companyId);
+        command.Parameters.AddWithValue("@CompanyId", companyId.ToByteArray());
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
 
@@ -105,7 +105,7 @@ public class UserRepository : IUserRepository
         command.Parameters.AddWithValue("@Username", user.Username ?? user.Email ?? string.Empty);
         command.Parameters.AddWithValue("@Email", user.Email ?? string.Empty);
         command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash ?? string.Empty);
-        command.Parameters.AddWithValue("@CompanyId", user.CompanyId);
+        // command.Parameters.AddWithValue("@CompanyId", user.CompanyId.Value.ToByteArray());
 
         await connection.OpenAsync();
         var newId = (Guid)await command.ExecuteScalarAsync();
@@ -122,7 +122,7 @@ public class UserRepository : IUserRepository
         command.Connection = connection;
 
         // Id is required for the WHERE clause
-        command.Parameters.AddWithValue("@Id", user.Id);
+        command.Parameters.AddWithValue("@Id", user.Id.ToByteArray());
 
         if (user.Username != null)
         {
@@ -146,7 +146,7 @@ public class UserRepository : IUserRepository
         if (user.CompanyId.HasValue)
         {
             setClauses.Add("CompanyId = @CompanyId");
-            command.Parameters.AddWithValue("@CompanyId", user.CompanyId.Value);
+            command.Parameters.AddWithValue("@CompanyId", user.CompanyId.Value.ToByteArray());
         }
 
         if (user.CompanyName != null)
@@ -158,7 +158,7 @@ public class UserRepository : IUserRepository
         if (user.MainProjectId.HasValue)
         {
             setClauses.Add("MainProjectId = @MainProjectId");
-            command.Parameters.AddWithValue("@MainProjectId", user.MainProjectId.Value);
+            command.Parameters.AddWithValue("@MainProjectId", user.MainProjectId.Value.ToByteArray());
         }
 
         if (user.MainProjectName != null)
@@ -194,7 +194,7 @@ public class UserRepository : IUserRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
 
         await connection.OpenAsync();
         var rowsAffected = await command.ExecuteNonQueryAsync();
@@ -208,7 +208,7 @@ public class UserRepository : IUserRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
 
         await connection.OpenAsync();
         var count = Convert.ToInt32(await command.ExecuteScalarAsync());

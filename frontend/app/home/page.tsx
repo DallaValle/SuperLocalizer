@@ -140,18 +140,6 @@ export default function HomePage() {
 
     return (
         <div className="home-container">
-            <header className="home-header">
-                <div className="header-title">
-                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
-                </div>
-                <div className="user-info">
-                    <div className="account-tab">{user && user.username ? user.username : ''}</div>
-                    <button onClick={handleLogout} className="logout-btn">
-                        Logout
-                    </button>
-                </div>
-            </header>
-
             <main className="home-content">
                 {/* Navigation Cards */}
                 <div className="navigation-section">

@@ -3,6 +3,7 @@ import './globals.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SessionProvider } from './providers/SessionProvider';
 import { AuthProvider } from './contexts/AuthContext';
+import NavBar from './components/NavBar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <ErrorBoundary>
                     <SessionProvider>
                         <AuthProvider>
+                            <NavBar />
                             {children}
                         </AuthProvider>
                     </SessionProvider>

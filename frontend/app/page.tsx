@@ -8,19 +8,6 @@ import PlansMatrix from './components/PlansMatrix'
 export default function LandingPage() {
     return (
         <div className="landing-page">
-            <header className="properties-header">
-                <div className="header-title">
-                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
-                </div>
-                <div className="header-actions">
-                    <Link href="/login" className="navbar-item">
-                        Login
-                    </Link>
-                    <Link href="/signup" className="navbar-item navbar-button">
-                        Try it for free
-                    </Link>
-                </div>
-            </header>
 
             <main className="main-content">
                 <div className="hero-section">

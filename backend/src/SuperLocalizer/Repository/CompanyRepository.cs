@@ -60,7 +60,7 @@ public class CompanyRepository : ICompanyRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@UserId", userId);
+        command.Parameters.AddWithValue("@UserId", userId.ToByteArray());
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
@@ -88,7 +88,7 @@ public class CompanyRepository : ICompanyRepository
         command.Parameters.AddWithValue("@InsertDate", now);
         command.Parameters.AddWithValue("@UpdateDate", now);
         var newId = Guid.NewGuid();
-        command.Parameters.AddWithValue("@Id", newId);
+        command.Parameters.AddWithValue("@Id", newId.ToByteArray());
         await connection.OpenAsync();
         await command.ExecuteNonQueryAsync();
 
@@ -114,7 +114,7 @@ public class CompanyRepository : ICompanyRepository
         using var command = new MySqlCommand(query, connection);
 
         var now = DateTime.UtcNow;
-        command.Parameters.AddWithValue("@Id", company.Id);
+        command.Parameters.AddWithValue("@Id", company.Id.ToByteArray());
         command.Parameters.AddWithValue("@Name", company.Name ?? string.Empty);
         command.Parameters.AddWithValue("@Address", company.Address ?? string.Empty);
         command.Parameters.AddWithValue("@Email", company.Email ?? string.Empty);
@@ -139,7 +139,7 @@ public class CompanyRepository : ICompanyRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
 
         await connection.OpenAsync();
         var rowsAffected = await command.ExecuteNonQueryAsync();
@@ -153,7 +153,7 @@ public class CompanyRepository : ICompanyRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
 
         await connection.OpenAsync();
         var count = Convert.ToInt32(await command.ExecuteScalarAsync());

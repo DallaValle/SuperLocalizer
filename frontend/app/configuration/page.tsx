@@ -166,25 +166,6 @@ export default function ConfigurationPage() {
 
     return (
         <div className="configuration-container">
-            <header className="home-header">
-                <div className="header-title">
-                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
-                </div>
-                <div className="user-info">
-                    {/* <div className="account-tab">
-                        <div className="account-line"><strong>Company:</strong> {user?.companyName ?? '—'}</div>
-                        <div className="account-line"><strong>Project:</strong> {user?.mainProjectName ?? '—'}</div>
-                    </div> */}
-                    <div className="account-tab">{user && user.username ? user.username : ''}</div>
-                    <button onClick={() => window.location.href = '/home'} className="back-btn">
-                        ← Dashboard
-                    </button>
-                    <button onClick={() => signOut({ redirect: false }).then(() => window.location.href = '/login')} className="logout-btn">
-                        Logout
-                    </button>
-                </div>
-            </header>
-
             <main>
                 <div className='company-card'>
                     <h1>Configuration</h1>

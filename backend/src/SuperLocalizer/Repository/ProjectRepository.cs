@@ -36,8 +36,8 @@ public class ProjectRepository : IProjectRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
-        command.Parameters.AddWithValue("@CompanyId", companyId);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
+        command.Parameters.AddWithValue("@CompanyId", companyId.ToByteArray());
 
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
@@ -60,7 +60,7 @@ public class ProjectRepository : IProjectRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@CompanyId", companyId);
+        command.Parameters.AddWithValue("@CompanyId", companyId.ToByteArray());
 
         await connection.OpenAsync();
         using var reader = await command.ExecuteReaderAsync();
@@ -87,7 +87,7 @@ public class ProjectRepository : IProjectRepository
         var now = DateTime.UtcNow;
         command.Parameters.AddWithValue("@Name", project.Name ?? string.Empty);
         command.Parameters.AddWithValue("@Description", project.Description ?? string.Empty);
-        command.Parameters.AddWithValue("@CompanyId", project.CompanyId);
+        command.Parameters.AddWithValue("@CompanyId", project.CompanyId.ToByteArray());
         command.Parameters.AddWithValue("@InsertDate", now);
         command.Parameters.AddWithValue("@UpdateDate", now);
 
@@ -115,10 +115,10 @@ public class ProjectRepository : IProjectRepository
         using var command = new MySqlCommand(query, connection);
 
         var now = DateTime.UtcNow;
-        command.Parameters.AddWithValue("@Id", project.Id);
+        command.Parameters.AddWithValue("@Id", project.Id.ToByteArray());
         command.Parameters.AddWithValue("@Name", project.Name ?? string.Empty);
         command.Parameters.AddWithValue("@Description", project.Description ?? string.Empty);
-        command.Parameters.AddWithValue("@CompanyId", project.CompanyId);
+        command.Parameters.AddWithValue("@CompanyId", project.CompanyId.ToByteArray());
         command.Parameters.AddWithValue("@UpdateDate", now);
 
         await connection.OpenAsync();
@@ -139,8 +139,8 @@ public class ProjectRepository : IProjectRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
-        command.Parameters.AddWithValue("@CompanyId", companyId);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
+        command.Parameters.AddWithValue("@CompanyId", companyId.ToByteArray());
 
         await connection.OpenAsync();
         var rowsAffected = await command.ExecuteNonQueryAsync();
@@ -154,8 +154,8 @@ public class ProjectRepository : IProjectRepository
 
         using var connection = new MySqlConnection(_connectionString);
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
-        command.Parameters.AddWithValue("@CompanyId", companyId);
+        command.Parameters.AddWithValue("@Id", id.ToByteArray());
+        command.Parameters.AddWithValue("@CompanyId", companyId.ToByteArray());
 
         await connection.OpenAsync();
         var count = Convert.ToInt32(await command.ExecuteScalarAsync());

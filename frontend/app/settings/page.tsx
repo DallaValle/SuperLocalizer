@@ -219,21 +219,6 @@ export default function ActionsPage() {
 
     return (
         <div className="actions-page">
-            <header className="properties-header">
-                <div className="header-title">
-                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="header-logo" />
-                </div>
-                <div className="header-actions">
-                    <div className="account-tab">{user && user.username ? user.username : ''}</div>
-                    <button onClick={() => window.location.href = '/home'} className="back-btn">
-                        ← Dashboard
-                    </button>
-                    <button onClick={() => signOut({ redirect: false }).then(() => window.location.href = '/login')} className="logout-btn">
-                        Logout
-                    </button>
-                </div>
-            </header>
-
             <main className="actions-main">
                 <div className="page-title">
                     <h1>Import & Export Actions</h1>

@@ -5,28 +5,6 @@
     /* Responsive base font size */
 }
 
-.properties-header {
-    background: #002629;
-    color: white;
-    padding: clamp(1rem, 4vw, 2rem);
-    /* Responsive padding */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.properties-header h1 {
-    margin: 0;
-    font-size: clamp(1.25rem, 4vw, 1.8rem);
-    /* Responsive title size */
-    font-weight: 600;
-    flex: 1;
-    min-width: fit-content;
-}
-
 .header-title {
     display: flex;
     align-items: center;
@@ -36,13 +14,6 @@
 .header-logo {
     height: 40px;
     width: auto;
-}
-
-.header-actions {
-    display: flex;
-    gap: clamp(0.5rem, 2vw, 1rem);
-    align-items: center;
-    flex-wrap: wrap;
 }
 
 .properties-content {
@@ -846,23 +817,6 @@
 
 /* Small screens (mobile) - up to 480px */
 @media (max-width: 480px) {
-    .properties-header {
-        padding: 1rem;
-        flex-direction: column;
-        gap: 0.75rem;
-        text-align: center;
-    }
-
-    .properties-header h1 {
-        font-size: 1.4rem;
-    }
-
-    .header-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 0.5rem;
-    }
-
     .properties-content {
         padding: 0.75rem;
     }
@@ -1060,24 +1014,6 @@
 
 /* Medium screens (tablets) - 481px to 768px */
 @media (min-width: 481px) and (max-width: 768px) {
-    .properties-header {
-        padding: 1.25rem;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .properties-header h1 {
-        font-size: 1.6rem;
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .header-actions {
-        flex-direction: row;
-        gap: 0.75rem;
-    }
-
     .properties-content {
         padding: 1.25rem;
     }
@@ -1213,19 +1149,6 @@
 
 /* Landscape orientation adjustments for mobile */
 @media (max-width: 768px) and (orientation: landscape) {
-    .properties-header {
-        padding: 0.75rem 1rem;
-    }
-
-    .properties-header h1 {
-        font-size: 1.4rem;
-    }
-
-    .header-actions {
-        flex-direction: row;
-        gap: 0.75rem;
-    }
-
     .filter-group {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
