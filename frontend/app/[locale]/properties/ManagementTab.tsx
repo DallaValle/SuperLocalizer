@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Button from '../components/Button';
-import type { CreatePropertyRequest, CreateLanguageRequest } from '../services/PropertyService';
+import Button from '../../components/Button';
+import type { CreatePropertyRequest, CreateLanguageRequest } from '../../services/PropertyService';
 import './ManagementTab.css';
 
 interface ManagementTabProps {

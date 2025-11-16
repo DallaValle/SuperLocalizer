@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../contexts/AuthContext'
-import { AccountService } from '../services/AccoutService'
+import { useAuth } from '../../contexts/AuthContext'
+import { AccountService } from '../../services/AccoutService'
 import Link from 'next/link'
 import '../login/Login.css'
 
@@ -36,7 +36,7 @@ export default function SignupPage() {
             // If signup succeeded, try to sign in automatically
             try {
                 await login(username, password)
-                router.push('/home')
+                router.push('/dashboard')
                 return
             } catch (signinErr) {
                 // Signin after signup failed; continue to fallback to login page

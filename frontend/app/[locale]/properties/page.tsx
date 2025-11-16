@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession, signOut } from 'next-auth/react'
-import { PropertyService, CreatePropertyRequest, CreateLanguageRequest } from '../services/PropertyService'
+import { useSession } from 'next-auth/react'
+import { PropertyService, CreatePropertyRequest, CreateLanguageRequest } from '../../services/PropertyService'
 import CommentsModal from './CommentsModal'
 import HistoryModal from './HistoryModal'
 import ManagementTab from './ManagementTab'
 import './Properties.css'
-import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest, User } from '../types/domain'
-import { ProjectService } from '../services/ProjectService'
+import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue, PropertyValueUpdateRequest, User } from '../../types/domain'
+import { ProjectService } from '../../services/ProjectService'
 
 function PropertiesContent() {
     const { data: session } = useSession()
@@ -536,7 +536,7 @@ function PropertiesContent() {
             // clear previous action errors
             if (actionError) setActionError(null)
             // Get all available languages from the LANGUAGES constant
-            const { LANGUAGES } = await import('../types/domain');
+            const { LANGUAGES } = await import('../../types/domain');
 
             const propertyKey = newPropertyName.trim();
 

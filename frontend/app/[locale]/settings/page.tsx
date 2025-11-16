@@ -1,10 +1,10 @@
 'use client'
 
-import { SettingService } from '../services/SettingService'
+import { SettingService } from '../../services/SettingService'
 import { useEffect, useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import './Actions.css'
-import { User, SnapshotItem } from '../types/domain'
+import { User, SnapshotItem } from '../../types/domain'
 
 interface ImportStatus {
     isLoading: boolean;

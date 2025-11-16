@@ -1,11 +1,11 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { CompanyService } from '../services/CompanyService'
-import { ProjectService } from '../services/ProjectService'
-import { InvitationService } from '../services/InvitationService'
-import type { Company, Project, User } from '../types/domain'
+import { CompanyService } from '../../services/CompanyService'
+import { ProjectService } from '../../services/ProjectService'
+import { InvitationService } from '../../services/InvitationService'
+import type { Company, Project, User } from '../../types/domain'
 import './configuration.css'
 
 export default function ConfigurationPage() {

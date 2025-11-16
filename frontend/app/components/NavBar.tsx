@@ -4,11 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { User } from '../types/domain';
+import { useTranslations } from 'next-intl'
 
-/**
- * Navigation bar that shows login/signup links for guests and user info/logout for authenticated users
- */
 export default function NavBar() {
+    const t = useTranslations('NavBar');
     const { data: session, status } = useSession();
     const user = session?.user as User | undefined;
 
@@ -18,7 +17,7 @@ export default function NavBar() {
     };
 
     const handleDashboard = () => {
-        window.location.href = '/home';
+        window.location.href = '/dashboard';
     };
 
     return (

@@ -22,8 +22,7 @@ The middleware automatically checks for expired JWT tokens on every request to p
 ### Protected Routes
 
 The following routes are protected and require valid authentication:
-- `/home`
-- `/dashboard` 
+- `/dashboard`
 - `/properties`
 - `/configuration`
 - `/actions`

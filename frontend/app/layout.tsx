@@ -1,33 +1,35 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
-import ErrorBoundary from './components/ErrorBoundary';
-import { SessionProvider } from './providers/SessionProvider';
-import { AuthProvider } from './contexts/AuthContext';
-import NavBar from './components/NavBar';
 
-const inter = Inter({ subsets: ['latin'] });
+// const inter = Inter({ subsets: ['latin'] });
 
-export const metadata = {
-    title: 'SuperLocalizer',
-    description: 'Localization management dashboard',
+// export const metadata = {
+//     title: 'SuperLocalizer',
+//     description: 'Localization management dashboard',
+// };
+
+// interface RootLayoutProps {
+//     children: React.ReactNode;
+// }
+
+// export default function RootLayout({ children }: RootLayoutProps) {
+//     return (
+//         <html lang="en">
+//             <body className={inter.className}>{children}</body>
+//         </html>
+//     );
+// }
+import { NextIntlClientProvider } from 'next-intl';
+
+type Props = {
+    children: React.ReactNode;
 };
 
-interface RootLayoutProps {
-    children: React.ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: Props) {
     return (
-        <html lang="en">
-            <body className={inter.className}>
-                <ErrorBoundary>
-                    <SessionProvider>
-                        <AuthProvider>
-                            <NavBar />
-                            {children}
-                        </AuthProvider>
-                    </SessionProvider>
-                </ErrorBoundary>
+        <html>
+            <body>
+                <NextIntlClientProvider>{children}</NextIntlClientProvider>
             </body>
         </html>
     );

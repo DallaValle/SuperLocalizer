@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CommentService } from '../services/CommentService'
-import type { Comment, CreateCommentRequest, UpdateCommentRequest } from '../types/domain';
+import { CommentService } from '../../services/CommentService'
+import type { Comment, CreateCommentRequest, UpdateCommentRequest } from '../../types/domain';
 import './CommentsModal.css'
 
 interface CommentsModalProps {

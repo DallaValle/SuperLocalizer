@@ -1,25 +1,21 @@
 'use client'
 
-import { useAuth } from '../contexts/AuthContext'
-import { PropertyService } from '../services/PropertyService'
-import { HistoryService } from '../services/HistoryService'
-import type { HistoryItem, PropertySearchRequest } from '../types/domain'
+import { useAuth } from '../../contexts/AuthContext'
+import { PropertyService } from '../../services/PropertyService'
+import { HistoryService } from '../../services/HistoryService'
+import type { HistoryItem, PropertySearchRequest } from '../../types/domain'
 import { useEffect, useState } from 'react'
 import './Home.css'
-import { ProjectService } from '../services/ProjectService'
+import { ProjectService } from '../../services/ProjectService'
 
-export default function HomePage() {
-    const { logout, user } = useAuth()
+export default function DashboardPage() {
+    const { user } = useAuth()
     const [pendingReviews, setPendingReviews] = useState<string>("0")
     const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
     const [supportedLanguages, setSupportedLanguages] = useState<string>("0")
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isActivityLoading, setIsActivityLoading] = useState<boolean>(true)
     const [isLanguagesLoading, setIsLanguagesLoading] = useState<boolean>(true)
-
-    const handleLogout = () => {
-        logout()
-    }
 
     const fetchPendingReviews = async () => {
         try {

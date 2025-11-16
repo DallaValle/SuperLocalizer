@@ -1,7 +1,7 @@
 import React from 'react';
-import type { SearchFilters, SortField, SortDirection } from '../types/domain';
-import { LANGUAGES, SORT_FIELDS, SORT_DIRECTIONS } from '../types/domain';
-import Button from '../components/Button';
+import type { SearchFilters, SortField, SortDirection } from '../../types/domain';
+import { LANGUAGES, SORT_FIELDS, SORT_DIRECTIONS } from '../../types/domain';
+import Button from '../../components/Button';
 import './PropertySearchFilters.css';
 
 interface SearchFiltersProps {

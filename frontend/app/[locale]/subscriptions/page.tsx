@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import PlansMatrix from '../components/PlansMatrix'
+import PlansMatrix from '../../components/PlansMatrix'
 import '../page.css'
 
 export default function SubscriptionsPage() {
