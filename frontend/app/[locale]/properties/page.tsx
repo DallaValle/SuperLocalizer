@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { PropertyService, CreatePropertyRequest, CreateLanguageRequest } from '../../services/PropertyService'
@@ -12,6 +13,7 @@ import { Property, PropertySearchRequest, PropertySearchResponse, PropertyValue,
 import { ProjectService } from '../../services/ProjectService'
 
 function PropertiesContent() {
+    const t = useTranslations('properties')
     const { data: session } = useSession()
     const user = session?.user as User || null
     const router = useRouter()
@@ -258,7 +260,7 @@ function PropertiesContent() {
             setTotalPages(response.totalPages)
             setTotalItems(response.totalItems)
         } catch (err) {
-            setError('Error loading properties')
+            setError(t('error.loadingProperties'))
             console.error('Error loading properties:', err)
         } finally {
             setLoading(false)
@@ -373,11 +375,11 @@ function PropertiesContent() {
             lastSavedValuesRef.current[editKey] = { ...editingValue }
 
             // Show success toast
-            showToast('Saved')
+            showToast(t('saved'))
 
         } catch (err) {
             console.error('Error updating property value:', err)
-            setError('Error during save')
+            setError(t('error.duringSave'))
         } finally {
             setSavingValues(prev => {
                 const newState = { ...prev }
@@ -468,7 +470,7 @@ function PropertiesContent() {
         }
 
         await new PropertyService(user.mainProjectId).createProperty(request)
-        showToast('Property created successfully!')
+        showToast(t('propertyCreated'))
         // Reload properties to show the new one
         await loadProperties()
     }
@@ -479,14 +481,14 @@ function PropertiesContent() {
         }
 
         await new ProjectService().createLanguage(user.companyId, user.mainProjectId, request)
-        showToast('Language created successfully!')
+        showToast(t('languageCreated'))
         // Reload properties to show the new language
         await loadProperties()
     }
 
     const handleBulkUpdateFlags = async () => {
         if (bulkVerified === null && bulkReviewed === null) {
-            setActionError('Please select at least one flag to update')
+            setActionError(t('selectAtLeastOneFlag'))
             return;
         }
 
@@ -508,7 +510,7 @@ function PropertiesContent() {
             }
 
             await new PropertyService(user.mainProjectId).bulkUpdateFlags(searchRequest, bulkVerified, bulkReviewed)
-            showToast('Flags updated successfully!')
+            showToast(t('flagsUpdated'))
 
             // Reset the bulk flag selections
             setBulkVerified(null)
@@ -518,13 +520,13 @@ function PropertiesContent() {
             await loadProperties()
         } catch (error) {
             console.error('Error updating flags:', error)
-            setActionError('Error updating flags. Please try again.')
+            setActionError(t('error.updatingFlags'))
         }
     }
 
     const handleCreatePropertyQuick = async () => {
         if (!newPropertyName.trim()) {
-            setActionError('Property name is required')
+            setActionError(t('propertyNameRequired'))
             return;
         }
 
@@ -555,7 +557,7 @@ function PropertiesContent() {
             };
 
             await new PropertyService(user.mainProjectId).createProperty(request);
-            showToast(`Property "${newPropertyName}" created successfully!`);
+            showToast(t('propertyCreatedWithName', { name: newPropertyName }));
 
             // Reset the property name input
             setNewPropertyName('');
@@ -564,7 +566,7 @@ function PropertiesContent() {
             await loadProperties();
         } catch (error) {
             console.error('Error creating property:', error);
-            setActionError('Error creating property. Please try again.')
+            setActionError(t('error.creatingProperty'))
         }
     }
 
@@ -632,13 +634,13 @@ function PropertiesContent() {
                         className={`tab-button ${activeTab === 'search' ? 'active' : ''}`}
                         onClick={() => setActiveTab('search')}
                     >
-                        🔍 Search & View Properties
+                        🔍 {t('tab.search')}
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'management' ? 'active' : ''}`}
                         onClick={() => setActiveTab('management')}
                     >
-                        ⚙️ Languages Management
+                        ⚙️ {t('tab.management')}
                     </button>
                 </div>
 
@@ -651,13 +653,13 @@ function PropertiesContent() {
                                 <div className="search-group">
                                     <input
                                         type="text"
-                                        placeholder="Search by key..."
+                                        placeholder={t('searchPlaceholder')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="search-input"
                                     />
                                     <button type="button" onClick={clearFilters} className="clear-btn">
-                                        Clear
+                                        {t('clear')}
                                     </button>
                                 </div>
 
@@ -734,7 +736,7 @@ function PropertiesContent() {
                         {/* Property Management & Bulk Updates */}
                         <div className="bulk-update-section">
                             <div className="bulk-update-header" onClick={() => setIsManagementExpanded(!isManagementExpanded)}>
-                                <span className="management-title">⚙️ Manage Properties</span>
+                                <span className="management-title">{t('manageTitle')}</span>
                                 <span className={`expand-icon ${isManagementExpanded ? 'expanded' : ''}`}>▼</span>
                             </div>
 
@@ -836,7 +838,7 @@ function PropertiesContent() {
                         {loading && (
                             <div className="loading-section">
                                 <div className="loading-spinner"></div>
-                                <p>Loading properties...</p>
+                                <p>{t('loading')}</p>
                             </div>
                         )}
 
@@ -845,7 +847,7 @@ function PropertiesContent() {
                             <div className="error-section">
                                 <p>{error}</p>
                                 <button onClick={loadProperties} className="retry-btn">
-                                    Retry
+                                    {t('retry')}
                                 </button>
                             </div>
                         )}

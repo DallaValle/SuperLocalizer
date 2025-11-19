@@ -27,24 +27,24 @@ export default function NavBar() {
             </div>
             <div className="header-actions">
                 {status === 'loading' ? (
-                    <div className="navbar-item">Loading...</div>
+                    <div className="navbar-item">{t('loading')}</div>
                 ) : session && user ? (
                     <>
-                        <div className="account-tab">{user.username || ''}</div>
+                        <div className="account-tab">{t('account', { username: user.username || '' })}</div>
                         <button onClick={handleDashboard} className="back-btn">
-                            ← Dashboard
+                            {t('dashboard')}
                         </button>
                         <button onClick={handleLogout} className="logout-btn">
-                            Logout
+                            {t('logout')}
                         </button>
                     </>
                 ) : (
                     <>
                         <Link href="/login" className="navbar-item">
-                            Login
+                            {t('login')}
                         </Link>
                         <Link href="/signup" className="navbar-item navbar-button">
-                            Try it for free
+                            {t('tryIt')}
                         </Link>
                     </>
                 )}

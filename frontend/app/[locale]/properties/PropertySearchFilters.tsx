@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl'
 import type { SearchFilters, SortField, SortDirection } from '../../types/domain';
 import { LANGUAGES, SORT_FIELDS, SORT_DIRECTIONS } from '../../types/domain';
 import Button from '../../components/Button';
@@ -26,12 +27,14 @@ function PropertySearchFilters({
         onFiltersChange({ [field]: value });
     };
 
+    const t = useTranslations('properties')
+
     return (
         <div className="search-filters">
             <div className="search-filters__row">
                 <div className="search-filters__group">
                     <label htmlFor="searchTerm" className="search-filters__label">
-                        Search Term
+                        {t('filters.searchLabel')}
                     </label>
                     <input
                         id="searchTerm"
@@ -39,14 +42,14 @@ function PropertySearchFilters({
                         className="search-filters__input"
                         value={filters.searchTerm}
                         onChange={(e) => handleInputChange('searchTerm', e.target.value)}
-                        placeholder="Search properties..."
+                        placeholder={t('filters.searchPlaceholder')}
                         disabled={loading}
                     />
                 </div>
 
                 <div className="search-filters__group">
                     <label htmlFor="language" className="search-filters__label">
-                        Language
+                        {t('filters.languageLabel')}
                     </label>
                     <select
                         id="language"
@@ -55,7 +58,7 @@ function PropertySearchFilters({
                         onChange={(e) => handleInputChange('selectedLanguage', e.target.value)}
                         disabled={loading}
                     >
-                        <option value="">All Languages</option>
+                        <option value="">{t('filters.allLanguages')}</option>
                         {LANGUAGES.map((lang) => (
                             <option key={lang} value={lang}>
                                 {lang.toUpperCase()}
@@ -66,7 +69,7 @@ function PropertySearchFilters({
 
                 <div className="search-filters__group">
                     <label htmlFor="verified" className="search-filters__label">
-                        Verified Status
+                        {t('filters.verifiedLabel')}
                     </label>
                     <select
                         id="verified"
@@ -78,15 +81,15 @@ function PropertySearchFilters({
                         }}
                         disabled={loading}
                     >
-                        <option value="">All</option>
-                        <option value="true">Verified</option>
-                        <option value="false">Not Verified</option>
+                        <option value="">{t('filters.all')}</option>
+                        <option value="true">{t('filters.verified')}</option>
+                        <option value="false">{t('filters.notVerified')}</option>
                     </select>
                 </div>
 
                 <div className="search-filters__group">
                     <label htmlFor="reviewed" className="search-filters__label">
-                        Review Status
+                        {t('filters.reviewedLabel')}
                     </label>
                     <select
                         id="reviewed"
@@ -98,9 +101,9 @@ function PropertySearchFilters({
                         }}
                         disabled={loading}
                     >
-                        <option value="">All</option>
-                        <option value="true">Reviewed</option>
-                        <option value="false">Not Reviewed</option>
+                        <option value="">{t('filters.all')}</option>
+                        <option value="true">{t('filters.reviewed')}</option>
+                        <option value="false">{t('filters.notReviewed')}</option>
                     </select>
                 </div>
             </div>
@@ -108,7 +111,7 @@ function PropertySearchFilters({
             <div className="search-filters__row">
                 <div className="search-filters__group">
                     <label htmlFor="orderBy" className="search-filters__label">
-                        Sort By
+                        {t('filters.sortByLabel')}
                     </label>
                     <select
                         id="orderBy"
@@ -127,7 +130,7 @@ function PropertySearchFilters({
 
                 <div className="search-filters__group">
                     <label htmlFor="orderDirection" className="search-filters__label">
-                        Sort Direction
+                        {t('filters.sortDirectionLabel')}
                     </label>
                     <select
                         id="orderDirection"
@@ -138,7 +141,7 @@ function PropertySearchFilters({
                     >
                         {SORT_DIRECTIONS.map((direction) => (
                             <option key={direction} value={direction}>
-                                {direction === 'asc' ? 'Ascending' : 'Descending'}
+                                {direction === 'asc' ? t('filters.ascending') : t('filters.descending')}
                             </option>
                         ))}
                     </select>
@@ -151,14 +154,14 @@ function PropertySearchFilters({
                         loading={loading}
                         disabled={loading}
                     >
-                        Search
+                        {t('filters.searchButton')}
                     </Button>
                     <Button
                         variant="secondary"
                         onClick={onReset}
                         disabled={loading}
                     >
-                        Reset
+                        {t('filters.resetButton')}
                     </Button>
                 </div>
             </div>

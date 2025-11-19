@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '../../contexts/AuthContext'
 import Link from 'next/link'
 import './Login.css'
@@ -13,9 +14,10 @@ function LoginContent() {
     const [loading, setLoading] = useState(false)
 
     const { login, loginWithGoogle } = useAuth()
+    const t = useTranslations('login')
     const router = useRouter()
     const searchParams = useSearchParams()
-    const redirectPath = searchParams.get('redirect') || '/home'
+    const redirectPath = searchParams.get('redirect') || '/dashboard'
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -53,7 +55,7 @@ function LoginContent() {
             <div className="login-box">
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="username">Username:</label>
+                        <label htmlFor="username">{t('usernameLabel')}</label>
                         <input
                             type="text"
                             id="username"
@@ -61,10 +63,11 @@ function LoginContent() {
                             onChange={(e) => setUsername(e.target.value)}
                             required
                             disabled={loading}
+                            placeholder={t('usernamePlaceholder')}
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="password">Password:</label>
+                        <label htmlFor="password">{t('passwordLabel')}</label>
                         <input
                             type="password"
                             id="password"
@@ -72,16 +75,17 @@ function LoginContent() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             disabled={loading}
+                            placeholder={t('passwordPlaceholder')}
                         />
                     </div>
-                    {error && <div className="error-message">Login failed</div>}
+                    {error && <div className="error-message">{error || t('error.generic')}</div>}
                     <button type="submit" disabled={loading}>
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? t('loggingIn') : t('loginButton')}
                     </button>
                 </form>
 
                 <div className="login-divider">
-                    <span>or</span>
+                    <span>{t('or')}</span>
                 </div>
 
                 <button
@@ -96,10 +100,24 @@ function LoginContent() {
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
-                    {loading ? 'Signing in...' : 'Continue with Google'}
+                    {loading ? t('loggingIn') : t('googleButton')}
                 </button>
+                <div className="login-divider">
+                    <span>{t('or')}</span>
+                </div>
+
+                <button
+                    type="button"
+                    className="google-login-button"
+                    onClick={handleGoogleLogin}
+                    disabled={loading}
+                >
+                    <img className="supertext-icon" src="/img/supertext.ico" alt="Supertext" style={{ width: '20px' }} />
+                    {loading ? t('loggingIn') : t('supertextButton')}
+                </button>
+                <br />
                 <p className="signup-link">
-                    <Link href="/signup" className="signup-button">Create account</Link>
+                    <Link href="/signup" className="signup-button">{t('createAccount')}</Link>
                 </p>
             </div>
         </div>
@@ -107,16 +125,17 @@ function LoginContent() {
 }
 
 function LoginPageFallback() {
+    const t = useTranslations('login')
     return (
         <div className="login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <img src="/img/superlocalizer-logo.png" alt="SuperLocalizer Logo" className="login-logo" />
-                    <h1>SuperLocalizer</h1>
+                    <img src="/img/superlocalizer-logo.png" alt={t('logoAlt')} className="login-logo" />
+                    <h1>{t('title')}</h1>
                 </div>
                 <div className="loading-section">
                     <div className="loading-spinner"></div>
-                    <p>Loading...</p>
+                    <p>{t('loading')}</p>
                 </div>
             </div>
         </div>

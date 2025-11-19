@@ -4,48 +4,49 @@ import React from 'react'
 import Link from 'next/link'
 import './page.css'
 import PlansMatrix from '../components/PlansMatrix'
+import { useTranslations } from 'next-intl'
 
 export default function HomePage() {
+    const t = useTranslations('home');
     return (
         <div className="home-container">
 
             <main className="main-content">
                 <div className="hero-section">
-                    <p>Welcome to SuperLocalizer</p>
-                    <p>Your localization management solution</p>
+                    <p>{t('title')}</p>
+                    <p>{t('subtitle')}</p>
                 </div>
 
                 <div className="content-container">
                     <ul>
-                        <li>Create continuous localization workflows</li>
-                        <li>Auto-translate with AI translation or real experts</li>
-                        <li>Integrate with your favorite tools</li>
-                        <li>Reduce time-consuming manual tasks and empower developers to localize at twice the speed</li>
-                        <li>Set up automation rules with a few clicks</li>
-                        <li>Auto-approve and reuse translations</li>
+                        {(t.raw('features.items') || []).map((item: string, idx: number) => (
+                            <li key={idx}>{item}</li>
+                        ))}
                     </ul>
                 </div>
 
                 <div className="hero-section">
-                    <p>Automation as first!</p>
+                    <p>{t('slogan')}</p>
+                    <br />
+                    <p>{t('automation')}</p>
                 </div>
 
                 <div className="content-container">
-                    <h2>Get Started Today</h2>
-                    <p>Sign up for a free trial and experience the power of SuperLocalizer for your localization needs.</p>
+                    <h2>{t('getStarted.heading')}</h2>
+                    <p>{t('getStarted.description')}</p>
                     <Link href="/signup" className="get-started-button">
-                        Try it for free
+                        {t('getStarted.button')}
                     </Link>
                 </div>
 
                 <div className="hero-section">
-                    <p>Plans</p>
+                    <p>{t('plans')}</p>
                 </div>
 
                 <PlansMatrix />
 
                 <div className="flow-image-container">
-                    <img src="/img/flow.png" alt="SuperLocalizer Workflow" className="flow-image" />
+                    <img src="/img/flow.png" alt={t('flowImageAlt')} className="flow-image" />
                 </div>
             </main>
         </div>

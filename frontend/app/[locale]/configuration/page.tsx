@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { CompanyService } from '../../services/CompanyService'
 import { ProjectService } from '../../services/ProjectService'
 import { InvitationService } from '../../services/InvitationService'
@@ -9,6 +10,7 @@ import type { Company, Project, User } from '../../types/domain'
 import './configuration.css'
 
 export default function ConfigurationPage() {
+    const t = useTranslations('configuration')
     const { data: session, status, update } = useSession()
     const user = session?.user as User || null
     const authLoading = status === 'loading'
@@ -76,7 +78,7 @@ export default function ConfigurationPage() {
         e.preventDefault()
         setError(null)
         if (!form.name) {
-            setError('Company name is required')
+            setError(t('companyNameRequired'))
             return
         }
         try {
@@ -88,7 +90,7 @@ export default function ConfigurationPage() {
             await refreshUserSession()
         } catch (err) {
             console.error('Failed to create company', err)
-            setError('Failed to create company')
+            setError(t('failedCreateCompany'))
         } finally {
             setCreating(false)
         }
@@ -98,11 +100,11 @@ export default function ConfigurationPage() {
         e.preventDefault()
         setProjectError(null)
         if (!projectForm.name) {
-            setProjectError('Project name is required')
+            setProjectError(t('projectNameRequired'))
             return
         }
         if (!company?.id) {
-            setProjectError('Company must be created first')
+            setProjectError(t('companyMustBeCreated'))
             return
         }
         try {
@@ -113,7 +115,7 @@ export default function ConfigurationPage() {
             // NextAuth automatically manages session refreshing
         } catch (err) {
             console.error('Failed to create project', err)
-            setProjectError('Failed to create project')
+            setProjectError(t('failedCreateProject'))
         } finally {
             setCreatingProject(false)
         }
@@ -144,7 +146,7 @@ export default function ConfigurationPage() {
             setInvitationToken(response.token)
         } catch (err) {
             console.error('Failed to create invitation', err)
-            setInvitationError('Failed to create invitation')
+            setInvitationError(t('failedCreateInvitation'))
         } finally {
             setCreatingInvitation(false)
         }
@@ -156,7 +158,7 @@ export default function ConfigurationPage() {
             navigator.clipboard.writeText(invitationUrl)
                 .then(() => {
                     // Could show a toast notification here
-                    console.log('Invitation link copied to clipboard')
+                    console.log(t('invitationCopySuccess'))
                 })
                 .catch(err => {
                     console.error('Failed to copy to clipboard', err)
@@ -168,8 +170,8 @@ export default function ConfigurationPage() {
         <div className="configuration-container">
             <main>
                 <div className='company-card'>
-                    <h1>Configuration</h1>
-                    <p>In this section you can set up your localization journey: create a project then start uploading a localization file</p>
+                    <h1>{t('title')}</h1>
+                    <p>{t('description')}</p>
                 </div>
                 {company ? (
                     <div className="company-card">
@@ -179,8 +181,8 @@ export default function ConfigurationPage() {
                         <p>{company.phone}</p>
 
                         <div className="invitation-section">
-                            <h3>Invite Team Members</h3>
-                            <p>Generate an invitation link to invite new team members to your company.</p>
+                            <h3>{t('inviteHeading')}</h3>
+                            <p>{t('inviteDescription')}</p>
 
                             {!invitationToken ? (
                                 <div className="invitation-actions">
@@ -189,13 +191,13 @@ export default function ConfigurationPage() {
                                         disabled={creatingInvitation}
                                         className="invitation-btn"
                                     >
-                                        {creatingInvitation ? 'Generating...' : 'Generate Invitation Link'}
+                                        {creatingInvitation ? t('generating') : t('generateLink')}
                                     </button>
                                     {invitationError && <div className="form-error">{invitationError}</div>}
                                 </div>
                             ) : (
                                 <div className="invitation-result">
-                                    <p>Invitation link generated successfully!</p>
+                                    <p>{t('invitationGenerated')}</p>
                                     <div className="invitation-link-container">
                                         <input
                                             type="text"
@@ -207,14 +209,14 @@ export default function ConfigurationPage() {
                                             onClick={handleCopyInvitationLink}
                                             className="copy-btn"
                                         >
-                                            Copy
+                                            {t('copy')}
                                         </button>
                                     </div>
                                     <button
                                         onClick={() => setInvitationToken(null)}
                                         className="generate-new-btn"
                                     >
-                                        Generate New Link
+                                        {t('generateNew')}
                                     </button>
                                 </div>
                             )}
@@ -222,31 +224,31 @@ export default function ConfigurationPage() {
                     </div>
                 ) : (
                     <div className="company-form">
-                        <h2>Create Company</h2>
+                        <h2>{t('createCompanyTitle')}</h2>
                         <form onSubmit={handleCreate}>
                             <label>
-                                Name
+                                {t('nameLabel')}
                                 <input name="name" value={form.name ?? ''} onChange={handleChange} />
                             </label>
 
                             <label>
-                                Address
+                                {t('addressLabel')}
                                 <input name="address" value={form.address ?? ''} onChange={handleChange} />
                             </label>
 
                             <label>
-                                Email
+                                {t('emailLabel')}
                                 <input name="email" value={form.email ?? ''} onChange={handleChange} />
                             </label>
 
                             <label>
-                                Phone
+                                {t('phoneLabel')}
                                 <input name="phone" value={form.phone ?? ''} onChange={handleChange} />
                             </label>
 
                             {error && <div className="form-error">{error}</div>}
 
-                            <button type="submit" disabled={creating}>{creating ? 'Creating...' : 'Create Company'}</button>
+                            <button type="submit" disabled={creating}>{creating ? t('creating') : t('createCompany')}</button>
                         </form>
                     </div>
                 )}
@@ -255,7 +257,7 @@ export default function ConfigurationPage() {
                 {company && (
                     <div className="projects-section">
                         <div className="company-card">
-                            <h2>Projects</h2>
+                            <h2>{t('projectsTitle')}</h2>
                             {projects.length > 0 ? (
                                 <div className="projects-list">
                                     {projects.map(project => (
@@ -267,14 +269,14 @@ export default function ConfigurationPage() {
                                             </div>
                                             <div className="project-actions">
                                                 {user?.mainProjectId === project.id ? (
-                                                    <span className="main-project-badge">Main Project</span>
+                                                    <span className="main-project-badge">{t('mainProjectBadge')}</span>
                                                 ) : (
                                                     <button
                                                         className="main-project-btn"
                                                         onClick={() => handleSetMainProject(project.id)}
                                                         disabled={settingMainProject === project.id}
                                                     >
-                                                        {settingMainProject === project.id ? 'Setting...' : 'Set as Main'}
+                                                        {settingMainProject === project.id ? t('setting') : t('setAsMain')}
                                                     </button>
                                                 )}
                                             </div>
@@ -282,7 +284,7 @@ export default function ConfigurationPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <p>No projects created yet.</p>
+                                <p>{t('noProjects')}</p>
                             )}
                         </div>
 
@@ -295,7 +297,7 @@ export default function ConfigurationPage() {
                                         name="name"
                                         value={projectForm.name ?? ''}
                                         onChange={handleProjectChange}
-                                        placeholder="Enter project name"
+                                        placeholder={t('projectNamePlaceholder')}
                                     />
                                 </label>
 
@@ -305,7 +307,7 @@ export default function ConfigurationPage() {
                                         name="description"
                                         value={projectForm.description ?? ''}
                                         onChange={handleProjectChange}
-                                        placeholder="Enter project description"
+                                        placeholder={t('projectDescriptionPlaceholder')}
                                         rows={3}
                                     />
                                 </label>
@@ -313,7 +315,7 @@ export default function ConfigurationPage() {
                                 {projectError && <div className="form-error">{projectError}</div>}
 
                                 <button type="submit" disabled={creatingProject}>
-                                    {creatingProject ? 'Creating...' : 'Create Project'}
+                                    {creatingProject ? t('creatingProject') : t('createProject')}
                                 </button>
                             </form>
                         </div>

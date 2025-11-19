@@ -12,14 +12,25 @@ interface LocaleLayoutProps {
 }
 
 export async function generateStaticParams() {
-    // Mirror the available locales from the frontend localization folder
-    // The folder contains files like `en.json`, `it.json`.
-    const messagesDir = path.join(process.cwd(), 'frontend', 'localization');
+    // Try multiple possible locations for the localization folder depending on
+    // how the frontend is started (repo root or inside `frontend` folder).
+    const candidates = [
+        path.join(process.cwd(), 'frontend', 'localization'),
+        path.join(process.cwd(), 'localization')
+    ];
+    const defaultMessagesDir: string = path.join(process.cwd(), 'frontend', 'localization');
+    let messagesDir: string = defaultMessagesDir;
+    for (const p of candidates) {
+        if (fs.existsSync(p)) {
+            messagesDir = p;
+            break;
+        }
+    }
     try {
         const entries = await fs.promises.readdir(messagesDir, { withFileTypes: true });
         return entries
-            .filter((e) => e.isFile() && e.name.endsWith('.json'))
-            .map((f) => ({ locale: path.basename(f.name, '.json') }));
+            .filter((e: fs.Dirent) => e.isFile() && e.name.endsWith('.json'))
+            .map((f: fs.Dirent) => ({ locale: path.basename(f.name, '.json') }));
     } catch (e) {
         return [{ locale: 'en' }];
     }
@@ -27,13 +38,41 @@ export async function generateStaticParams() {
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
     const { locale } = params;
-    // Look for messages in frontend/localization/<locale>.json
-    const messagesPath = path.join(process.cwd(), 'frontend', 'localization', `${locale}.json`);
+    // Look for messages in a localization folder. Depending on how dev tooling
+    // is started, the working directory can be the repo root or the frontend
+    // folder. Try a few likely locations and pick the first that exists.
+    const candidates = [
+        path.join(process.cwd(), 'frontend', 'localization'),
+        path.join(process.cwd(), 'localization')
+    ];
+    const defaultMessagesDir: string = path.join(process.cwd(), 'frontend', 'localization');
+    let messagesDir: string = defaultMessagesDir;
+    for (const p of candidates) {
+        if (fs.existsSync(p)) {
+            messagesDir = p;
+            break;
+        }
+    }
+    const messagesPath = path.join(messagesDir, `${locale}.json`);
 
     let messages = {};
     try {
-        const raw = await fs.promises.readFile(messagesPath, 'utf-8');
-        messages = JSON.parse(raw);
+        const cwd = process.cwd();
+        console.debug('[i18n] cwd:', cwd);
+        console.debug('[i18n] localization candidates:', candidates);
+        console.debug('[i18n] chosen messagesDir:', messagesDir);
+        const fileExists = fs.existsSync(messagesPath);
+        console.debug(`[i18n] messagesPath=${messagesPath} exists=${fileExists}`);
+        if (fileExists) {
+            const stat = await fs.promises.stat(messagesPath);
+            console.debug(`[i18n] messages file size=${stat.size} bytes`);
+            const raw = await fs.promises.readFile(messagesPath, 'utf-8');
+            console.debug(`[i18n] raw messages length=${raw.length}`);
+            console.debug(`[i18n] raw preview: ${raw.slice(0, 500)}`);
+            messages = JSON.parse(raw || '{}');
+        } else {
+            messages = {};
+        }
     } catch (err) {
         // If messages fail to load, fall back to frontend/localization/en.json
         try {
@@ -41,10 +80,21 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                 path.join(process.cwd(), 'frontend', 'localization', 'en.json'),
                 'utf-8'
             );
-            messages = JSON.parse(fallback);
+            messages = JSON.parse(fallback || '{}');
         } catch (e) {
             messages = {};
         }
+    }
+
+    // Diagnostic logging: show top-level keys loaded and warn if 'dashboard' namespace missing
+    try {
+        const topKeys = Object.keys(messages);
+        console.debug(`[i18n] loaded message keys for locale=${locale}:`, topKeys);
+        if (!topKeys.includes('dashboard')) {
+            console.warn(`[i18n] 'dashboard' key not found in messages for locale=${locale}`);
+        }
+    } catch (e) {
+        console.error('[i18n] failed to inspect messages object:', e);
     }
 
     return (

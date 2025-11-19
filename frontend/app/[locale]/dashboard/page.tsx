@@ -7,9 +7,11 @@ import type { HistoryItem, PropertySearchRequest } from '../../types/domain'
 import { useEffect, useState } from 'react'
 import './Home.css'
 import { ProjectService } from '../../services/ProjectService'
+import { useTranslations } from 'next-intl'
 
 export default function DashboardPage() {
     const { user } = useAuth()
+    const t = useTranslations('dashboard')
     const [pendingReviews, setPendingReviews] = useState<string>("0")
     const [recentActivity, setRecentActivity] = useState<HistoryItem[]>([])
     const [supportedLanguages, setSupportedLanguages] = useState<string>("0")
@@ -98,28 +100,30 @@ export default function DashboardPage() {
     }
 
     const formatActivityDescription = (item: HistoryItem): string => {
+        const lang = (item.newValue?.language || item.previousValue?.language || '').toUpperCase()
+        const key = item.valueKey || ''
+
         if (item.newValue && !item.previousValue) {
-            // New translation added
-            return `New translation added for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+            return t('recentActivity.messages.newTranslation', { key, lang })
         } else if (item.newValue && item.previousValue) {
-            // Translation updated
             if (item.newValue.isReviewed !== item.previousValue.isReviewed && item.newValue.isReviewed) {
-                return `Review completed for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+                return t('recentActivity.messages.reviewCompleted', { key, lang })
             } else if (item.newValue.isVerified !== item.previousValue.isVerified && item.newValue.isVerified) {
-                return `Translation verified for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+                return t('recentActivity.messages.verified', { key, lang })
             } else {
-                return `Translation updated for "${item.valueKey}" in ${item.newValue.language?.toUpperCase()}`
+                return t('recentActivity.messages.updated', { key, lang })
             }
         } else if (item.previousValue && !item.newValue) {
-            // Translation deleted
-            return `Translation removed for "${item.valueKey}" in ${item.previousValue.language?.toUpperCase()}`
+            return t('recentActivity.messages.removed', { key, lang })
         }
-        return `Activity on "${item.valueKey}"`
+        return t('recentActivity.messages.generic', { key })
     }
 
     const formatTime = (timestamp: string): string => {
         const date = new Date(timestamp)
-        return date.toLocaleTimeString('en-US', {
+        // Use fallback locale 'en-US' (do not rely on user.locale presence in User type)
+        const locale = 'en-US'
+        return date.toLocaleTimeString(locale, {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false
@@ -141,88 +145,59 @@ export default function DashboardPage() {
                 <div className="navigation-section">
                     <div className="user-info-tab">
                         <>
-                            <div className="account-line"><strong>Company:</strong> {user?.companyName ?? '—'}</div>
-                            <div className="account-line"><strong>Project:</strong> {user?.mainProjectName ?? '—'}</div>
+                            <div className="account-line"><strong>{t('companyLabel')}</strong> {user?.companyName ?? '—'}</div>
+                            <div className="account-line"><strong>{t('projectLabel')}</strong> {user?.mainProjectName ?? '—'}</div>
                         </>
                     </div>
                     <div className="navigation-cards">
-
-                        <a href="/properties" className="nav-card">
-                            <div className="nav-card-icon">📝</div>
-                            <h3>Manage Translations</h3>
-                            <p>View and edit all translations</p>
-                        </a>
-
-                        <a href="/actions" className="nav-card">
-                            <div className="nav-card-icon">👨‍👩‍👧‍👦</div>
-                            <h3>User and roles</h3>
-                            <p>Set your company roles</p>
-                        </a>
-
-                        <a href="/configuration" className="nav-card">
-                            <div className="nav-card-icon">🚀</div>
-                            <h3>Configuration</h3>
-                            <p>Configure projects and more</p>
-                        </a>
-
-                        <a href="/automation" className="nav-card">
-                            <div className="nav-card-icon">🤖</div>
-                            <h3>Automation</h3>
-                            <p>Configure import, export, merge and triggers!</p>
-                        </a>
-
-                        <a href="/subscriptions" className="nav-card">
-                            <div className="nav-card-icon">💌</div>
-                            <h3>Subscription</h3>
-                            <p>Became a family member and unlock all power!</p>
-                        </a>
-
-                        <a href="/settings" className="nav-card">
-                            <div className="nav-card-icon">⚙️</div>
-                            <h3>Settings</h3>
-                            <p>Import, export and snapshot</p>
-                        </a>
+                        {(t.raw('navCards') || []).map((card: any, idx: number) => (
+                            <a key={idx} href={card.href} className="nav-card">
+                                <div className="nav-card-icon">{card.icon}</div>
+                                <h3>{card.title}</h3>
+                                <p>{card.description}</p>
+                            </a>
+                        ))}
                     </div>
                 </div>
 
                 <div className="dashboard-grid">
                     <div className="dashboard-card">
-                        <h3>Supported Languages</h3>
+                        <h3>{t('cards.supportedLanguages.heading')}</h3>
                         <p className="card-number">
-                            {isLanguagesLoading ? '...' : supportedLanguages}
+                            {isLanguagesLoading ? t('cards.supportedLanguages.loading') : supportedLanguages}
                         </p>
-                        <p className="card-description">Available languages for translation</p>
+                        <p className="card-description">{t('cards.supportedLanguages.description')}</p>
                     </div>
 
                     <div className="dashboard-card">
-                        <h3>Completed Translations</h3>
-                        <p className="card-number">{recentActivity.length == 0 ? '-' : recentActivity.length}</p>
-                        <p className="card-description">Keys translated this month</p>
+                        <h3>{t('cards.completedTranslations.heading')}</h3>
+                        <p className="card-number">{recentActivity.length == 0 ? t('cards.completedTranslations.none') : recentActivity.length}</p>
+                        <p className="card-description">{t('cards.completedTranslations.description')}</p>
                     </div>
 
                     <div className="dashboard-card">
-                        <h3>Pending Reviews</h3>
+                        <h3>{t('cards.pendingReviews.heading')}</h3>
                         <p className="card-number">
-                            {isLoading ? '...' : pendingReviews.toLocaleString()}
+                            {isLoading ? t('cards.pendingReviews.loading') : pendingReviews.toLocaleString()}
                         </p>
-                        <p className="card-description">Translations awaiting review</p>
+                        <p className="card-description">{t('cards.pendingReviews.description')}</p>
                     </div>
 
                     <div className="dashboard-card">
-                        <h3>Pending Verify</h3>
+                        <h3>{t('cards.pendingVerify.heading')}</h3>
                         <p className="card-number">
-                            {isLoading ? '...' : pendingReviews.toLocaleString()}
+                            {isLoading ? t('cards.pendingVerify.loading') : pendingReviews.toLocaleString()}
                         </p>
-                        <p className="card-description">Translations awaiting verify</p>
+                        <p className="card-description">{t('cards.pendingVerify.description')}</p>
                     </div>
                 </div>
 
                 <div className="recent-activity">
-                    <h3>Recent Activity</h3>
+                    <h3>{t('recentActivity.heading')}</h3>
                     <div className="activity-list">
                         {isActivityLoading ? (
                             <div className="activity-item">
-                                <span className="activity-text">Loading recent activity...</span>
+                                <span className="activity-text">{t('recentActivity.loading')}</span>
                             </div>
                         ) : recentActivity.length > 0 ? (
                             recentActivity.map((item, index) => (
@@ -230,13 +205,13 @@ export default function DashboardPage() {
                                     <span className="activity-time">{formatTime(item.timestamp)}</span>
                                     <span className="activity-text">{formatActivityDescription(item)}</span>
                                     {item.userName && (
-                                        <span className="activity-user">by {item.userName}</span>
+                                        <span className="activity-user">{t('recentActivity.by', { userName: item.userName })}</span>
                                     )}
                                 </div>
                             ))
                         ) : (
                             <div className="activity-item">
-                                <span className="activity-text">No activity recorded for today</span>
+                                <span className="activity-text">{t('recentActivity.noActivity')}</span>
                             </div>
                         )}
                     </div>

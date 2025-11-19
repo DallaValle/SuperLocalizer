@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '../../contexts/AuthContext'
 import { AccountService } from '../../services/AccoutService'
 import Link from 'next/link'
@@ -15,6 +16,7 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false)
 
     const { login } = useAuth()
+    const t = useTranslations('signup')
     const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +24,7 @@ export default function SignupPage() {
         setError('')
 
         if (password !== confirmPassword) {
-            setError('Passwords do not match')
+            setError(t('passwordMismatch'))
             return
         }
 
@@ -47,7 +49,7 @@ export default function SignupPage() {
             router.push('/login')
         } catch (err: any) {
             // show backend error if available
-            const message = err?.message || 'Signup failed'
+            const message = err?.message || t('errorGeneric')
             setError(message)
         } finally {
             setLoading(false)
@@ -57,25 +59,25 @@ export default function SignupPage() {
     return (
         <div className="landing-page">
             <div className="login-box">
-                <h2>Create account</h2>
+                <h2>{t('title')}</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="username">Username / Email:</label>
+                        <label htmlFor="username">{t('usernameLabel')}</label>
                         <input id="username" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={loading} />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="password">Password:</label>
+                        <label htmlFor="password">{t('passwordLabel')}</label>
                         <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="confirmPassword">Confirm password:</label>
+                        <label htmlFor="confirmPassword">{t('confirmPasswordLabel')}</label>
                         <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={loading} />
                     </div>
                     {error && <div className="error-message">{error}</div>}
-                    <button type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create account'}</button>
+                    <button type="submit" disabled={loading}>{loading ? t('creating') : t('createButton')}</button>
                 </form>
                 <p className="signup-link">
-                    <Link href="/login" className="signup-button">Back to login</Link>
+                    <Link href="/login" className="signup-button">{t('backToLogin')}</Link>
                 </p>
             </div>
         </div>

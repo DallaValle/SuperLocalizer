@@ -108,11 +108,11 @@ export default async function middleware(request: NextRequest) {
     }
 
     // Handle root path redirect
-    if (pathWithoutLocale === '' || pathWithoutLocale === '/') {
-        const redirectPath = isAuthenticated ? '/dashboard' : '/login';
-        const localizedPath = createLocalizedPath(redirectPath, currentLocale);
-        return NextResponse.redirect(new URL(localizedPath, request.url));
-    }
+    // if (pathWithoutLocale === '' || pathWithoutLocale === '/') {
+    //     const redirectPath = isAuthenticated ? '/dashboard' : '/login';
+    //     const localizedPath = createLocalizedPath(redirectPath, currentLocale);
+    //     return NextResponse.redirect(new URL(localizedPath, request.url));
+    // }
 
     // Create intl middleware for localization
     const intlMiddleware = createIntlMiddleware({
