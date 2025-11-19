@@ -161,7 +161,6 @@ public class AccountController : ControllerBase
         }
 
         var token = _userProfile.GenerateJwtToken(existingUser.Username);
-        var currentUser = await _userProfile.GetCurrentUser();
 
         return Ok(new LoginResponse
         {
