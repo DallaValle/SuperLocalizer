@@ -22,7 +22,6 @@ const authOptions: AuthOptions = {
                 }
 
                 try {
-                    // Direct fetch to backend without using AuthService (which uses localStorage)
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/signin`, {
                         method: "POST",
                         headers: {
@@ -36,9 +35,7 @@ const authOptions: AuthOptions = {
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log("Authorize response:", data);
                         if (data?.token) {
-                            // Decode JWT token to extract user information
                             try {
                                 const tokenPayload = JSON.parse(
                                     Buffer.from(data.token.split('.')[1], 'base64').toString('utf-8')
@@ -61,17 +58,13 @@ const authOptions: AuthOptions = {
                                     backendUser: user,
                                     backendToken: data.token,
                                 };
-                            } catch (jwtError) {
-                                console.error("Failed to decode JWT token:", jwtError);
+                            } catch {
                                 return null;
                             }
                         }
-                    } else {
-                        console.error("Backend authentication failed:", await response.text());
                     }
                     return null;
-                } catch (error) {
-                    console.error("Authentication error:", error);
+                } catch {
                     return null;
                 }
             },
@@ -84,10 +77,10 @@ const authOptions: AuthOptions = {
                 return true;
             }
 
+
             // For Google OAuth, call the backend social-signin endpoint
             if (account?.provider === "google" && profile?.email) {
                 try {
-                    // Call your .NET backend social-signin endpoint
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/social-signin`, {
                         method: "POST",
                         headers: {
@@ -103,24 +96,39 @@ const authOptions: AuthOptions = {
                     });
 
                     if (response.ok) {
-                        const backendUser = await response.json();
-                        // Store backend user data in user object
-                        (user as any).backendUser = backendUser.user;
-                        (user as any).backendToken = backendUser.token;
+                        const backendResponse = await response.json();
+                        const token = backendResponse.Token || backendResponse.token;
+
+                        if (token) {
+                            try {
+                                const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                        "Content-Type": "application/json",
+                                    },
+                                });
+
+                                if (userResponse.ok) {
+                                    const backendUser = await userResponse.json();
+                                    (user as any).backendUser = backendUser;
+                                    (user as any).backendToken = token;
+                                    return true;
+                                }
+                            } catch { }
+                        }
+
+                        (user as any).backendToken = token;
                         return true;
-                    } else {
-                        console.error("Backend social signin failed:", await response.text());
-                        return false;
                     }
-                } catch (error) {
-                    console.error("Error during social signin:", error);
+                    return false;
+                } catch {
                     return false;
                 }
             }
 
             return true;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             // Persist the user data and backend token to the JWT token
             if (user) {
                 token.backendUser = (user as any).backendUser;
@@ -129,10 +137,9 @@ const authOptions: AuthOptions = {
             return token;
         },
         async session({ session, token }) {
-            // Send properties to the client
             // If we have a backend token, try to fetch the freshest user info
-            try {
-                if (token?.backendToken) {
+            if (token?.backendToken) {
+                try {
                     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
                         headers: {
                             Authorization: `Bearer ${token.backendToken}`,
@@ -145,15 +152,61 @@ const authOptions: AuthOptions = {
                         (session as any).user = backendUser;
                         (session as any).backendToken = token.backendToken;
                         return session;
+                    } else if (res.status === 401) {
+                        // Token expired - try to refresh using Google profile if available
+                        if (session?.user?.email) {
+                            try {
+                                const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/social-signin`, {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                        provider: "google",
+                                        providerId: session.user.email, // Use email as fallback ID
+                                        email: session.user.email,
+                                        firstName: (session.user.name || '').split(' ')[0] || '',
+                                        lastName: (session.user.name || '').split(' ').slice(1).join(' ') || '',
+                                    }),
+                                });
+
+                                if (refreshResponse.ok) {
+                                    const refreshData = await refreshResponse.json();
+                                    const newToken = refreshData.Token || refreshData.token;
+
+                                    if (newToken) {
+                                        // Update the token in the JWT token for next time
+                                        token.backendToken = newToken;
+
+                                        // Fetch user data with new token
+                                        const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
+                                            headers: {
+                                                Authorization: `Bearer ${newToken}`,
+                                                "Content-Type": "application/json",
+                                            },
+                                        });
+
+                                        if (userRes.ok) {
+                                            const refreshedUser = await userRes.json();
+                                            token.backendUser = refreshedUser; // Store for fallback
+                                            (session as any).user = refreshedUser;
+                                            (session as any).backendToken = newToken;
+                                            return session;
+                                        }
+                                    }
+                                }
+                            } catch { }
+                        }
+
+                        // If refresh failed, clear the expired token
+                        token.backendToken = null;
+                        (session as any).backendToken = null;
                     }
-                    // If the fetch failed, fall back to token-stored user
-                }
-            } catch (err) {
-                console.error('Error refreshing backend user in session callback:', err);
+                } catch { }
             }
 
             // Fallback: use the backendUser persisted in the token (from signin)
-            if (token.backendUser) {
+            if (token.backendUser && token.backendToken) {
                 (session as any).user = token.backendUser;
                 (session as any).backendToken = token.backendToken;
             }

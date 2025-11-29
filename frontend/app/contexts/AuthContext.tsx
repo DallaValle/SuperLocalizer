@@ -21,12 +21,39 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-    const { data: session, status } = useSession();
+    const { data: session, status, update } = useSession();
+    const [refreshAttempted, setRefreshAttempted] = React.useState(false);
 
     const loading = status === 'loading';
     const isAuthenticated = !!session?.user;
     const user = session?.user as User || null;
     const token = (session as any)?.backendToken || null;
+
+    // If we have a session but no backend token, it might be expired
+    const hasSessionWithoutToken = !!session?.user && !token;
+
+    React.useEffect(() => {
+        if (hasSessionWithoutToken && !loading && !refreshAttempted) {
+            setRefreshAttempted(true);
+
+            // Trigger a session update to refresh the backend token
+            update().then(() => {
+                // Check if refresh was successful after a short delay
+                setTimeout(() => {
+                    const stillMissingToken = !!session?.user && !(session as any)?.backendToken;
+                    if (stillMissingToken) {
+                        // Optionally, you could force logout here if needed
+                        // signOut({ redirect: false });
+                    }
+                }, 1000);
+            }).catch(() => {
+                // Handle refresh error silently
+            });
+        } else if (token && refreshAttempted) {
+            // Reset refresh flag when token is restored
+            setRefreshAttempted(false);
+        }
+    }, [hasSessionWithoutToken, loading, refreshAttempted, token, update, session]);
 
     const login = async (username: string, password: string): Promise<void> => {
         const result = await signIn('credentials', {

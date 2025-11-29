@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -6,6 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <UserSecretsId>e118bbe2-8ccf-4a1a-86bc-8e52964f5cc5</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +17,7 @@
     <PackageReference Include="MySql.Data" Version="9.5.0" />
     <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
-    <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson"
-      Version="2.4.0" />
+    <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.4.0" />
   </ItemGroup>
 
 </Project>

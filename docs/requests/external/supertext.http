@@ -1,0 +1,16 @@
+### Supported languages
+GET https://api.testing.supertext.com/v1/features
+Authorization: {{SUPERTEXT_API_KEY}}
+Content-Type: application/json
+### Translate text
+POST https://api.testing.supertext.com/v1/translate/ai/text
+Authorization: {{SUPERTEXT_API_KEY}}
+Content-Type: application/json
+
+{
+  "text": [
+    "Winston went up the stairs."
+  ],
+  "source_lang": "en",
+  "target_lang": "it-IT"
+}

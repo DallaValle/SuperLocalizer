@@ -17,12 +17,14 @@ public class ProjectController : ControllerBase
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUserProfile _userProfile;
+    private readonly ILanguageService _languageService;
 
-    public ProjectController(IProjectRepository companyRepository, IUserRepository userRepository, IUserProfile userProfile)
+    public ProjectController(IProjectRepository companyRepository, IUserRepository userRepository, IUserProfile userProfile, ILanguageService languageService)
     {
         _projectRepository = companyRepository;
         _userRepository = userRepository;
         _userProfile = userProfile;
+        _languageService = languageService;
     }
 
     /// <summary>
@@ -59,6 +61,7 @@ public class ProjectController : ControllerBase
         project.Languages.Add(request.Language);
         await _projectRepository.Update(project);
         // Create a default property for the new language
+        await _languageService.CreateLanguage(companyId, id, request);
 
         return Ok(project.Languages);
     }

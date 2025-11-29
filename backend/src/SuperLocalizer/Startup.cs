@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using SuperLocalizer.Clients;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
 using ZiggyCreatures.Caching.Fusion;
@@ -145,6 +146,11 @@ namespace SuperLocalizer
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IUserProfile, UserProfile>();
             services.AddSingleton<IInvitationService, InvitationService>();
+
+            services.AddHttpClient();
+            services.AddScoped<IAITranslationClient, AITranslationClient>();
+            services.AddScoped<ILanguageService, LanguageService>();
+
             if (Configuration.GetValue<bool?>("UseDatabase") == true)
             {
                 services.AddSingleton<ICompanyRepository, CompanyRepository>();

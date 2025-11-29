@@ -1,57 +1,35 @@
-### Import German (Switzerland) localization file
-POST http://localhost:5000/project/1/setting/upload?language=de-CH
+###
+# @name login
+POST http://localhost:5000/auth/signin
+Content-Type: application/json
+
+{
+  "username": "admin12345",
+  "password": "admin12345"
+}
+### Get the user info
+# @name user
+GET http://localhost:5000/auth/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+### Import a translation file
+POST http://localhost:5000/project/{{user.response.body.mainProjectId}}/setting/upload?language=en
+Authorization: Bearer {{login.response.body.token}}
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="file"; filename="localization_de-CH.json"
+Content-Disposition: form-data; name="file"; filename="en.json"
 Content-Type: application/json
 
-< ../SupertextLocalisation/de-CH/localization_de-CH.json
+< ../../frontend/localization/en.json
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### Import German (Germany) localization file
-POST http://localhost:5000/project/1/setting/upload?language=de-DE
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="file"; filename="localization_de-DE.json"
+### Create a new language
+POST http://localhost:5000/company/{{user.response.body.companyId}}/project/{{user.response.body.mainProjectId}}/language
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
 
-< ../SupertextLocalisation/de-DE/localization_de-DE.json
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### Import French localization file
-POST http://localhost:5000/project/1/setting/upload?language=fr
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="file"; filename="localization_fr.json"
-Content-Type: application/json
-
-< ../SupertextLocalisation/fr/localization_fr.json
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### Import English localization file
-POST http://localhost:5000/project/1/setting/upload?language=en
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="file"; filename="localization_en.json"
-Content-Type: application/json
-
-< ../SupertextLocalisation/en/localization_en.json
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-
-### Import Italian localization file
-POST http://localhost:5000/project/1/setting/upload?language=it
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
-
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="file"; filename="localization_it.json"
-Content-Type: application/json
-
-< ../SupertextLocalisation/it/localization_it.json
-------WebKitFormBoundary7MA4YWxkTrZu0gW--
-### Export localization file for French
-POST http://localhost:5000/project/1/setting/download?language=de-CH
-Content-Type: application/json
+{
+  "language": "it-CH",
+  "useAi": true,
+  "needExpertVerification": false
+}

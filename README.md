@@ -35,6 +35,30 @@ SuperLocalizer/
 
 ## Run
 
+First initialize secrets for FE and BE:
+
+### FE
+
+Create a .env.local file with:
+
+```.env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-here-change-in-production
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+
+GOOGLE_CLIENT_ID=google_client_id
+GOOGLE_CLIENT_SECRET=google_client_secret
+```
+
+### BE
+
+Set Supertext ApiKey
+
+```bash
+dotnet user-secrets init
+dotnet user-secrets set "Supertext:ApiKey" "xxx"
+```
+
 backend -> running on port 5000
 
 ```bash

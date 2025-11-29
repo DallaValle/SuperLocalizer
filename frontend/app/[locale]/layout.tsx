@@ -6,6 +6,7 @@ import { SessionProvider } from '../providers/SessionProvider';
 import { AuthProvider } from '../contexts/AuthContext';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
+import LangSetter from '../components/LangSetter';
 
 interface LocaleLayoutProps {
     children: React.ReactNode;
@@ -99,20 +100,17 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     }
 
     return (
-        <html lang={locale}>
-            <body>
-                <ErrorBoundary>
-                    <NextIntlClientProvider messages={messages} locale={locale}>
-                        <SessionProvider>
-                            <AuthProvider>
-                                <NavBar />
-                                {children}
-                                <Footer />
-                            </AuthProvider>
-                        </SessionProvider>
-                    </NextIntlClientProvider>
-                </ErrorBoundary>
-            </body>
-        </html>
+        <ErrorBoundary>
+            <LangSetter locale={locale} />
+            <NextIntlClientProvider messages={messages} locale={locale}>
+                <SessionProvider>
+                    <AuthProvider>
+                        <NavBar />
+                        {children}
+                        <Footer />
+                    </AuthProvider>
+                </SessionProvider>
+            </NextIntlClientProvider>
+        </ErrorBoundary>
     );
 }
