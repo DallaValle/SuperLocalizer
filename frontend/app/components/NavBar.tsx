@@ -30,7 +30,9 @@ export default function NavBar() {
                     <div className="navbar-item">{t('loading')}</div>
                 ) : session && user ? (
                     <>
-                        <div className="account-tab">{t('account', { username: user.username || '' })}</div>
+                        <div className="account-tab" title={user.username || ''}>
+                            <span className="username-text">{t('account', { username: user.username || '' })}</span>
+                        </div>
                         <button onClick={handleDashboard} className="back-btn">
                             {t('dashboard')}
                         </button>

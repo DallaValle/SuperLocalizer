@@ -5,6 +5,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { SessionProvider } from '../providers/SessionProvider';
 import { AuthProvider } from '../contexts/AuthContext';
 import NavBar from '../components/NavBar';
+import Footer from '../components/Footer';
 
 interface LocaleLayoutProps {
     children: React.ReactNode;
@@ -106,6 +107,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                             <AuthProvider>
                                 <NavBar />
                                 {children}
+                                <Footer />
                             </AuthProvider>
                         </SessionProvider>
                     </NextIntlClientProvider>

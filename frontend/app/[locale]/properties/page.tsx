@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { PropertyService, CreatePropertyRequest, CreateLanguageRequest } from '../../services/PropertyService'
+import { LocaleService } from '../../services/LocaleService'
 import CommentsModal from './CommentsModal'
 import HistoryModal from './HistoryModal'
 import ManagementTab from './ManagementTab'
@@ -295,14 +296,7 @@ function PropertiesContent() {
     }
 
     const getLanguageFlag = (language: string) => {
-        const flags: { [key: string]: string } = {
-            'de-DE': '🇩🇪',
-            'de-CH': '🇨🇭',
-            'it': '🇮🇹',
-            'fr': '🇫🇷',
-            'en': '🇬🇧'
-        }
-        return flags[language] || '🌐'
+        return LocaleService.getLanguageFlag(language)
     }
 
     const formatDate = (dateString: string) => {

@@ -220,5 +220,15 @@
         "failedCreateProject": "Failed to create project",
         "failedCreateInvitation": "Failed to create invitation",
         "invitationCopySuccess": "Invitation link copied to clipboard"
+    },
+    "Footer": {
+        "description": "Your complete localization management solution for seamless multilingual experiences.",
+        "quickLinks": "Quick Links",
+        "properties": "Properties",
+        "configuration": "Configuration",
+        "settings": "Settings",
+        "dashboard": "Dashboard",
+        "languageLabel": "Language",
+        "allRightsReserved": "All rights reserved."
     }
 }
