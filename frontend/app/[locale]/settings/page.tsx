@@ -1,7 +1,6 @@
 'use client'
 
 import { SettingService } from '../../services/SettingService'
-import { LocaleService } from '../../services/LocaleService'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import './Actions.css'
@@ -42,8 +41,6 @@ export default function ActionsPage() {
     const { data: session } = useSession()
     const user = session?.user as User || null
     const [settingService, setSettingService] = useState<SettingService | null>(null)
-    const [supportedLanguages, setSupportedLanguages] = useState<Array<{ code: string, name: string }>>([])
-    const [languagesLoading, setLanguagesLoading] = useState(true)
 
     // Import states
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -88,36 +85,7 @@ export default function ActionsPage() {
         }
     }, [user])
 
-    useEffect(() => {
-        const fetchSupportedLanguages = async () => {
-            setLanguagesLoading(true);
-            try {
-                const languages = await LocaleService.getSupportedLanguages(
-                    user?.companyId,
-                    user?.mainProjectId
-                );
-                setSupportedLanguages(languages);
 
-                // Set default language if not already set
-                if (languages.length > 0 && !importLanguage) {
-                    setImportLanguage(languages[0]?.code || 'en');
-                }
-                if (languages.length > 0 && !exportLanguage) {
-                    setExportLanguage(languages[0]?.code || 'en');
-                }
-            } catch (error) {
-                console.error('Error fetching supported languages:', error);
-                // Fallback to a basic English option
-                setSupportedLanguages([{ code: 'en', name: 'English' }]);
-            } finally {
-                setLanguagesLoading(false);
-            }
-        };
-
-        if (user?.companyId && user?.mainProjectId) {
-            fetchSupportedLanguages();
-        }
-    }, [user?.companyId, user?.mainProjectId, importLanguage, exportLanguage])
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0] || null
@@ -263,20 +231,16 @@ export default function ActionsPage() {
 
                         <div className="action-content">
                             <div className="form-group">
-                                <label htmlFor="language-select">Language:</label>
-                                <select
-                                    id="language-select"
+                                <label htmlFor="language-input">Language Code:</label>
+                                <input
+                                    id="language-input"
+                                    type="text"
                                     value={importLanguage}
                                     onChange={(e) => setImportLanguage(e.target.value)}
-                                    className="language-select"
-                                    disabled={importStatus.isLoading || languagesLoading}
-                                >
-                                    {supportedLanguages.map(lang => (
-                                        <option key={lang.code} value={lang.code}>
-                                            {lang.name} ({lang.code})
-                                        </option>
-                                    ))}
-                                </select>
+                                    className="language-input"
+                                    placeholder="e.g., en, fr, de-CH"
+                                    disabled={importStatus.isLoading}
+                                />
                             </div>
 
                             <div className="form-group">
@@ -327,20 +291,16 @@ export default function ActionsPage() {
 
                         <div className="action-content">
                             <div className="form-group">
-                                <label htmlFor="export-language-select">Language:</label>
-                                <select
-                                    id="export-language-select"
+                                <label htmlFor="export-language-input">Language Code:</label>
+                                <input
+                                    id="export-language-input"
+                                    type="text"
                                     value={exportLanguage}
                                     onChange={(e) => setExportLanguage(e.target.value)}
-                                    className="language-select"
-                                    disabled={exportStatus.isLoading || languagesLoading}
-                                >
-                                    {supportedLanguages.map(lang => (
-                                        <option key={lang.code} value={lang.code}>
-                                            {lang.name} ({lang.code})
-                                        </option>
-                                    ))}
-                                </select>
+                                    className="language-input"
+                                    placeholder="e.g., en, fr, de-CH"
+                                    disabled={exportStatus.isLoading}
+                                />
                             </div>
 
                             <button
