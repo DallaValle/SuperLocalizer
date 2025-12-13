@@ -64,6 +64,11 @@ function PropertiesContent() {
     const [newPropertyName, setNewPropertyName] = useState('')
     const [actionError, setActionError] = useState<string | null>(null)
     const [isManagementExpanded, setIsManagementExpanded] = useState(false)
+    const [deleteModal, setDeleteModal] = useState<{
+        isOpen: boolean
+        propertyKey: string
+    }>({ isOpen: false, propertyKey: '' })
+    const [isDeleting, setIsDeleting] = useState(false)
 
     // Helper function
     const getEditKey = (propertyKey: string, language: string) => {
@@ -569,6 +574,40 @@ function PropertiesContent() {
         loadProperties()
     }
 
+    const openDeleteModal = (propertyKey: string) => {
+        setDeleteModal({ isOpen: true, propertyKey })
+    }
+
+    const closeDeleteModal = () => {
+        setDeleteModal({ isOpen: false, propertyKey: '' })
+    }
+
+    const handleDeleteProperty = async () => {
+        if (!user?.mainProjectId || !deleteModal.propertyKey) {
+            return
+        }
+
+        setIsDeleting(true)
+        try {
+            await new PropertyService(user.mainProjectId).deleteProperty(deleteModal.propertyKey)
+            showToast(t('propertyDeleted', { key: deleteModal.propertyKey }))
+
+            // Remove the property from local state
+            setProperties(prev => prev.filter(p => p.key !== deleteModal.propertyKey))
+
+            // Close modal
+            closeDeleteModal()
+
+            // Reload properties to get accurate counts
+            await loadProperties()
+        } catch (error) {
+            console.error('Error deleting property:', error)
+            setError(t('error.deletingProperty'))
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
     const renderPagination = () => {
         const maxVisiblePages = 5
         const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
@@ -853,13 +892,22 @@ function PropertiesContent() {
                                     <div key={property.key} className="property-card">
                                         <div className="property-header">
                                             <h3 className="property-key">{property.key}</h3>
-                                            <div className="property-dates">
-                                                <span className="date-info">
-                                                    Created: {formatDate(property.insertDate)}
-                                                </span>
-                                                <span className="date-info">
-                                                    Updated: {formatDate(property.updateDate)}
-                                                </span>
+                                            <div className="property-header-right">
+                                                <div className="property-dates">
+                                                    <span className="date-info">
+                                                        Created: {formatDate(property.insertDate)}
+                                                    </span>
+                                                    <span className="date-info">
+                                                        Updated: {formatDate(property.updateDate)}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    className="delete-property-btn"
+                                                    onClick={() => openDeleteModal(property.key)}
+                                                    title={`Delete property: ${property.key}`}
+                                                >
+                                                    ✕
+                                                </button>
                                             </div>
                                         </div>
 
@@ -963,6 +1011,44 @@ function PropertiesContent() {
                 propertyKey={historyModal.propertyKey}
                 language={historyModal.language}
             />
+
+            {/* Delete Confirmation Modal */}
+            {deleteModal.isOpen && (
+                <div className="modal-overlay" onClick={closeDeleteModal}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>🗑️ Delete Property</h3>
+                            <button
+                                className="modal-close-btn"
+                                onClick={closeDeleteModal}
+                                disabled={isDeleting}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <p>Are you sure you want to delete the property <strong>"{deleteModal.propertyKey}"</strong>?</p>
+                            <p className="warning-text">⚠️ This action cannot be undone. All translations and associated data will be permanently removed.</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                className="modal-cancel-btn"
+                                onClick={closeDeleteModal}
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="modal-confirm-btn delete-confirm"
+                                onClick={handleDeleteProperty}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? 'Deleting...' : 'Delete Property'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Toast Notification */}
             {toastMessage && (

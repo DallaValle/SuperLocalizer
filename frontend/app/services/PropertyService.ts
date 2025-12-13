@@ -77,6 +77,14 @@ export class PropertyService {
         };
         return HttpClient.post<void>(endpoint, request);
     }
+
+    /**
+     * Delete a property by its key
+     */
+    async deleteProperty(propertyKey: string): Promise<void> {
+        const endpoint = `/project/${encodeURIComponent(this.projectId)}/property/${encodeURIComponent(propertyKey)}`;
+        return HttpClient.delete<void>(endpoint);
+    }
 }
 
 // Types for the management functionality

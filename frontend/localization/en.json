@@ -37,7 +37,7 @@
                 "title": "User and roles",
                 "description": "Set your company roles",
                 "icon": "👨‍👩‍👧‍👦",
-                "href": "/actions"
+                "href": "/users"
             },
             {
                 "title": "Configuration",
@@ -180,11 +180,13 @@
         "selectAtLeastOneFlag": "Please select at least one flag to update",
         "propertyNameRequired": "Property name is required",
         "propertyCreatedWithName": "Property \"{name}\" created successfully!",
+        "propertyDeleted": "Property \"{key}\" deleted successfully!",
         "error": {
             "loadingProperties": "Error loading properties",
             "duringSave": "Error during save",
             "updatingFlags": "Error updating flags. Please try again.",
-            "creatingProperty": "Error creating property. Please try again."
+            "creatingProperty": "Error creating property. Please try again.",
+            "deletingProperty": "Error deleting property. Please try again."
         }
     },
     "configuration": {

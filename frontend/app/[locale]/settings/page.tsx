@@ -1,10 +1,17 @@
 'use client'
 
 import { SettingService } from '../../services/SettingService'
+import { LocaleService } from '../../services/LocaleService'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import './Actions.css'
 import { User, SnapshotItem } from '../../types/domain'
+
+interface LanguageOption {
+    code: string;
+    name: string;
+    selected: boolean;
+}
 
 interface ImportStatus {
     isLoading: boolean;
@@ -15,6 +22,7 @@ interface ImportStatus {
 interface ExportStatus {
     isLoading: boolean;
     error: string | null;
+    message?: string | null;
 }
 
 interface SnapshotStatus {
@@ -52,10 +60,11 @@ export default function ActionsPage() {
     })
 
     // Export states
-    const [exportLanguage, setExportLanguage] = useState<string>('en')
+    const [availableLanguages, setAvailableLanguages] = useState<LanguageOption[]>([])
     const [exportStatus, setExportStatus] = useState<ExportStatus>({
         isLoading: false,
-        error: null
+        error: null,
+        message: null
     })
 
     // Snapshot states
@@ -85,7 +94,50 @@ export default function ActionsPage() {
         }
     }, [user])
 
+    useEffect(() => {
+        const loadAvailableLanguages = async () => {
+            if (user?.companyId && user?.mainProjectId) {
+                try {
+                    const languages = await LocaleService.getSupportedLanguages(user.companyId, user.mainProjectId)
+                    setAvailableLanguages(languages.map(lang => ({
+                        code: lang.code,
+                        name: lang.name,
+                        selected: false
+                    })))
+                } catch (error) {
+                    console.error('Failed to load available languages:', error)
+                    // Fallback to default languages
+                    const defaultLanguages = ['en', 'fr', 'de-DE', 'de-CH', 'it']
+                    setAvailableLanguages(defaultLanguages.map(code => ({
+                        code,
+                        name: LocaleService.getLanguageName(code),
+                        selected: false
+                    })))
+                }
+            }
+        }
 
+        loadAvailableLanguages()
+    }, [user?.companyId, user?.mainProjectId])
+
+
+
+    const handleLanguageToggle = (languageCode: string) => {
+        setAvailableLanguages(prev =>
+            prev.map(lang =>
+                lang.code === languageCode
+                    ? { ...lang, selected: !lang.selected }
+                    : lang
+            )
+        )
+    }
+
+    const handleSelectAllLanguages = () => {
+        const allSelected = availableLanguages.every(lang => lang.selected)
+        setAvailableLanguages(prev =>
+            prev.map(lang => ({ ...lang, selected: !allSelected }))
+        )
+    }
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0] || null
@@ -133,21 +185,42 @@ export default function ActionsPage() {
 
     const handleExport = async () => {
         if (!settingService) {
-            setExportStatus({ isLoading: false, error: 'Service not available' })
+            setExportStatus({ isLoading: false, error: 'Service not available', message: null })
             return
         }
 
-        setExportStatus({ isLoading: true, error: null })
+        const selectedLanguages = availableLanguages.filter(lang => lang.selected)
+        if (selectedLanguages.length === 0) {
+            setExportStatus({
+                isLoading: false,
+                error: 'Please select at least one language to export',
+                message: null
+            })
+            return
+        }
+
+        setExportStatus({ isLoading: true, error: null, message: null })
 
         try {
-            const blob = await settingService.exportFile(exportLanguage)
-            const filename = `localization_${exportLanguage}.json`
-            SettingService.downloadBlob(blob, filename)
-            setExportStatus({ isLoading: false, error: null })
+            const languageCodes = selectedLanguages.map(lang => lang.code)
+            const exports = await settingService.exportFiles(languageCodes)
+
+            // Download each file
+            exports.forEach(({ language, blob }) => {
+                const filename = `localization_${language}.json`
+                SettingService.downloadBlob(blob, filename)
+            })
+
+            setExportStatus({
+                isLoading: false,
+                error: null,
+                message: `Successfully exported ${exports.length} file(s)`
+            })
         } catch (error) {
             setExportStatus({
                 isLoading: false,
-                error: error instanceof Error ? error.message : 'Export failed'
+                error: error instanceof Error ? error.message : 'Export failed',
+                message: null
             })
         }
     }
@@ -285,31 +358,58 @@ export default function ActionsPage() {
                     {/* Export Section */}
                     <div className="action-card">
                         <div className="action-header">
-                            <h2>📤 Export Localization File</h2>
-                            <p>Download current translations as a JSON file</p>
+                            <h2>📤 Export Localization Files</h2>
+                            <p>Download current translations as JSON files for selected languages</p>
                         </div>
 
                         <div className="action-content">
                             <div className="form-group">
-                                <label htmlFor="export-language-input">Language Code:</label>
-                                <input
-                                    id="export-language-input"
-                                    type="text"
-                                    value={exportLanguage}
-                                    onChange={(e) => setExportLanguage(e.target.value)}
-                                    className="language-input"
-                                    placeholder="e.g., en, fr, de-CH"
-                                    disabled={exportStatus.isLoading}
-                                />
+                                <div className="language-selection-header">
+                                    <label>Select Languages to Export:</label>
+                                    <button
+                                        onClick={handleSelectAllLanguages}
+                                        disabled={exportStatus.isLoading}
+                                        className="select-all-btn"
+                                    >
+                                        {availableLanguages.every(lang => lang.selected) ? 'Deselect All' : 'Select All'}
+                                    </button>
+                                </div>
+                                <div className="languages-grid">
+                                    {availableLanguages.map((language) => (
+                                        <div key={language.code} className="language-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                id={`export-lang-${language.code}`}
+                                                checked={language.selected}
+                                                onChange={() => handleLanguageToggle(language.code)}
+                                                disabled={exportStatus.isLoading}
+                                            />
+                                            <label htmlFor={`export-lang-${language.code}`}>
+                                                <span className="language-flag">{LocaleService.getLanguageFlag(language.code)}</span>
+                                                <span className="language-code">{language.code}</span>
+                                                <span className="language-name">{language.name}</span>
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
                             <button
                                 onClick={handleExport}
-                                disabled={exportStatus.isLoading}
+                                disabled={exportStatus.isLoading || availableLanguages.filter(lang => lang.selected).length === 0}
                                 className="action-btn export-btn"
                             >
-                                {exportStatus.isLoading ? 'Exporting...' : 'Export File'}
+                                {exportStatus.isLoading
+                                    ? 'Exporting...'
+                                    : `Export ${availableLanguages.filter(lang => lang.selected).length} File(s)`
+                                }
                             </button>
+
+                            {exportStatus.message && (
+                                <div className="status-message success">
+                                    {exportStatus.message}
+                                </div>
+                            )}
 
                             {exportStatus.error && (
                                 <div className="status-message error">

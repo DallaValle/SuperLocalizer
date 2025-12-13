@@ -395,3 +395,111 @@
     background: #6c757d !important;
     cursor: not-allowed !important;
 }
+
+/* Language Selection Styles */
+.language-selection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.language-selection-header label {
+    font-weight: 600;
+    color: #002629;
+}
+
+.select-all-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s ease;
+}
+
+.select-all-btn:hover {
+    background: #545b62;
+}
+
+.select-all-btn:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+}
+
+.languages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.language-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.language-checkbox input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 16px;
+    height: 16px;
+}
+
+.language-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.language-checkbox label:hover {
+    background-color: #f8f9fa;
+}
+
+.language-flag {
+    font-size: 1.1rem;
+}
+
+.language-code {
+    font-weight: 600;
+    color: #002629;
+    min-width: 60px;
+}
+
+.language-name {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.language-checkbox input[type="checkbox"]:checked+label {
+    background-color: #e3f2fd;
+    border: 1px solid #1976d2;
+}
+
+.language-checkbox input[type="checkbox"]:disabled+label {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .languages-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .language-selection-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .select-all-btn {
+        align-self: flex-end;
+    }
+}

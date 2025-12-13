@@ -50,6 +50,21 @@ export class SettingService {
     }
 
     /**
+     * Download/export multiple localization files
+     * @param languages Array of language codes to export
+     * @returns Promise<Array<{language: string, blob: Blob}>> Array of exported files
+     */
+    async exportFiles(languages: string[]): Promise<Array<{ language: string, blob: Blob }>> {
+        const exports = await Promise.all(
+            languages.map(async (language) => {
+                const blob = await this.exportFile(language);
+                return { language, blob };
+            })
+        );
+        return exports;
+    }
+
+    /**
      * Save a snapshot of the current project state
      * @returns Promise<string> Success message
      */

@@ -1,7 +1,6 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using SuperLocalizer.Model;
 using SuperLocalizer.Repository;
 using SuperLocalizer.Services;
@@ -15,7 +14,6 @@ namespace Test2.Api.Controllers;
 [Route("auth")]
 public class AccountController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IUserProfile _userProfile;
@@ -24,19 +22,16 @@ public class AccountController : ControllerBase
     /// <summary>
     /// Initializes a new instance of the <see cref="AccountController"/> class.
     /// </summary>
-    /// <param name="configuration">The application configuration.</param>
     /// <param name="passwordHasher">The password hasher service.</param>
     /// <param name="userRepository">The user repository.</param>
     /// <param name="userProfile">The user profile service.</param>
     /// <param name="invitationService">The invitation service.</param>
     public AccountController(
-        IConfiguration configuration,
         IPasswordHasher passwordHasher,
         IUserRepository userRepository,
         IUserProfile userProfile,
         IInvitationService invitationService)
     {
-        _configuration = configuration;
         _passwordHasher = passwordHasher;
         _userRepository = userRepository;
         _userProfile = userProfile;
@@ -181,51 +176,4 @@ public class AccountController : ControllerBase
 
         return Ok(currentUser);
     }
-}
-
-/// <summary>
-/// Represents a login request with username and password.
-/// </summary>
-public class LoginRequest
-{
-    /// <summary>
-    /// Gets or sets the username.
-    /// </summary>
-    public string Username { get; set; }
-
-    /// <summary>
-    /// Gets or sets the password.
-    /// </summary>
-    public string Password { get; set; }
-}
-
-public class LoginResponse
-{
-    public string Token { get; set; }
-}
-
-/// <summary>
-/// Represents a social login request from OAuth providers like Google.
-/// </summary>
-public class SocialLoginRequest
-{
-    /// <summary>
-    /// Gets or sets the user's email from the OAuth provider.
-    /// </summary>
-    public string Email { get; set; }
-
-    /// <summary>
-    /// Gets or sets the user's name from the OAuth provider.
-    /// </summary>
-    public string Name { get; set; }
-
-    /// <summary>
-    /// Gets or sets the OAuth provider (e.g., "google").
-    /// </summary>
-    public string Provider { get; set; }
-
-    /// <summary>
-    /// Gets or sets the user's ID from the OAuth provider.
-    /// </summary>
-    public string ProviderId { get; set; }
 }
