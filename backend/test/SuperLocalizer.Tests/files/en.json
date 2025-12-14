@@ -1,0 +1,236 @@
+{
+    "home": {
+        "title": "Welcome to SuperLocalizer",
+        "subtitle": "Your localization management solution",
+        "features": {
+            "heading": "Features",
+            "items": [
+                "Create continuous localization workflows",
+                "Auto-translate with AI translation or real experts",
+                "Integrate with your favorite tools",
+                "Reduce time-consuming manual tasks and empower developers to localize at twice the speed",
+                "Set up automation rules with a few clicks",
+                "Auto-approve and reuse translations"
+            ]
+        },
+        "automation": "Precision, quality, and consistency, without the manual effort.",
+        "slogan": "Boost your localization accuracy from 98% with AI to 100% thanks to our expert, in fully automated workflow. ",
+        "getStarted": {
+            "heading": "Get Started Today",
+            "description": "Sign up for a free trial and experience the power of SuperLocalizer for your localization needs.",
+            "button": "Try it for free"
+        },
+        "plans": "Plans",
+        "flowImageAlt": "SuperLocalizer Workflow"
+    },
+    "dashboard": {
+        "companyLabel": "Company:",
+        "projectLabel": "Project:",
+        "navCards": [
+            {
+                "title": "Manage Translations",
+                "description": "View and edit all translations",
+                "icon": "📝",
+                "href": "/properties"
+            },
+            {
+                "title": "User and roles",
+                "description": "Set your company roles",
+                "icon": "👨‍👩‍👧‍👦",
+                "href": "/users"
+            },
+            {
+                "title": "Configuration",
+                "description": "Configure projects and more",
+                "icon": "🚀",
+                "href": "/configuration"
+            },
+            {
+                "title": "Automation",
+                "description": "Configure import, export, merge and triggers!",
+                "icon": "🤖",
+                "href": "/automation"
+            },
+            {
+                "title": "Subscription",
+                "description": "Became a family member and unlock all power!",
+                "icon": "💌",
+                "href": "/subscriptions"
+            },
+            {
+                "title": "Settings",
+                "description": "Import, export and snapshot",
+                "icon": "⚙️",
+                "href": "/settings"
+            }
+        ],
+        "cards": {
+            "supportedLanguages": {
+                "heading": "Supported Languages",
+                "description": "Available languages for translation",
+                "loading": "...",
+                "none": "-"
+            },
+            "completedTranslations": {
+                "heading": "Completed Translations",
+                "description": "Keys translated this month",
+                "none": "-"
+            },
+            "pendingReviews": {
+                "heading": "Pending Reviews",
+                "description": "Translations awaiting review",
+                "loading": "...",
+                "none": "-"
+            },
+            "pendingVerify": {
+                "heading": "Pending Verify",
+                "description": "Translations awaiting verify",
+                "loading": "...",
+                "none": "-"
+            }
+        },
+        "recentActivity": {
+            "heading": "Recent Activity",
+            "loading": "Loading recent activity...",
+            "noActivity": "No activity recorded for today",
+            "by": "by {userName}",
+            "messages": {
+                "newTranslation": "New translation added for \"{key}\" in {lang}",
+                "reviewCompleted": "Review completed for \"{key}\" in {lang}",
+                "verified": "Translation verified for \"{key}\" in {lang}",
+                "updated": "Translation updated for \"{key}\" in {lang}",
+                "removed": "Translation removed for \"{key}\" in {lang}",
+                "generic": "Activity on \"{key}\""
+            }
+        }
+    },
+    "login": {
+        "title": "Sign in to SuperLocalizer",
+        "subtitle": "Enter your credentials to access your account",
+        "usernameLabel": "Username",
+        "passwordLabel": "Password",
+        "usernamePlaceholder": "Enter your username",
+        "passwordPlaceholder": "Enter your password",
+        "loginButton": "Login",
+        "loggingIn": "Logging in...",
+        "googleButton": "Continue with Google",
+        "supertextButton": "Continue with Supertext",
+        "createAccount": "Create account",
+        "or": "or",
+        "error": {
+            "invalidCredentials": "Invalid username or password",
+            "generic": "An error occurred during login"
+        },
+        "loading": "Loading...",
+        "logoAlt": "SuperLocalizer Logo",
+        "supertextAlt": "Supertext"
+    },
+    "NavBar": {
+        "loading": "Loading...",
+        "login": "Login",
+        "tryIt": "Try it for free",
+        "logout": "Logout",
+        "dashboard": "← Dashboard",
+        "account": "{username}"
+    },
+    "signup": {
+        "title": "Create account",
+        "usernameLabel": "Username / Email:",
+        "passwordLabel": "Password:",
+        "confirmPasswordLabel": "Confirm password:",
+        "createButton": "Create account",
+        "creating": "Creating...",
+        "backToLogin": "Back to login",
+        "passwordMismatch": "Passwords do not match",
+        "errorGeneric": "Signup failed"
+    },
+    "properties": {
+        "tab": {
+            "search": "Search & View Properties",
+            "management": "Languages Management"
+        },
+        "filters": {
+            "searchLabel": "Search Term",
+            "searchPlaceholder": "Search properties...",
+            "languageLabel": "Language",
+            "allLanguages": "All Languages",
+            "verifiedLabel": "Verified Status",
+            "all": "All",
+            "verified": "Verified",
+            "notVerified": "Not Verified",
+            "reviewedLabel": "Review Status",
+            "reviewed": "Reviewed",
+            "notReviewed": "Not Reviewed",
+            "sortByLabel": "Sort By",
+            "sortDirectionLabel": "Sort Direction",
+            "ascending": "Ascending",
+            "descending": "Descending",
+            "searchButton": "Search",
+            "resetButton": "Reset"
+        },
+        "searchPlaceholder": "Search by key...",
+        "clear": "Clear",
+        "manageTitle": "⚙️ Manage Properties",
+        "loading": "Loading properties...",
+        "retry": "Retry",
+        "saved": "Saved",
+        "propertyCreated": "Property created successfully!",
+        "languageCreated": "Language created successfully!",
+        "flagsUpdated": "Flags updated successfully!",
+        "selectAtLeastOneFlag": "Please select at least one flag to update",
+        "propertyNameRequired": "Property name is required",
+        "propertyCreatedWithName": "Property \"{name}\" created successfully!",
+        "propertyDeleted": "Property \"{key}\" deleted successfully!",
+        "error": {
+            "loadingProperties": "Error loading properties",
+            "duringSave": "Error during save",
+            "updatingFlags": "Error updating flags. Please try again.",
+            "creatingProperty": "Error creating property. Please try again.",
+            "deletingProperty": "Error deleting property. Please try again."
+        }
+    },
+    "configuration": {
+        "title": "Configuration",
+        "description": "In this section you can set up your localization journey: create a project then start uploading a localization file",
+        "inviteHeading": "Invite Team Members",
+        "inviteDescription": "Generate an invitation link to invite new team members to your company.",
+        "generating": "Generating...",
+        "generateLink": "Generate Invitation Link",
+        "invitationGenerated": "Invitation link generated successfully!",
+        "copy": "Copy",
+        "generateNew": "Generate New Link",
+        "createCompanyTitle": "Create Company",
+        "nameLabel": "Name",
+        "addressLabel": "Address",
+        "emailLabel": "Email",
+        "phoneLabel": "Phone",
+        "creating": "Creating...",
+        "createCompany": "Create Company",
+        "companyNameRequired": "Company name is required",
+        "failedCreateCompany": "Failed to create company",
+        "projectsTitle": "Projects",
+        "noProjects": "No projects created yet.",
+        "mainProjectBadge": "Main Project",
+        "setting": "Setting...",
+        "setAsMain": "Set as Main",
+        "projectNamePlaceholder": "Enter project name",
+        "projectDescriptionPlaceholder": "Enter project description",
+        "creatingProject": "Creating...",
+        "createProject": "Create Project",
+        "projectNameRequired": "Project name is required",
+        "companyMustBeCreated": "Company must be created first",
+        "failedCreateProject": "Failed to create project",
+        "failedCreateInvitation": "Failed to create invitation",
+        "invitationCopySuccess": "Invitation link copied to clipboard"
+    },
+    "Footer": {
+        "description": "Your complete localization management solution for seamless multilingual experiences.",
+        "quickLinks": "Quick Links",
+        "properties": "Properties",
+        "configuration": "Configuration",
+        "settings": "Settings",
+        "dashboard": "Dashboard",
+        "languageLabel": "Language",
+        "allRightsReserved": "All rights reserved."
+    }
+}

@@ -28,15 +28,15 @@ export default function PlansMatrix() {
 
                 <div className="plans-row">
                     <div className="plans-cell">Auto-translate</div>
-                    <div className="plans-cell">No</div>
-                    <div className="plans-cell">Yes (limited)</div>
-                    <div className="plans-cell">Yes (full)</div>
+                    <div className="plans-cell">Pay per use</div>
+                    <div className="plans-cell">Yes</div>
+                    <div className="plans-cell">Yes</div>
                 </div>
 
                 <div className="plans-row">
                     <div className="plans-cell">Real human experts verification</div>
-                    <div className="plans-cell">No</div>
-                    <div className="plans-cell">Still no :(</div>
+                    <div className="plans-cell">Pay per use</div>
+                    <div className="plans-cell">Pay per use</div>
                     <div className="plans-cell">Yes (ch, de, en, fr, it)</div>
                 </div>
 

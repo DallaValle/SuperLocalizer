@@ -1,0 +1,142 @@
+{
+  "home": {
+    "features": {
+      "heading": "Caratteristiche",
+      "items": [
+        "Creare flussi di lavoro di localizzazione continui",
+        "Traduzione automatica con traduzione AI o veri esperti",
+        "Integratevi con i vostri strumenti preferiti",
+        "Riduca le attività manuali che richiedono molto tempo e consenta agli sviluppatori di localizzare il doppio più velocemente",
+        "Configurare le regole di automazione con pochi clic",
+        "Approvare automaticamente e riutilizzare le traduzioni"
+      ]
+    },
+    "automation": "Precisione, qualità e coerenza, senza sforzo manuale.",
+    "flowImageAlt": "SuperLocalizer Workflow"
+  },
+  "dashboard": {
+    "companyLabel": "Società:",
+    "projectLabel": "Progetto:",
+    "navCards": [
+      {
+        "title": "Gestisci le traduzioni",
+        "description": "Visualizzare e modificare tutte le traduzioni",
+        "icon": "📝",
+        "href": "/proprietà"
+      },
+      {
+        "title": "Utente e ruoli",
+        "description": "Imposta i ruoli della vostra azienda",
+        "icon": "👨‍👩‍👧‍👦",
+        "href": "/azioni"
+      },
+      {
+        "title": "Configurazione",
+        "description": "Configurare i progetti e altro",
+        "icon": "🚀",
+        "href": "/configurazione"
+      },
+      {
+        "title": "Automazione",
+        "description": "Configurare importazione, esportazione, unione e trigger!",
+        "icon": "🤖",
+        "href": "/automazione"
+      },
+      {
+        "title": "Abbonamento",
+        "description": "Diventate un membro della famiglia e sbloccate tutti i poteri!",
+        "icon": "💌",
+        "href": "/iscrizioni"
+      },
+      {
+        "title": "Impostazioni",
+        "description": "Importazione, esportazione e istantanee",
+        "icon": "⚙️",
+        "href": "/impostazioni"
+      }
+    ],
+    "cards": {
+      "supportedLanguages": {
+        "heading": "Lingue supportate",
+        "description": "Lingue disponibili per la traduzione",
+        "loading": "...",
+        "none": "-"
+      },
+      "completedTranslations": {
+        "heading": "Traduzioni completate",
+        "description": "Chiavi tradotte questo mese",
+        "none": "-"
+      },
+      "pendingReviews": {
+        "heading": "Revisioni in sospeso",
+        "description": "Traduzioni in attesa di revisione",
+        "loading": "...",
+        "none": "-"
+      },
+      "pendingVerify": {
+        "heading": "In attesa di verifica",
+        "description": "Traduzioni in attesa di verifica",
+        "loading": "...",
+        "none": "-"
+      }
+    },
+    "recentActivity": {
+      "heading": "Attività recenti",
+      "loading": "Caricamento dell’attività recente...",
+      "noActivity": "Nessuna attività registrata per oggi",
+      "by": "da {userName}",
+      "messages": {
+        "newTranslation": "Aggiunta una nuova traduzione per «{key}» in {lang}",
+        "reviewCompleted": "Revisione completata per «{key}» in {lang}",
+        "verified": "Traduzione verificata per «{key}» in {lang}",
+        "updated": "Traduzione aggiornata per «{key}» in {lang}",
+        "removed": "Traduzione rimossa per «{key}» in {lang}",
+        "generic": "Attività su «{key}»"
+      }
+    }
+  },
+  "configuration": {
+    "title": "Configurazione",
+    "description": "In questa sezione potete impostare il vostro percorso di localizzazione: create un progetto e iniziate a caricare un file di localizzazione",
+    "inviteHeading": "Invita i membri del team",
+    "inviteDescription": "Genera un link di invito per invitare nuovi membri del team nella vostra azienda.",
+    "generating": "Generazione...",
+    "generateLink": "Generare il link di invito",
+    "invitationGenerated": "Il link di invito è stato generato con successo!",
+    "copy": "Copia",
+    "generateNew": "Generare Nuovo Link",
+    "createCompanyTitle": "Crea Azienda",
+    "nameLabel": "Nome",
+    "addressLabel": "Indirizzo",
+    "emailLabel": "Email",
+    "phoneLabel": "Telefono",
+    "creating": "Creare...",
+    "createCompany": "Crea Azienda",
+    "companyNameRequired": "Il nome dell’azienda è obbligatorio",
+    "failedCreateCompany": "Impossibile creare l’azienda",
+    "projectsTitle": "Progetti",
+    "noProjects": "Nessun progetto creato ancora.",
+    "mainProjectBadge": "Progetto principale",
+    "setting": "Impostazione...",
+    "setAsMain": "Imposta come principale",
+    "projectNamePlaceholder": "Inserire il nome del progetto",
+    "projectDescriptionPlaceholder": "Inserire la descrizione del progetto",
+    "creatingProject": "Creare...",
+    "createProject": "Crea progetto",
+    "projectNameRequired": "Il nome del progetto è obbligatorio",
+    "companyMustBeCreated": "La società deve essere creata per prima",
+    "failedCreateProject": "Impossibile creare il progetto",
+    "failedCreateInvitation": "Impossibile creare l’invito",
+    "invitationCopySuccess": "Il link di invito è stato copiato nella clipboard"
+  },
+  "Footer": {
+    "description": "La vostra soluzione completa di gestione della localizzazione per esperienze multilingue senza interruzioni.",
+    "quickLinks": "Link rapidi",
+    "properties": "Proprietà",
+    "configuration": "Configurazione",
+    "settings": "Impostazioni",
+    "dashboard": "Cruscotto",
+    "languageLabel": "Lingua",
+    "allRightsReserved": "Tutti i diritti riservati."
+  }
+}

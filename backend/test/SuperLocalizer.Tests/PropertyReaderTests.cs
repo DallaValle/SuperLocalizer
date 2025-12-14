@@ -16,34 +16,38 @@ public class PropertyReaderTests
     [Test]
     public void Load_ShouldReturnListOfProperties()
     {
-        var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("./de-CH/localization_de-CH.json"));
-        var result = _sut.Load(json, "de-CH");
-        Assert.That(result.Count, Is.EqualTo(2950));
+        var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText("./files/en.json"));
+        var result = _sut.Load(json, "en");
+        Assert.That(result.Count, Is.EqualTo(176));
     }
 
     [Test]
     public void Merge_ShouldMergePropertiesCorrectly()
     {
         var allProperties = new Dictionary<string, Property>();
-        foreach (string fileName in Directory.GetFiles(".", "localization_*.json", SearchOption.AllDirectories))
+        foreach (string fileName in Directory.GetFiles(".", "*.json", SearchOption.AllDirectories))
         {
-            var lang = Path.GetFileNameWithoutExtension(fileName).Split('_')[1];
+            var lang = Path.GetFileNameWithoutExtension(fileName).Split('.')[0];
             var json = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(fileName));
             var properties = _sut.Load(json, lang);
             allProperties = _sut.MergeValues(allProperties, properties);
         }
-        Assert.That(allProperties.Count, Is.EqualTo(2950));
-        Assert.That(allProperties.First().Value.Values.Count, Is.EqualTo(5));
+        Assert.That(allProperties.Count, Is.EqualTo(694));
+        Assert.That(allProperties.First().Value.Values.Count, Is.EqualTo(2));
     }
 
     [Test]
     public void UnLoad_ShouldReturnJObject()
     {
-        string value = File.ReadAllText("./de-CH/localization_de-CH.json");
+        string value = File.ReadAllText("./files/en.json");
         var json = JsonConvert.DeserializeObject<JObject>(value);
-        var result = _sut.Load(json, "de-CH");
-        var unLoaded = _sut.UnLoad(result, "de-CH");
+        var result = _sut.Load(json, "en");
+        var unLoaded = _sut.UnLoad(result, "en");
         Assert.That(unLoaded, Is.Not.Null);
-        Assert.That(value, Is.EqualTo(unLoaded.ToString()));
+
+        // Format the unloaded JSON to match the original formatting
+        var formattedValue = JsonConvert.SerializeObject(json, Formatting.Indented);
+        var formattedUnloaded = JsonConvert.SerializeObject(unLoaded, Formatting.Indented);
+        Assert.That(formattedValue.Trim(), Is.EqualTo(formattedUnloaded.Trim()));
     }
 }

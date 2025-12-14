@@ -33,11 +33,21 @@ SuperLocalizer/
 └── docs/                       # Documentation
 ```
 
-## Run
+### Prerequisites
 
-First initialize secrets for FE and BE:
+- .NET 9.0 SDK
+- Node.js (v18 or later)
+- npm or yarn
 
-### FE
+## Configuration
+
+- run redis (use docker-compose.yml)
+- run mysql (use docker-compose.yml)
+- setup secrets
+- run BE .Net
+- run FE Next.js
+
+### Next.js secrets
 
 Create a .env.local file with:
 
@@ -50,7 +60,7 @@ GOOGLE_CLIENT_ID=google_client_id
 GOOGLE_CLIENT_SECRET=google_client_secret
 ```
 
-### BE
+### .Net secrets
 
 Set Supertext ApiKey
 
@@ -59,13 +69,17 @@ dotnet user-secrets init
 dotnet user-secrets set "Supertext:ApiKey" "xxx"
 ```
 
-backend -> running on port 5000
+### .Net run
+
+running on port 5000
 
 ```bash
 dotnet run --project backend/src/SuperLocalizer/SuperLocalizer.csproj
 ```
 
-frontend -> running on port 3000
+### Next.js run
+
+running on port 3000
 
 ```bash
 cd frontend
@@ -78,12 +92,6 @@ npm run dev
 ```bash
 docker-compose up -d --build
 ```
-
-### Prerequisites
-
-- .NET 9.0 SDK
-- Node.js (v18 or later)
-- npm or yarn
 
 ### API Documentation
 
